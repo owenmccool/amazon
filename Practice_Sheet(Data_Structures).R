@@ -1,0 +1,454 @@
+# Module 1 Videos: Intro to R
+
+as.character(5.3)
+as.character(TRUE)
+as.character(FALSE)
+as.character(3L)
+
+as.numeric("45")
+as.numeric(TRUE)
+as.numeric(FALSE)
+as.numeric(7L)
+
+as.logical("TRUE")
+as.logical("FALSE")
+as.logical(3)
+as.logical(-5)
+as.logical(0)
+
+as.integer(3.3)
+as.integer("5")
+as.integer(TRUE)
+
+
+res1 = 1.5 + 4L
+res1
+class(res1)
+
+res2 = 1.5 + TRUE
+res2
+class(res2)
+
+res3 = 5L + TRUE
+res3
+class(res3)
+
+TRUE + TRUE
+TRUE + FALSE
+
+1.5 + "5"
+
+
+na_var = NA
+na_var
+na = 3
+
+class(na_var)
+
+na_var = as.character(na_var)
+na_var
+class(na_var)
+
+inf_val = 5/0
+class(inf_val)
+
+Inf=3
+
+
+inf_log = as.logical(Inf)
+inf_log
+
+inf_char = as.character(Inf)
+inf_char
+
+as.numeric(inf_log)
+as.numeric(inf_char)
+
+
+0/0
+sqrt(-1)
+Inf+Inf
+Inf-Inf
+Inf*0
+
+
+NULL
+my_var = NULL
+my_var
+
+class(my_var)
+
+result = NA + 4
+result 
+
+result = NULL + 4
+result
+
+
+# Module 2 videos: Data Structures #
+
+
+temperature = 75 #fahrenheit
+temperature_C = (temperature-32)*5/9
+temperature_C
+
+
+# vector for lizard's weights
+lizards_weight = c(2.25, 4.45, 1.75) # in grams
+str(lizards_weight)
+lizards_weight[2]
+
+# lizard size vector
+lizards_size = c("medium", "large", "small")
+str(lizards_size)
+lizards_size[2]
+
+# fixing potential mistakes with replacing vector numbers
+lizards_weight[2] <- 3.45
+lizards_weight
+
+# fixing mistakes with underestimation of weight by .1g on miscalibration
+lizards_weight <- lizards_weight + 0.1
+lizards_weight
+
+
+# VECTORS #
+
+c(1,2,3,4)
+#c stands for combine
+nums = c(1,2,3,4)
+nums
+
+names=c("bob", "alice")
+names
+class(names)
+
+
+mixed_vec =c(5,-1,"cat")
+mixed_vec
+
+bools = c(TRUE,TRUE,FALSE,TRUE)
+bools
+
+not_bools = c(TRUE,TRUE,FALSE,TRUE,1)
+not_bools
+
+#no mixed data types in a vector, but can have NA
+nums = c(4,-1,NA,3.3)
+nums
+
+animals=c(NA,"cow","goat")
+animals
+
+
+
+nums = c(1,NaN,2,Inf,3)
+nums
+
+#the numerics have been converted to character strings
+animals=c(NaN,Inf,"cow","goat")
+animals
+
+#if you use special terms in a logical vector, different conversion
+c(FALSE,NaN,Inf,FALSE,NA,TRUE) #now logical true/false values are numeric
+
+#vector with single value
+c(5)
+5
+
+
+# COMBINING VECTORS #
+
+a=13
+
+nums = c(1.1,-2,0.3,7/2,abs(-4),a,-1*sqrt(3)+a)
+nums
+nums=round(nums, digits=2)
+nums
+
+nums2 = c(a,2,nums)
+nums2
+
+#GENERATING VECTORS#
+
+nums=c(1,2,3)
+nums
+
+nums=1:3
+nums
+
+nums=1:140
+nums
+
+nums=1.3:10 #increment of not exact # won't be included
+nums
+
+?seq
+
+nums=seq(1.3,10)
+nums
+
+nums=seq(1.3,10,2.1)
+nums
+
+nums=seq(1.3,-10,-2.1) #sign has to make sense on decrement number
+nums
+
+
+?rep
+
+
+nums=2:4
+
+
+rep(nums,times=5) #replicates sequence 5 times
+
+rep(nums,length.out=5) #replicates until we hit critical value of 5 elements
+
+
+a=c("cat","dog")
+a
+
+rep(a,times=5)
+rep(a,length.out=5)
+
+
+# RANDOM VECTORS #
+
+?runif
+
+random_nums=runif(7)
+random_nums
+
+
+random_nums=runif(7,-3,13)
+random_nums
+
+#function for randomly sampling values from vector
+?sample
+
+vec=1:7 
+vec
+
+rand_sample=sample(vec,size=3) #samples from vector above
+rand_sample
+
+vec=c("Alice","Bob","Carlie","Dan","Fiona","George")
+vec
+
+rand_sample=sample(vec,size=3) 
+rand_sample
+#you won't get same name twice in a result
+
+rand_sample=sample(vec,size=10) #needs a modifier with "replace"
+rand_sample
+
+rand_sample=sample(vec,size=10,replace=TRUE)
+rand_sample
+
+set.seed(13) #do this before using random numbers (pseudorandom)
+
+random_num=runif(7)
+random_num
+
+
+#BUILT-IN VECTORS#
+
+?Constants
+
+
+LETTERS
+a=LETTERS
+a
+
+LETTERS="hello"
+LETTERS
+month.name
+LETTERS
+letters
+#extra practice
+rand_sample=sample(letters,size=6)
+rand_sample
+
+#ACCESSING VECTORS#
+
+months=month.name #equalling a variable for the list provided by R
+months
+#getting individual values from vector with [x]
+months[7] #retrieving 7th month
+months[3]
+
+months[12]
+months[13]
+
+months[c(3,7,3)]
+months[3,7,3] #error because not multi-dimensional
+
+months
+
+months[-1] #pretty mich "give me all the results of the vector except the first one"
+months[-2:-11] #exclude everything but Jan and Dec
+
+months
+months[6] = "cow"
+months
+
+months[1:3]="dog" #replacing values with other values
+months
+
+months[1:8]=1:3
+months          #mixing numeric and char data in vector will lead to numeric changing to strings, why numers generated are ""
+
+
+#VECTOR FUNCTIONS#
+
+months=month.abb
+months
+
+?length
+length(months)
+
+
+?sort
+
+sorted_months=sort(months)
+sorted_months
+
+sorted_months=sort(months,decreasing=TRUE)
+sorted_months #reversing the alphabetical order
+
+nums=sample(1:10,7,replace=TRUE)  #Drawing 7 numbers, ranged 1-10, and there can be duplicates
+nums
+
+sort(nums)
+
+
+months
+order(months).  #essentially says that the number order would be what happened if sorted alphabetically
+sort(months)
+
+months[order(months)]  #sort/order are similar functions in name
+
+nums
+unique(nums) #lets us find rare values in common value pools
+
+
+# VECTOR MATH #
+
+nums=c(9.5,8,4.7,1,6)
+nums
+
+nums +5
+nums-7
+nums*3
+nums/2
+
+
+nums
+nums+1:5   #this adds 1st element of vector to 1st element of [list]
+
+nums
+nums + 1:2 #warning because our vector runs out of values early, R will recycle the values 
+
+nums
+nums + 1:10 #this is twice the length of what we did so R keeps adding until 1:10 has been used up
+
+nums
+sum(nums)
+sum(nums)/length(nums)
+mean(nums) #shortcut function
+
+min(nums) #gets biggest/smallest numbers to find outliers and range
+max(nums)
+
+#dealing w/ missing data/ NAs
+sum(c(nums,NA))
+sum(c(nums,NA),na.rm=TRUE) #na.rm ignores NAs
+
+nums
+round(nums)
+round(nums,digits=3)
+sqrt(nums)
+sin(nums)
+
+#MATRICES#
+#vectors w/ 2D instead of 1
+
+?matrix
+mat=matrix(0,nrow=3,ncol=5)
+mat
+
+mat=matrix(1:15,nrow=3,ncol=5)
+mat
+
+mat=matrix(1:15,nrow=3,ncol=5,byrow=TRUE)
+mat
+
+
+matrix(c("cat","dog"),3,3)
+
+mat
+mat[1]
+mat[2]
+mat[3] #shows which values are at the rank eg. 6 is the second value, 15 is the 15th
+
+mat[1:3]
+mat[c(5,15,5)] #our 5th value is 7, 15th is 15, 5th is 7
+
+
+mat
+mat[3,2] #gives us the value of row 3, column 2
+mat[3,2:4] #gives us the value of row 3, columns 2, 3, and 4
+
+mat[3,2:4, drop=FALSE] #if you need answer to be in form of vector, use drop parameter
+
+mat
+mat[2:3,2:4] =3
+mat
+
+
+mat
+length(mat)
+nrow(mat) 
+ncol(mat)
+dim(mat) #shortcut for below
+
+c(nrow(mat),ncol(mat)) #same as dim(mat)
+
+
+mat
+mat*3
+
+mat * 1:3 #trying it with a vector, goes in matrix top-down order for multiplying from 1 to 3
+
+mat
+mat %*% 1:5 #how you would do it with linear algebra (don't worry about it)
+
+mat
+mat + mat
+mat*2
+
+
+#More Matrices#
+
+data=c("low","high","high","low","medium")
+
+data
+data_fac=factor(data)
+data_fac
+
+as.numeric(data_fac) #so high means 1, low means 2, medium means 3
+as.character(data_fac) #factors can help make numbers words, vice versa when useful
+
+levels(data_fac) #R always sorts this data alphabetically, not by natural order
+
+data
+f1=factor(data, levels=c("low","medium","high"))
+f1
+as.numeric(f1)
+
+f2=factor(data_fac, levels=c("low","medium","high"))
+f2
+as.numeric(f2)
+
+
