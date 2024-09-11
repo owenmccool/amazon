@@ -296,7 +296,7 @@ months
 months[1:3]="dog" #replacing values with other values
 months
 
-months[1:8]=1:3
+months[1:8]=1:3te
 months          #mixing numeric and char data in vector will lead to numeric changing to strings, why numers generated are ""
 
 
