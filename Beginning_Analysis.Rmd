@@ -5,9 +5,19 @@ date: "2024-09-04"
 output: word_document
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+  
+```{r package read in}
+
+library(dplyr)
+library(vegan)
+```
+
+
+
 ## Project Overview ##
 
 Study Site: Research was split between two different zones within the greater Yasuni Biosphere Reserve. Tiputini Biodiversity Station (TBS) served as the faunally intact site, whereas Yasuni Research Station (YRS) served as the defaunated site. Both sites are situated along the Tiputini River within the province of Orellana, Ecuador. TBS, approximately 45 km east of YRS, is only accessible by boat. YRS is along the Maxus Oil Road, and is less integrated into the Amazonian ecosystem. Additionally, unsustainable hunting activities by the indigenous communities have been prominent in the surrounding region at YRS for multiple decades, as noted from 2014. This is thought to be the root cause of defaunation in this zone. 
@@ -30,6 +40,29 @@ Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors
 	Snakes found during non-survey times were also recorded. These individuals were split into one of two categories of detection. The first is an “Opportunistic Encounter” (OE), which is any snake that was found by me while out working on other non-herpetofauna projects in the field. The other type of detection is the Third Party Encounter (TPE). This was any snake that was found by other research groups during my rotations at each station, identified to lowest possible taxonomy. The same data was taken for these individuals. GPS coordinates, time of detection, trail, observer, estimation of distance from trail, and habitat type. Because the third-party observers often didn’t have access to the climate data logger, this information was retrieved later on from each station’s respective weather tower data, based on the time of detection. 
 
 Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert webpage Reptiles of Ecuador. 
+
+
+```{r data read in}
+df_snakes.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
+df_snakes.sur2<- df_snakes.sur[-2, ] #removing blank row from dataset
+df_snakes.sur[-2, ]
+test <- df_snakes.sur[4, 3] 
+rm(test) #removing object from workspace
+colnames(df_snakes.sur2) <- df_snakes.sur2[1, ] #takes 1st row and makes it column names
+df_snakes.sur2 <- df_snakes.sur2[-1, ] #removed extra row that originally had column names but were now useless
+unique(df_snakes.sur2$Species)
+
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -70,6 +103,23 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 4 + 5
 
 5*2+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
