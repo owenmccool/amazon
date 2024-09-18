@@ -11,9 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
   
 ```{r package read in}
-
+install.packages("ggplot2")
+install.packages("tidyverse")
 library(dplyr)
 library(vegan)
+library(stringr)
+library(ggplot2)
+library(tidyverse)
 ```
 
 
@@ -44,17 +48,48 @@ Snakes were given a classification as to whether they were small mammal consumer
 
 ```{r data read in}
 df_snakes.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
-df_snakes.sur2<- df_snakes.sur[-2, ] #removing blank row from dataset
-df_snakes.sur[-2, ]
+
 test <- df_snakes.sur[4, 3] 
 rm(test) #removing object from workspace
-colnames(df_snakes.sur2) <- df_snakes.sur2[1, ] #takes 1st row and makes it column names
-df_snakes.sur2 <- df_snakes.sur2[-1, ] #removed extra row that originally had column names but were now useless
-unique(df_snakes.sur2$Species)
+rm(df_snakes.sur2)
+
+unique(df_snakes.sur$Species)
+
+df_snakes.sur<- df_snakes.sur[-c(2, 57:70),] #removing row 2, 57-70
+colnames(df_snakes.sur) <- df_snakes.sur[1, ] #takes 1st row and makes it column names
+df_snakes.sur <- df_snakes.sur[-1, ] #removed extra row that originally had column names but were now useless
+df_snakes.sur <- df_snakes.sur[ ,-24] #removing column 24
+
+
+df_snakes.sur$Species <- str_replace_all(df_snakes.sur$Species, " ", "_") #replaces all spaces w/ underscore
+
 
 ```
 
+```{r data exploration}
 
+rm(dat.sub)
+
+stn.abun <- df_snakes.sur %>%
+  group_by(Station, Trail_Walked) %>%
+  tally()
+
+AbunP1 <- ggplot(trail.div, aes(y=n, x=Station)) +
+  geom_boxplot()
+AbunP1
+
+sp.abun <- df_snakes.sur %>%
+  group_by(Station, Trail_Walked, Species) %>%
+  tally()
+
+sp.abun$st.tr.spp <- paste(sp.abun$Station, sp.abun$Trail_Walked, sp.abun$Species, sep = ".")
+sp.abun.mat <- sp.abun %>% 
+  pivot_wider(names_from = Species, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.tr.spp")
+
+```
 
 
 

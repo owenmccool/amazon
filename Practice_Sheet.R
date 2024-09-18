@@ -452,3 +452,289 @@ f2
 as.numeric(f2)
 
 
+
+## LOGIC UNIT ## 
+
+# Video 0: INTRO VID #
+
+#simulated vector for dolphin data
+dolphins <- c(261, 241, 275, 230, 265) #in Kg
+#avg. weight 260 for males
+dolphins > 260
+dolphins[dolphins > 260] # from the vector 'dolphins' give me the exact weights that are greater than 260
+
+# and/or operators (&, |)
+
+#simulated vector of female dolphins data
+dolphins_f <- c(190,200,185,189,189,210,195,220)
+#which dolphins have a weight between 190 and 220kg?
+#which dolphins weights are above the average weight AND below 220kg? (avg. female weight 190)
+dolphins_f[dolphins_f > 190 & dolphins_f < 220]
+
+#which dolphins weights are below avg. weight OR above 200Kg?
+dolphins_f <- c(190,200,185,189,189,210,195,220)
+dolphins_f[dolphins_f < 190 | dolphins_f > 200] #from dolphins_f, I want the data where the weights are less than 190 OR greater than 200
+
+#Video 1: Logical Operators#
+
+?logical
+
+a = -3
+b = 4.5
+c = 4.5
+
+a < b
+a > b
+b > a
+b < a
+b > c
+c > b
+
+4>5
+17>a
+
+result = 17 > c
+result
+
+a <= b
+a >= b
+
+b <= c
+b >= c
+
+a == b
+b == c
+
+a != b
+b != c
+
+!TRUE
+!FALSE
+
+a == b
+!(a == b)
+
+
+NA > 0
+NA == 0
+!NA
+
+# Video 2: Logic Chains #
+
+3 < 5 < 7
+3 < 5
+
+(3 < 5) < 7
+TRUE < 7 #true is converted to 1, so 1 is less than 7, not intended purpose
+
+
+TRUE & TRUE #both values must be true for it to be true
+TRUE & FALSE
+FALSE & FALSE
+
+TRUE | TRUE #will return true if one side is true, false if both sides false
+TRUE | FALSE
+FALSE | FALSE
+
+a = 3 < 5
+a
+b = 5 < 7
+b
+
+a & b #true since both sides are true
+
+3 < 5 & 5 < 7 #less than and greater than signs calculated before & operator
+
+5 < 3 | 5 > 7 #false because 5<3 is false, and 5>7 false
+FALSE | FALSE
+
+age = 7
+species = "cat"
+
+species == "cat" | species == "dog" & age < 7
+TRUE | FALSE & FALSE
+TRUE | FALSE
+TRUE
+
+species == "cat" | (species == "dog" & age < 7) #same as above
+
+(species == "cat" | species == "dog") & age < 7
+(TRUE | FALSE) & FALSE 
+TRUE & FALSE 
+FALSE
+
+# Video 3: Vector Logic #
+
+data = sample(-2:2, 20, TRUE) #vector from -2 to 2, 20 of them, replace = TRUE
+data
+
+data[TRUE]
+
+data[c(TRUE, FALSE)] #retrieves every other number
+data[c(TRUE, FALSE, FALSE)] #retireves every 3rd number
+
+data
+result1 = data < 0
+result1 #says whether each number in sequence is less or greater than zero w/ true/false
+
+length(data) == length(result1)
+
+data[result1] #shows us all the negative values from original vector
+data[data < 0] #same thing
+ 
+
+animals = c("cat", "dog", "cat", "cat", "cat", "dog", "cat", "dog", "cat")
+animals
+
+cats = animals[animals == "cat"] #in vector animals, how many values equal to "cat"?
+cats
+length(cats) #how many in the vector?
+
+data
+
+mean(data[data > 0]) #mean of all data in vector that is greater than zero
+
+# Video 4: Logical Functions #
+
+animals = c("cat", "dog", "dog", NA, "dog", "cow", NA, "dog", "cat")
+animals == "cat"
+animals[animals == "cat"] #is.na function 
+
+is.na(animals) #are our values missing?
+animals_no_na = animals[!is.na(animals)] #keep all values that aren't na
+animals_no_na
+
+animals_no_na[animals_no_na == "cat"] #now this is correct, only two values instead of 4
+
+animals[!is.na(animals) & animals == "cat"] #getting rid of NAs AND printing cats
+
+animals
+any(is.na(animals)) #says that there are some na
+any(animals == "bird") #no birds, but results in 'NA' because the NAs in the vector could be birds if they weren't missing
+any(animals == "bird", na.rm = TRUE) #removes NAs, then finds if there are any birds, comes out 'FALSE' 
+
+#shortcut for any function
+anyNA(animals)
+
+animals
+duplicated(animals) #FALSE is first time reading the value, TRUE means it has been repeated
+
+animals[!duplicated(animals)] #now getting all animals that aren't duplicated, each one only once
+unique(animals)
+
+sum(duplicated(animals)) #adding the second and third dog, second NA, second cat
+
+anyDuplicated(animals) #tells you how many of your unique values have duplicates, dog, NA, cat has appeared before, so 3 is answer
+
+nums = c(42, NA, Inf)
+
+is.finite(nums) #only 42 finite, NA is unknown and Inf is infinite
+
+is.infinite(nums) #only Inf infinite
+
+# Video 5: Identical Checks #
+
+data1 = 1:10
+data2 = data1
+
+data3 = data1
+data3[9] = 17 #updating 9th value to 17
+
+result1 = data1 == data2
+result1 #all true values bc they both equal each other throughout vectors
+
+result2 = data1 == data3
+result2 #all true except where 17 is
+
+sum(result1) 
+sum(result2) #adds true and false (0 and 1) values together, sum of result1 is 10 and result2 is 9
+
+length(result1)
+length(result2) #both 10, cause 10 values in each vector
+
+
+sum(!result1) #telling us we have zero false values in result 1
+sum(!result2) #telling us we have one false value in result 2
+
+identical(data1, data2) #answer is true, data1 and data2 are the same
+identical(data1, data3) #answer is false, they aren't the same
+
+
+8 == 8L #we want 8 to be treated as integer, operator expects both sides to be same data type
+identical(8, 8L) #tells us they aren't identical
+
+
+all.equal(data1, data2) #they are equal, so true
+all.equal(data1, data3) #they aren't equal, and it shows how they are different
+
+all.equal(8, 8L) #all.equal doesn't return false, tries to tell us how different they are
+
+
+isTRUE("cat") #this is false
+
+isTRUE(all.equal(data1, data2))
+isTRUE(all.equal(data1, data3)) #Takes result of all.equal to check if it's true, converts stuff that isn't true to false
+
+print(0.1, digits=22) #we can see the error towards the 15th digit
+
+print(0.9, digits=22)
+
+print(1, digits=22) #this is integer, no decimal digits
+
+print(1 - 0.9, digits = 22) #error in 0.9 affects results, but usually not an issue
+
+#error matters when determining if values are equivalent
+
+0.1 == (1 - 0.9) #false because of R's error
+all.equal(0.1, (1 - 0.9)) #as long as difference isn't very significant, all.equal will say the equality is TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
