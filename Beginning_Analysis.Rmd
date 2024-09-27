@@ -84,6 +84,7 @@ imatFG$diversity.simp <- simp
 # also calculate total visits here
 imatFG$total.visits <- rowSums(imatFG[4:14])
 
+#T TESTING GITHUB HERE
 
 ```
 
