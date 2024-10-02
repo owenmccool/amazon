@@ -89,7 +89,7 @@ sp.abun.mat$st.tr.date <- rownames(sp.abun.mat)
 # now you have a column with that whole mess of info
 # let's separate the info back out into 3 separate columns
 sp.abun.mat <- sp.abun.mat %>% 
-  separate(st.tr.date, c('Station', 'Trail_Walked', 'Date'), sep = "//")
+  separate(st.tr.date, c('Station', 'Trail_Walked', 'Date'), remove= FALSE, sep = "//")
 
 # tell R that the Date column are Dates... again, but now note the order of yyyy-mm-dd is diff and we can use the default that this function expects (note I don't use the "format = " argument)
 
@@ -118,7 +118,70 @@ sp.abun.mat$richness <- specnumber(sp.abun.mat[1:17])
 
 ## Explore data
 
+```{r histograms}
 
+# let's look at the data
+
+# make a histogram for species richness, diversity, and abundance
+
+# make one split by station
+
+# make one split by trail and station?
+
+```
+
+```{r boxplots}
+
+# repeat above with boxplots
+
+```
+
+## Community dissimilarity
+
+
+```{r pull out predictors and community data for analysis}
+
+predictors <- sp.abun.mat[, c(18:21)] # separate out predictor variables to use in the adonis permanova function
+
+visitors<- sp.abun.mat[, c(1:17)] # only want columns with species abundances for the vegdist functions
+
+```
+
+# First, use vegdist (vegan) to compute community dissimilarity matrix based on the Jaccard index
+```{r jaccard}
+
+Jaccard.dis.mat <- vegdist(visitors, method = "jaccard")
+# Analyze dissimilarity data to test for differences in communities found at diff stations use adonis2 function to perform a PERMANOVA (permutational multivariate ANOVA, a non-parametric alternative to MANOVA, or multivariate ANOVA test).
+
+# First, simple model
+
+pmnv.jac1 <- adonis2(Jaccard.dis.mat ~ predictors$Station, method = "jaccard") 
+
+print(pmnv.jac1)
+
+# Yes, communities between plant species are significantly different, as expected.
+
+# Visually, what's going on?
+# Nonmentric multidimensional scaling of community dissimilarity values based on the Jaccard index
+nmds.jac1 <- metaMDS(visitors, distance = "jaccard", autotransform = FALSE, maxtry = 200, k = 2) 
+
+stressplot(nmds.jac1)
+#goodness(nmds.jac1)
+```
+
+```{r H-M index plus adonis plus nmds, warning = FALSE}
+
+horn.dis.mat <- vegdist(visitors, method = "horn")
+
+# First, simple model, do the communities differ between plant species?
+
+pmnv.horn1 <- adonis2(horn.dis.mat ~ predictors$Station, method = "horn") 
+
+print(pmnv.horn1)
+
+stressplot()
+
+```
 
 
 
