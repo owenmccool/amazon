@@ -1,0 +1,157 @@
+---
+title: "McCool_Snake_Project"
+author: "Owen McCool, Therese Lamperty"
+date: "2024-09-04"
+output: word_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+  
+```{r package read in}
+library(dplyr)
+library(vegan)
+library(stringr)
+library(ggplot2)
+library(tidyverse)
+```
+
+
+## Project Overview ##
+
+Study Site: Research was split between two different zones within the greater Yasuni Biosphere Reserve. Tiputini Biodiversity Station (TBS) served as the faunally intact site, whereas Yasuni Research Station (YRS) served as the defaunated site. Both sites are situated along the Tiputini River within the province of Orellana, Ecuador. TBS, approximately 45 km east of YRS, is only accessible by boat. YRS is along the Maxus Oil Road, and is less integrated into the Amazonian ecosystem. Additionally, unsustainable hunting activities by the indigenous communities have been prominent in the surrounding region at YRS for multiple decades, as noted from 2014. This is thought to be the root cause of defaunation in this zone. 
+
+	I transferred between the two research stations every two weeks, starting my first rotation at TBS on June 10. Time at each station was spent working on 3 separate projects: my herpetofauna surveys, frugivory surveys, and an overarching seed enemy and dispersal project. 
+
+	The rainy season in Northeastern Ecuador is at its peak between March and July. I conducted my study between the months of June and August, 2024. The average high temperature for June in this region is 85.66° F, with the average low of 70.05° F. July has an average high temperature of 86.29° F and an average low of 69.13° F. August has an average high temperature of 91.35° F and an average low of 69.60° F. June receives 143mm of precipitation on average each year, whereas July receives 99.69mm and August receives 77.55mm. (https://weatherandclimate.com/ecuador/orellana/boca-tiputini) 
+Put project description here (field sites, time frame of collection,sampling scheme, type of data (eg. species ID,temp, etc.) )
+
+Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors/night. Trail systems at each site served as the sampling paths. The surveys were repeated around 6 times on each rotation while in the field, and resampled on the second rotations. The surveys typically began around 20:00-20:30 and lasted until 23:00-00:00 CST. At each site, habitat matches were compared and assessed and trails through that habitat were consistently walked. Two different types of habitat, Terra Firma (uplands) and Varzea (flooded forest) were surveyed on the herp nocturnal walks. In addition to this, two significant bodies of water were also surveyed at each site, primarily consisting of oxbow lakes with one year-round large pond. 
+
+	Surveyors used FENIX HM60R headlamps while conducting night surveys. They carefully examined all surrounding habitat, including understory trees, shrubs, vines, water bodies, forest floor, and middle-canopy. Amphibians of the order Anura gave off reflective eyeshine and were easier to sample for, whereas members of Squamata did not. More information about this will be within the discussion section. Effort hours will be calculated based on survey time length and number of surveyors. 
+
+	Additionally, environmental information was taken throughout the course of each survey. Temperature and humidity data was collected with a Mengshen meter in 30 minute intervals on surveys. Understory vegetation density was also measured every 15 minutes along each trail. A 1.5m PVC pipe was randomly placed upright just off the right side of the trail at each measuring point, and the number of leaves making contact with the pipe was counted. 
+
+	Weather and wind were noted before each survey in four nominal categories, with weather either being “clear, partly cloudy, cloudy, rainy” and wind being “no wind, felt on face, branches move, trees move”. I also accounted for precipitation that had already occurred in 6-hour blocks as “time window of last rain event”. 
+
+	Once an animal was found, the first step of the protocol was to note what time of night the find occurred. After this, the temperature and humidity was once again collected. A rangefinder was used to estimate the perpendicular distance of each animal from the trail. A GPS was used to mark and log the coordinates of each animal found. Animals were given a two-letter code based on the Order and Suborder followed by a number, indicating its position of being found. For example, the code of the 9th snake found of the season would be SK09. Species found were also identified to the lowest taxonomic level in the field, and photographs of individuals were taken both to get positive IDs later in the lab when not possible in the field, but also to avoid counting re-captures.
+
+	Snakes found during non-survey times were also recorded. These individuals were split into one of two categories of detection. The first is an “Opportunistic Encounter” (OE), which is any snake that was found by me while out working on other non-herpetofauna projects in the field. The other type of detection is the Third Party Encounter (TPE). This was any snake that was found by other research groups during my rotations at each station, identified to lowest possible taxonomy. The same data was taken for these individuals. GPS coordinates, time of detection, trail, observer, estimation of distance from trail, and habitat type. Because the third-party observers often didn’t have access to the climate data logger, this information was retrieved later on from each station’s respective weather tower data, based on the time of detection. 
+
+Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert webpage Reptiles of Ecuador. 
+
+```{r data read in and do prelim cleaning}
+df_snakes.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
+
+df_snakes.sur<- df_snakes.sur[-c(2, 57:70),] #removing row 2, 57-70
+colnames(df_snakes.sur) <- df_snakes.sur[1, ] #takes 1st row and makes it column names
+df_snakes.sur <- df_snakes.sur[-1, ] #removed extra row that originally had column names but were now useless
+df_snakes.sur <- df_snakes.sur[ ,-24] #removing column 24
+
+df_snakes.sur$Species <- str_replace_all(df_snakes.sur$Species, " ", "_") #replaces all spaces w/ underscore
+
+# also get rid of asterisks in dates
+df_snakes.sur$Date <- gsub("\\*", "", df_snakes.sur$Date)
+
+# tell R that the Date column are Dates
+
+df_snakes.sur$Date <- as.Date(df_snakes.sur$Date, format = "%m/%d/%y")
+```
+
+
+```{r get the data into different formats}
+
+# use dplyr functions to aggregate the data by Date, Species, Trail, and Station and see how many observations of each species we have at each trail (the tally command just counts the number of times a species shows up at a given trail on a given date)
+
+sp.abun <- df_snakes.sur %>%
+  group_by(Station, Trail_Walked, Date, Species) %>%
+  tally()
+
+# this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date
+sp.abun$st.tr.date <- paste(sp.abun$Station, sp.abun$Trail_Walked, sp.abun$Date, sep = "//")
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+sp.abun.mat <- sp.abun %>% 
+  pivot_wider(names_from = Species, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.tr.date")
+
+# cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
+
+sp.abun.mat$st.tr.date <- rownames(sp.abun.mat)
+
+# now you have a column with that whole mess of info
+# let's separate the info back out into 3 separate columns
+sp.abun.mat <- sp.abun.mat %>% 
+  separate(st.tr.date, c('Station', 'Trail_Walked', 'Date'), sep = "//")
+
+# tell R that the Date column are Dates... again, but now note the order of yyyy-mm-dd is diff and we can use the default that this function expects (note I don't use the "format = " argument)
+
+sp.abun.mat$Date <- as.Date(sp.abun.mat$Date)
+
+# great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
+
+# for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
+simp <- diversity(sp.abun.mat[1:17], index = "simpson")
+
+# now, let's just slap that on to our occurence matrix
+sp.abun.mat$simp <- simp
+
+# and remove simp, also remove other things you don't need
+rm(sp.abun, simp)
+
+# get abundance next
+sp.abun.mat$abund <- rowSums(sp.abun.mat[1:17])
+
+# and lets get species richness
+sp.abun.mat$richness <- specnumber(sp.abun.mat[1:17])
+
+# at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
