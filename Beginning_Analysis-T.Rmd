@@ -19,7 +19,7 @@ library(tidyverse)
 ```
 
 
-## Project Overview ##
+# Project Overview
 
 Study Site: Research was split between two different zones within the greater Yasuni Biosphere Reserve. Tiputini Biodiversity Station (TBS) served as the faunally intact site, whereas Yasuni Research Station (YRS) served as the defaunated site. Both sites are situated along the Tiputini River within the province of Orellana, Ecuador. TBS, approximately 45 km east of YRS, is only accessible by boat. YRS is along the Maxus Oil Road, and is less integrated into the Amazonian ecosystem. Additionally, unsustainable hunting activities by the indigenous communities have been prominent in the surrounding region at YRS for multiple decades, as noted from 2014. This is thought to be the root cause of defaunation in this zone. 
 
@@ -42,6 +42,9 @@ Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors
 
 Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert webpage Reptiles of Ecuador. 
 
+# Analysis
+
+## Prep data
 ```{r data read in and do prelim cleaning}
 df_snakes.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
 
@@ -59,7 +62,6 @@ df_snakes.sur$Date <- gsub("\\*", "", df_snakes.sur$Date)
 
 df_snakes.sur$Date <- as.Date(df_snakes.sur$Date, format = "%m/%d/%y")
 ```
-
 
 ```{r get the data into different formats}
 
@@ -112,28 +114,12 @@ sp.abun.mat$richness <- specnumber(sp.abun.mat[1:17])
 
 # at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
 
-
 ```
 
-## R Markdown
+## Explore data
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
 
 
