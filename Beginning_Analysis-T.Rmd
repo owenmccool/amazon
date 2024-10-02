@@ -65,13 +65,13 @@ df_snakes.sur$Date <- as.Date(df_snakes.sur$Date, format = "%m/%d/%y")
 
 ```{r get the data into different formats}
 
-# use dplyr functions to aggregate the data by Date, Species, Trail, and Station and see how many observations of each species we have at each trail (the tally command just counts the number of times a species shows up at a given trail on a given date)
+# use dplyr (tidyverse) functions to aggregate the data by Date, Species, Trail, and Station and see how many observations of each species we have at each trail (the tally command just counts the number of times a species shows up at a given trail on a given date)
 
 sp.abun <- df_snakes.sur %>%
   group_by(Station, Trail_Walked, Date, Species) %>%
   tally()
 
-# this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date
+# this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date, separated by //
 sp.abun$st.tr.date <- paste(sp.abun$Station, sp.abun$Trail_Walked, sp.abun$Date, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
@@ -82,6 +82,7 @@ sp.abun.mat <- sp.abun %>%
               values_fill = 0) %>%
   column_to_rownames(var = "st.tr.date")
 
+sp.abun.mat
 # cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
 
 sp.abun.mat$st.tr.date <- rownames(sp.abun.mat)
@@ -114,6 +115,7 @@ sp.abun.mat$richness <- specnumber(sp.abun.mat[1:17])
 
 # at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
 
+
 ```
 
 ## Explore data
@@ -123,6 +125,31 @@ sp.abun.mat$richness <- specnumber(sp.abun.mat[1:17])
 # let's look at the data
 
 # make a histogram for species richness, diversity, and abundance
+
+hist(sp.abun.mat$richness) #lots of small values with snakes
+hist(sp.abun.mat$abund) #most observations were 1 or 2 snakes a night, of the observations that didn't have zero
+hist(sp.abun.mat$simp)
+
+boxplot(sp.abun.mat$richness)
+boxplot(sp.abun.mat$abund)
+boxplot(sp.abun.mat$simp)
+
+sp.abun.mat %>%
+  ggplot(aes(x= Station, y= richness, fill = Station)) +
+    geom_boxplot() 
+
+sp.abun.mat %>%
+  ggplot(aes(x= Station, y= simp, fill = Station)) +
+    geom_boxplot() 
+
+sp.abun.mat %>%
+  ggplot(aes(x= Station, y= abund, fill = Station)) +
+    geom_boxplot() 
+
+
+
+
+
 
 # make one split by station
 
