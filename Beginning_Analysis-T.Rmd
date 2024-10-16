@@ -68,11 +68,11 @@ df_snakes.sur$Date <- as.Date(df_snakes.sur$Date, format = "%m/%d/%y")
 # use dplyr (tidyverse) functions to aggregate the data by Date, Species, Trail, and Station and see how many observations of each species we have at each trail (the tally command just counts the number of times a species shows up at a given trail on a given date)
 
 sp.abun <- df_snakes.sur %>%
-  group_by(Station, Trail_Walked, Date, Species) %>%
+  group_by(Station, Trail_Walked, Date, Species, Diet_Type) %>%
   tally()
 
 # this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date, separated by //
-sp.abun$st.tr.date <- paste(sp.abun$Station, sp.abun$Trail_Walked, sp.abun$Date, sep = "//")
+sp.abun$st.tr.date <- paste(sp.abun$Station, sp.abun$Trail_Walked, sp.abun$Date, sp.abun$Diet_Type, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
@@ -90,7 +90,7 @@ sp.abun.mat$st.tr.date <- rownames(sp.abun.mat)
 # now you have a column with that whole mess of info
 # let's separate the info back out into 3 separate columns
 sp.abun.mat <- sp.abun.mat %>% 
-  separate(st.tr.date, c('Station', 'Trail_Walked', 'Date'), remove= FALSE, sep = "//")
+  separate(st.tr.date, c('Station', 'Trail_Walked', 'Date', 'Diet_Type'), remove= FALSE, sep = "//")
 
 # tell R that the Date column are Dates... again, but now note the order of yyyy-mm-dd is diff and we can use the default that this function expects (note I don't use the "format = " argument)
 
@@ -120,7 +120,7 @@ sp.abun.mat$richness <- specnumber(sp.abun.mat[1:17])
 
 ## Explore data
 
-```{r histograms}
+```{r visualize with histograms and boxplots}
 
 # let's look at the data
 
@@ -144,24 +144,27 @@ sp.abun.mat %>%
 
 sp.abun.mat %>%
   ggplot(aes(x= Station, y= abund, fill = Station)) +
-    geom_boxplot() 
+    geom_boxplot()
 
 
+# how are the different diet types split up?
 
+# might want to look at snakes per hour or something on the Y axis, to account for sampling variation. Or snakes per km? per 500m?
 
+Diet_temp_df <- df_snakes.sur %>%
+  group_by(Station, Date, Diet_Type) %>%
+  summarize(n_inds = n())
 
+diet.p1 <- Diet_temp_df %>% 
+  ggplot(aes(x = Diet_Type, y = n_inds, color = Station)) +
+  geom_boxplot() + 
+  scale_colour_manual(values = c("aquamarine4", "brown4")) +
+  theme_light()
 
-# make one split by station
-
-# make one split by trail and station?
+diet.p1
 
 ```
 
-```{r boxplots}
-
-# repeat above with boxplots
-
-```
 
 ## Community dissimilarity
 
@@ -205,8 +208,6 @@ horn.dis.mat <- vegdist(visitors, method = "horn")
 pmnv.horn1 <- adonis2(horn.dis.mat ~ predictors$Station, method = "horn") 
 
 print(pmnv.horn1)
-
-stressplot()
 
 ```
 
