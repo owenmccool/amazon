@@ -48,10 +48,22 @@ Snakes were given a classification as to whether they were small mammal consumer
 ```{r data read in and do prelim cleaning}
 df_snakes.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
 
+df_snake.nonsur <- read.csv("snake.non_survey.csv") 
+
 df_snakes.sur<- df_snakes.sur[-c(2, 57:70),] #removing row 2, 57-70
 colnames(df_snakes.sur) <- df_snakes.sur[1, ] #takes 1st row and makes it column names
 df_snakes.sur <- df_snakes.sur[-1, ] #removed extra row that originally had column names but were now useless
 df_snakes.sur <- df_snakes.sur[ ,-24] #removing column 24
+
+
+colnames(df_snake.nonsur) <- df_snake.nonsur[1, ] #swt column names up for third party and opportunistic dataframe
+df_snake.nonsur <- df_snake.nonsur[-1, ] #removing first row since it is the same as column names now
+
+# we will now compare column names
+
+colnames(df_snakes.sur)
+colnames(df_snake.nonsur)
+
 
 df_snakes.sur$Species <- str_replace_all(df_snakes.sur$Species, " ", "_") #replaces all spaces w/ underscore
 
@@ -61,6 +73,40 @@ df_snakes.sur$Date <- gsub("\\*", "", df_snakes.sur$Date)
 # tell R that the Date column are Dates
 
 df_snakes.sur$Date <- as.Date(df_snakes.sur$Date, format = "%m/%d/%y")
+
+
+df_snake.nonsur <- df_snake.nonsur[, -21]
+
+
+df_snakes.sur$Obs_type <- "Survey"
+colnames(df_snake.nonsur)[4] <- "Obs_type"
+
+colnames(df_snakes.sur)[7] <- "Snake_ID" #changing reptile Id to snake ID
+
+colnames(df_snakes.sur)[10] <- "Time_Found"
+
+colnames(df_snakes.sur)[3] <- "Location"
+colnames(df_snake.nonsur)[3] <- "Location" 
+
+df_snake.nonsur$Survey_Start_Time <- NA
+df_snake.nonsur$Surveyors <- NA
+df_snake.nonsur$Survey_End_Time <- NA
+
+colnames(df_snakes.sur)[15] <- "Distance_m"
+colnames(df_snake.nonsur)[6] <- "During_My_Rotation"
+
+df_snake.nonsur$Distance_m <- NA
+
+df_snakes.sur <- df_snakes.sur[, -23]
+
+df_snakes.sur$During_My_Rotation <- "Yes"
+
+colnames(df_snake.nonsur)
+colnames(df_snakes.sur)
+
+all_snakes <- rbind(df_snake.nonsur, df_snakes.sur)
+
+setdiff(df_snake.nonsur, df_snakes.sur)
 ```
 
 ```{r get the data into different formats}
