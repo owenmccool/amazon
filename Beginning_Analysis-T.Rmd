@@ -11,7 +11,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
   
 ```{r package read in}
-library(dplyr)
 library(vegan)
 library(stringr)
 library(ggplot2)
@@ -45,68 +44,70 @@ Snakes were given a classification as to whether they were small mammal consumer
 # Analysis
 
 ## Prep data
+
 ```{r data read in and do prelim cleaning}
-df_snakes.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
 
-df_snake.nonsur <- read.csv("snake.non_survey.csv") 
+df.snake.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
 
-df_snakes.sur<- df_snakes.sur[-c(2, 57:70),] #removing row 2, 57-70
-colnames(df_snakes.sur) <- df_snakes.sur[1, ] #takes 1st row and makes it column names
-df_snakes.sur <- df_snakes.sur[-1, ] #removed extra row that originally had column names but were now useless
-df_snakes.sur <- df_snakes.sur[ ,-24] #removing column 24
+df.snake.non.sur <- read.csv("snake.non_survey.csv") 
+
+df.snake.sur<- df.snake.sur[-c(2, 57:70),] #removing row 2, 57-70
+colnames(df.snake.sur) <- df.snake.sur[1, ] #takes 1st row and makes it column names
+df.snake.sur <- df.snake.sur[-1, ] #removed extra row that originally had column names but were now useless
+df.snake.sur <- df.snake.sur[ ,-24] #removing column 24
 
 
-colnames(df_snake.nonsur) <- df_snake.nonsur[1, ] #swt column names up for third party and opportunistic dataframe
-df_snake.nonsur <- df_snake.nonsur[-1, ] #removing first row since it is the same as column names now
+colnames(df.snake.non.sur) <- df.snake.non.sur[1, ] #swt column names up for third party and opportunistic dataframe
+df.snake.non.sur <- df.snake.non.sur[-1, ] #removing first row since it is the same as column names now
 
 # we will now compare column names
 
-colnames(df_snakes.sur)
-colnames(df_snake.nonsur)
+colnames(df.snake.sur)
+colnames(df.snake.non.sur)
 
 
-df_snakes.sur$Species <- str_replace_all(df_snakes.sur$Species, " ", "_") #replaces all spaces w/ underscore
+df.snake.sur$Species <- str_replace_all(df.snake.sur$Species, " ", "_") #replaces all spaces w/ underscore
 
 # also get rid of asterisks in dates
-df_snakes.sur$Date <- gsub("\\*", "", df_snakes.sur$Date)
+df.snake.sur$Date <- gsub("\\*", "", df.snake.sur$Date)
 
 # tell R that the Date column are Dates
 
-df_snakes.sur$Date <- as.Date(df_snakes.sur$Date, format = "%m/%d/%y")
+df.snake.sur$Date <- as.Date(df.snake.sur$Date, format = "%m/%d/%y")
+
+df.snake.non.sur$Date <- as.Date(df.snake.non.sur$Date, format = "%m/%d/%y")
+
+df.snake.non.sur <- df.snake.non.sur[, -21]
 
 
-df_snake.nonsur <- df_snake.nonsur[, -21]
+df.snake.sur$Obs_type <- "Survey"
+colnames(df.snake.non.sur)[4] <- "Obs_type"
 
+colnames(df.snake.sur)[7] <- "Snake_ID" #changing reptile Id to snake ID
 
-df_snakes.sur$Obs_type <- "Survey"
-colnames(df_snake.nonsur)[4] <- "Obs_type"
+colnames(df.snake.sur)[10] <- "Time_Found"
 
-colnames(df_snakes.sur)[7] <- "Snake_ID" #changing reptile Id to snake ID
+colnames(df.snake.sur)[3] <- "Location"
+colnames(df.snake.non.sur)[3] <- "Location" 
 
-colnames(df_snakes.sur)[10] <- "Time_Found"
+df.snake.non.sur$Survey_Start_Time <- NA
+df.snake.non.sur$Surveyors <- NA
+df.snake.non.sur$Survey_End_Time <- NA
 
-colnames(df_snakes.sur)[3] <- "Location"
-colnames(df_snake.nonsur)[3] <- "Location" 
+colnames(df.snake.sur)[15] <- "Distance_m"
+colnames(df.snake.non.sur)[6] <- "During_My_Rotation"
 
-df_snake.nonsur$Survey_Start_Time <- NA
-df_snake.nonsur$Surveyors <- NA
-df_snake.nonsur$Survey_End_Time <- NA
+df.snake.non.sur$Distance_m <- NA
 
-colnames(df_snakes.sur)[15] <- "Distance_m"
-colnames(df_snake.nonsur)[6] <- "During_My_Rotation"
+df.snake.sur <- df.snake.sur[, -23]
 
-df_snake.nonsur$Distance_m <- NA
+df.snake.sur$During_My_Rotation <- "Yes"
 
-df_snakes.sur <- df_snakes.sur[, -23]
+# check column names (commenting out)
+#colnames(df.snake.non.sur)
+#colnames(df.snake.sur)
 
-df_snakes.sur$During_My_Rotation <- "Yes"
-
-colnames(df_snake.nonsur)
-colnames(df_snakes.sur)
-
-all_snakes <- rbind(df_snake.nonsur, df_snakes.sur)
-
-setdiff(df_snake.nonsur, df_snakes.sur)
+snake.master <- rbind(df.snake.non.sur, df.snake.sur)
 ```
 
 ```{r get the data into different formats}
