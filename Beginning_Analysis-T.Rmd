@@ -53,14 +53,14 @@ Data preparation summary:
 
 ```{r data read in and do prelim cleaning}
 
-df.snake.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
+df.snake.sur <- read.csv("UPDATEDsnake.survey.csv") #reading in csv file
 
 df.snake.non.sur <- read.csv("snake.non_survey.csv") 
 
 df.snake.sur<- df.snake.sur[-c(2, 57:70),] #removing row 2, 57-70
 colnames(df.snake.sur) <- df.snake.sur[1, ] #takes 1st row and makes it column names
 df.snake.sur <- df.snake.sur[-1, ] #removed extra row that originally had column names but were now useless
-df.snake.sur <- df.snake.sur[ ,-24] #removing column 24
+df.snake.sur <- df.snake.sur[ ,-23] #removing column 23
 
 
 colnames(df.snake.non.sur) <- df.snake.non.sur[1, ] #swt column names up for third party and opportunistic dataframe
@@ -81,7 +81,11 @@ df.snake.sur$Date <- gsub("\\*", "", df.snake.sur$Date)
 
 df.snake.sur$Date <- as.Date(df.snake.sur$Date, format = "%m/%d/%y")
 
+df.snake.sur$End_Date <- as.Date(df.snake.sur$End_Date, format = "%m/%d/%y")
+
 df.snake.non.sur$Date <- as.Date(df.snake.non.sur$Date, format = "%m/%d/%y")
+
+df.snake.non.sur$End_Date <- as.Date(df.snake.non.sur$Date, format = "%m/%d/%y")
 
 df.snake.non.sur <- df.snake.non.sur[, -21]
 
@@ -104,13 +108,14 @@ colnames(df.snake.non.sur)[6] <- "During_My_Rotation"
 
 df.snake.non.sur$Distance_m <- NA
 
-df.snake.sur <- df.snake.sur[, -23]
 
 df.snake.sur$During_My_Rotation <- "Yes"
 
 # check column names (commenting out)
-#colnames(df.snake.non.sur)
-#colnames(df.snake.sur)
+colnames(df.snake.non.sur)
+colnames(df.snake.sur)
+
+
 
 snake.master <- rbind(df.snake.non.sur, df.snake.sur)
 ```
@@ -119,13 +124,18 @@ Begin looking at variation in sampling effort. First, calculate time spend sampl
 
 ```{r survey samp effort}
 
-# make a new column, sampling_hrs, and use difftime to populate
+# we will combine date and time
+snake.master$Date_Start_Time <- paste(snake.master$Date, snake.master$Survey_Start_Time, sep = " ")
 
-# is only relevant to the standard night survey sampling effort
+#combining end date and time into one column for the full snake dataframe, separated with spaces
+snake.master$Date_End_Time <- paste(snake.master$Date, snake.master$Survey_End_Time, sep = " ")
 
-# first, join date and start time, and then date and end time
+# subsetting data for surveys, filtering by taking survey snakes from master set
+snake.sur <- snake.master %>% 
+  filter(Obs_type == "Survey")
 
-# then get diff time
+# using difftime to calculate effort hours on each survey
+snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
 
 ```
 
@@ -138,12 +148,13 @@ Begin looking at variation in sampling effort. First, calculate time spend sampl
 
 # use dplyr (tidyverse) functions to aggregate the data by Date, Species, Trail, and Station and see how many observations of each species we have at each trail (the tally command just counts the number of times a species shows up at a given trail on a given date)
 
-sp.abun <- df_snakes.sur %>%
-  group_by(Station, Trail_Walked, Date, Species, Diet_Type) %>%
+sp.abun <- snake.sur %>%
+  group_by(Station, Location, Date, Species, Diet_Type, Effort_Hrs) %>%
   tally()
 
 # this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date, separated by //
-sp.abun$st.tr.date <- paste(sp.abun$Station, sp.abun$Trail_Walked, sp.abun$Date, sp.abun$Diet_Type, sep = "//")
+
+sp.abun$st.tr.date <- paste(sp.abun$Station, sp.abun$Location, sp.abun$Date, sp.abun$Diet_Type, sp.abun$Effort_Hrs, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
