@@ -45,6 +45,12 @@ Snakes were given a classification as to whether they were small mammal consumer
 
 ## Prep data
 
+Data preparation summary:
+
+1. Join snake data collected during standard surveys with the opportunistic/third person data
+
+2. [...add here when we work in other dataframes...]
+
 ```{r data read in and do prelim cleaning}
 
 df.snake.sur <- read.csv("Survey_Snakes.csv") #reading in csv file
@@ -79,7 +85,6 @@ df.snake.non.sur$Date <- as.Date(df.snake.non.sur$Date, format = "%m/%d/%y")
 
 df.snake.non.sur <- df.snake.non.sur[, -21]
 
-
 df.snake.sur$Obs_type <- "Survey"
 colnames(df.snake.non.sur)[4] <- "Obs_type"
 
@@ -109,6 +114,25 @@ df.snake.sur$During_My_Rotation <- "Yes"
 
 snake.master <- rbind(df.snake.non.sur, df.snake.sur)
 ```
+
+Begin looking at variation in sampling effort. First, calculate time spend sampling during each night for surveys.
+
+```{r survey samp effort}
+
+# make a new column, sampling_hrs, and use difftime to populate
+
+# is only relevant to the standard night survey sampling effort
+
+# first, join date and start time, and then date and end time
+
+# then get diff time
+
+```
+
+
+
+
+
 
 ```{r get the data into different formats}
 
