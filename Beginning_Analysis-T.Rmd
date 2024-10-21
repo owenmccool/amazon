@@ -53,14 +53,14 @@ Data preparation summary:
 
 ```{r data read in and do prelim cleaning}
 
-df.snake.sur <- read.csv("UPDATEDsnake.survey.csv") #reading in csv file
+snake.sur <- read.csv("UPDATEDsnake.survey.csv", na.strings = c("", "NA")) #reading in csv file
 
 df.snake.non.sur <- read.csv("snake.non_survey.csv") 
 
-df.snake.sur<- df.snake.sur[-c(2, 57:70),] #removing row 2, 57-70
-colnames(df.snake.sur) <- df.snake.sur[1, ] #takes 1st row and makes it column names
-df.snake.sur <- df.snake.sur[-1, ] #removed extra row that originally had column names but were now useless
-df.snake.sur <- df.snake.sur[ ,-23] #removing column 23
+snake.sur<- snake.sur[-c(2, 57:70),] #removing row 2, 57-70
+colnames(snake.sur) <- snake.sur[1, ] #takes 1st row and makes it column names
+snake.sur <- snake.sur[-1, ] #removed extra row that originally had column names but were now useless
+snake.sur <- snake.sur[ ,-23] #removing column 23
 
 
 colnames(df.snake.non.sur) <- df.snake.non.sur[1, ] #swt column names up for third party and opportunistic dataframe
@@ -68,20 +68,20 @@ df.snake.non.sur <- df.snake.non.sur[-1, ] #removing first row since it is the s
 
 # we will now compare column names
 
-colnames(df.snake.sur)
-colnames(df.snake.non.sur)
+#colnames(df.snake.sur)
+#colnames(df.snake.non.sur)
 
 
-df.snake.sur$Species <- str_replace_all(df.snake.sur$Species, " ", "_") #replaces all spaces w/ underscore
+snake.sur$Species <- str_replace_all(snake.sur$Species, " ", "_") #replaces all spaces w/ underscore
 
 # also get rid of asterisks in dates
-df.snake.sur$Date <- gsub("\\*", "", df.snake.sur$Date)
+snake.sur$Date <- gsub("\\*", "", snake.sur$Date)
 
 # tell R that the Date column are Dates
 
-df.snake.sur$Date <- as.Date(df.snake.sur$Date, format = "%m/%d/%y")
+snake.sur$Date <- as.Date(snake.sur$Date, format = "%m/%d/%y")
 
-df.snake.sur$End_Date <- as.Date(df.snake.sur$End_Date, format = "%m/%d/%y")
+snake.sur$End_Date <- as.Date(snake.sur$End_Date, format = "%m/%d/%y")
 
 df.snake.non.sur$Date <- as.Date(df.snake.non.sur$Date, format = "%m/%d/%y")
 
@@ -89,163 +89,184 @@ df.snake.non.sur$End_Date <- as.Date(df.snake.non.sur$Date, format = "%m/%d/%y")
 
 df.snake.non.sur <- df.snake.non.sur[, -21]
 
-df.snake.sur$Obs_type <- "Survey"
+snake.sur$Obs_type <- "Survey"
 colnames(df.snake.non.sur)[4] <- "Obs_type"
 
-colnames(df.snake.sur)[7] <- "Snake_ID" #changing reptile Id to snake ID
+colnames(snake.sur)[7] <- "Snake_ID" #changing reptile Id to snake ID
 
-colnames(df.snake.sur)[10] <- "Time_Found"
+colnames(snake.sur)[10] <- "Time_Found"
 
-colnames(df.snake.sur)[3] <- "Location"
+colnames(snake.sur)[3] <- "Location"
 colnames(df.snake.non.sur)[3] <- "Location" 
 
 df.snake.non.sur$Survey_Start_Time <- NA
 df.snake.non.sur$Surveyors <- NA
 df.snake.non.sur$Survey_End_Time <- NA
 
-colnames(df.snake.sur)[15] <- "Distance_m"
+colnames(snake.sur)[15] <- "Distance_m"
 colnames(df.snake.non.sur)[6] <- "During_My_Rotation"
 
 df.snake.non.sur$Distance_m <- NA
 
 
-df.snake.sur$During_My_Rotation <- "Yes"
+snake.sur$During_My_Rotation <- "Yes"
 
-# check column names (commenting out)
-colnames(df.snake.non.sur)
-colnames(df.snake.sur)
-
-
-
-snake.master <- rbind(df.snake.non.sur, df.snake.sur)
+snake.master <- rbind(df.snake.non.sur, snake.sur)
 ```
 
 Begin looking at variation in sampling effort. First, calculate time spend sampling during each night for surveys.
 
 ```{r survey samp effort}
 
-# we will combine date and time
-snake.master$Date_Start_Time <- paste(snake.master$Date, snake.master$Survey_Start_Time, sep = " ")
+# this is only relevant to the snake surveys, to get n hours spent searching
+
+# first, combine date and time so that you can use 'difftime' to get time elapsed between start and end
+
+snake.sur$Date_Start_Time <- paste(snake.sur$Date, snake.sur$Survey_Start_Time, sep = " ")
 
 #combining end date and time into one column for the full snake dataframe, separated with spaces
-snake.master$Date_End_Time <- paste(snake.master$Date, snake.master$Survey_End_Time, sep = " ")
-
-# subsetting data for surveys, filtering by taking survey snakes from master set
-snake.sur <- snake.master %>% 
-  filter(Obs_type == "Survey")
+# note, R is handeling surveys that lasted past midnight oddly, so we are just using the start Date here as well
+snake.sur$Date_End_Time <- paste(snake.sur$Date, snake.sur$Survey_End_Time, sep = " ")
 
 # using difftime to calculate effort hours on each survey
 snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
 
 ```
 
+Now, we want to summarize how many snakes were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n snakes per hour.
 
+```{r abundance over search effort}
 
+# use dplyr (tidyverse) functions to aggregate the data
 
-
-
-```{r get the data into different formats}
-
-# use dplyr (tidyverse) functions to aggregate the data by Date, Species, Trail, and Station and see how many observations of each species we have at each trail (the tally command just counts the number of times a species shows up at a given trail on a given date)
-
-sp.abun <- snake.sur %>%
-  group_by(Station, Location, Date, Species, Diet_Type, Effort_Hrs) %>%
+abun.temp <- snake.sur %>%
+  group_by(Station, Location, Date, Species, Effort_Hrs) %>%
   tally()
 
 # this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date, separated by //
 
-sp.abun$st.tr.date <- paste(sp.abun$Station, sp.abun$Location, sp.abun$Date, sp.abun$Diet_Type, sp.abun$Effort_Hrs, sep = "//")
+abun.temp$st.tr.date <- paste(abun.temp$Station, abun.temp$Location, abun.temp$Date, abun.temp$Effort_Hrs, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
-sp.abun.mat <- sp.abun %>% 
+snake.mat <- abun.temp %>% 
   pivot_wider(names_from = Species, 
               values_from = n, 
               values_fill = 0) %>%
   column_to_rownames(var = "st.tr.date")
 
-sp.abun.mat
 # cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
 
-sp.abun.mat$st.tr.date <- rownames(sp.abun.mat)
+snake.mat$st.tr.date <- rownames(snake.mat)
 
 # now you have a column with that whole mess of info
 # let's separate the info back out into 3 separate columns
-sp.abun.mat <- sp.abun.mat %>% 
-  separate(st.tr.date, c('Station', 'Trail_Walked', 'Date', 'Diet_Type'), remove= FALSE, sep = "//")
+snake.mat <- snake.mat %>% 
+  separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
 
-# tell R that the Date column are Dates... again, but now note the order of yyyy-mm-dd is diff and we can use the default that this function expects (note I don't use the "format = " argument)
+# remove column of NA data which was made when we incorporated the surveys during which no snakes were found
 
-sp.abun.mat$Date <- as.Date(sp.abun.mat$Date)
+snake.mat <- snake.mat[-10]
 
 # great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
 
-# for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
-simp <- diversity(sp.abun.mat[1:17], index = "simpson")
-
-# now, let's just slap that on to our occurence matrix
-sp.abun.mat$simp <- simp
-
-# and remove simp, also remove other things you don't need
-rm(sp.abun, simp)
-
 # get abundance next
-sp.abun.mat$abund <- rowSums(sp.abun.mat[1:17])
+snake.mat$abund <- rowSums(snake.mat[1:16])
+
+# for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
+snake.mat$simpson_diversity <- diversity(snake.mat[1:16], index = "simpson")
+
+# remove abun.temp
+rm(abun.temp)
 
 # and lets get species richness
-sp.abun.mat$richness <- specnumber(sp.abun.mat[1:17])
+snake.mat$richness <- specnumber(snake.mat[1:16])
 
 # at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
 
+# now, get a rate of n snakes obs per hours of searching
+snake.mat$snakes.per.hr <- (snake.mat$abund/as.numeric(snake.mat$Effort_Hrs))
+
+# repeat this for richness and diversity
+snake.mat$species.per.hr <- (snake.mat$richness/as.numeric(snake.mat$Effort_Hrs))
+
+snake.mat$diversity.over.hrs <- (snake.mat$simpson_diversity/as.numeric(snake.mat$Effort_Hrs))
 
 ```
 
-## Explore data
+Now, what about if we look at the snakes split up into their different diet types?
 
-```{r visualize with histograms and boxplots}
+```{r break up by guild}
 
-# let's look at the data
+guilds <- snake.sur %>%
+  group_by(Station, Location, Date, Diet_Type, Effort_Hrs) %>%
+  tally()
 
-# make a histogram for species richness, diversity, and abundance
+# this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date, separated by //
 
-hist(sp.abun.mat$richness) #lots of small values with snakes
-hist(sp.abun.mat$abund) #most observations were 1 or 2 snakes a night, of the observations that didn't have zero
-hist(sp.abun.mat$simp)
+guilds$st.tr.date <- paste(guilds$Station, guilds$Location, guilds$Date, guilds$Effort_Hrs, sep = "//")
 
-boxplot(sp.abun.mat$richness)
-boxplot(sp.abun.mat$abund)
-boxplot(sp.abun.mat$simp)
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the Diet_Type as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
-sp.abun.mat %>%
-  ggplot(aes(x= Station, y= richness, fill = Station)) +
-    geom_boxplot() 
+guild.mat <- guilds %>% 
+  pivot_wider(names_from = Diet_Type, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.tr.date")
 
-sp.abun.mat %>%
-  ggplot(aes(x= Station, y= simp, fill = Station)) +
-    geom_boxplot() 
+# cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
 
-sp.abun.mat %>%
-  ggplot(aes(x= Station, y= abund, fill = Station)) +
-    geom_boxplot()
+guild.mat$st.tr.date <- rownames(guild.mat)
 
+# now you have a column with that whole mess of info
+# let's separate the info back out into 3 separate columns
+guild.mat <- guild.mat %>% 
+  separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
 
-# how are the different diet types split up?
+# remove column of NA data which was made when we incorporated the surveys during which no snakes were found
 
-# might want to look at snakes per hour or something on the Y axis, to account for sampling variation. Or snakes per km? per 500m?
+guild.mat <- guild.mat[-4]
 
-Diet_temp_df <- df_snakes.sur %>%
-  group_by(Station, Date, Diet_Type) %>%
-  summarize(n_inds = n())
+# and lets get Diet_Type richness
+guild.mat$richness <- specnumber(guild.mat[1:3])
 
-diet.p1 <- Diet_temp_df %>% 
-  ggplot(aes(x = Diet_Type, y = n_inds, color = Station)) +
-  geom_boxplot() + 
-  scale_colour_manual(values = c("aquamarine4", "brown4")) +
-  theme_light()
-
-diet.p1
+# and just in case we want to look at it this way, get n guilds found over time spent searching
+guild.mat$Diet_Type.per.hr <- (guild.mat$richness/as.numeric(guild.mat$Effort_Hrs))
 
 ```
+
+## Visualize + explore data
+
+Incorporate the time spent sampling and make some plots, starting with snake abundance per effort hour:
+
+```{r plots of abund over samp effort}
+
+# use ggplot to make some boxplots
+
+abun.p <- snake.mat %>%
+  ggplot(aes(x= Station, y= snakes.per.hr, fill = Station)) +
+    geom_boxplot() + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + scale_fill_manual(values=c("gold3", "orangered3")) + scale_x_discrete(labels = c("Unhunted forest (TBS)", "Hunted forest (YRS)")) +
+ylab("# snakes found\n per hour searching") + ggtitle("Snake abundance")
+
+abun.p
+
+# save
+# ggsave(plot = abun.p, "snake_surv_abun.jpg", width = 4, height = 4)
+
+# do we want to think about standardizing for person effort hours?
+
+# remove plot from env
+rm(abun.p)
+```
+
+What about the number of each diet type found in each station?
+
+```{r diet type abundance}
+
+
+```
+
+
 
 
 ## Community dissimilarity
