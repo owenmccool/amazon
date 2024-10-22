@@ -139,17 +139,17 @@ Now, we want to summarize how many snakes were seen per hour. This is going to i
 
 # use dplyr (tidyverse) functions to aggregate the data
 
-abun.temp <- snake.sur %>%
+temp <- snake.sur %>%
   group_by(Station, Location, Date, Species, Effort_Hrs) %>%
   tally()
 
-# this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date, separated by //
+# make an extra column that has the station ID and trail walked and date, separated by //
 
-abun.temp$st.tr.date <- paste(abun.temp$Station, abun.temp$Location, abun.temp$Date, abun.temp$Effort_Hrs, sep = "//")
+temp$st.tr.date <- paste(temp$Station, temp$Location, temp$Date, temp$Effort_Hrs, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
-snake.mat <- abun.temp %>% 
+snake.mat <- temp %>% 
   pivot_wider(names_from = Species, 
               values_from = n, 
               values_fill = 0) %>%
@@ -166,18 +166,19 @@ snake.mat <- snake.mat %>%
 
 # remove column of NA data which was made when we incorporated the surveys during which no snakes were found
 
-snake.mat <- snake.mat[-10]
+snake.mat <- snake.mat %>%
+  select(-"NA")
 
 # great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
 
 # get abundance next
-snake.mat$abund <- rowSums(snake.mat[1:16])
+snake.mat$total_found <- rowSums(snake.mat[1:16])
 
 # for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
 snake.mat$simpson_diversity <- diversity(snake.mat[1:16], index = "simpson")
 
-# remove abun.temp
-rm(abun.temp)
+# remove temp df
+rm(temp)
 
 # and lets get species richness
 snake.mat$richness <- specnumber(snake.mat[1:16])
@@ -185,30 +186,32 @@ snake.mat$richness <- specnumber(snake.mat[1:16])
 # at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
 
 # now, get a rate of n snakes obs per hours of searching
-snake.mat$snakes.per.hr <- (snake.mat$abund/as.numeric(snake.mat$Effort_Hrs))
+snake.mat$total.hr <- (snake.mat$total_found/as.numeric(snake.mat$Effort_Hrs))
 
 # repeat this for richness and diversity
-snake.mat$species.per.hr <- (snake.mat$richness/as.numeric(snake.mat$Effort_Hrs))
+snake.mat$richness.hr <- (snake.mat$richness/as.numeric(snake.mat$Effort_Hrs))
 
-snake.mat$diversity.over.hrs <- (snake.mat$simpson_diversity/as.numeric(snake.mat$Effort_Hrs))
+snake.mat$diversity.hr <- (snake.mat$simpson_diversity/as.numeric(snake.mat$Effort_Hrs))
+
+# start building a df for plotting
+
+snake.plot.df <- as.data.frame(snake.mat[17:26])
 
 ```
 
 Now, what about if we look at the snakes split up into their different diet types?
 
 ```{r break up by guild}
-
-guilds <- snake.sur %>%
-  group_by(Station, Location, Date, Diet_Type, Effort_Hrs) %>%
+# group by Station, Location, Date, Diet_Type and count n occurences to get n snakes per diet type per survey
+temp <- snake.sur %>%
+  group_by(Station, Location, Date, Diet_Type) %>%
   tally()
 
-# this may or may not be useful later; let's make an extra column that has the station ID and trail walked and date, separated by //
+# make a unique row names identifier
+temp$st.tr.date <- paste(temp$Station, temp$Location, temp$Date, sep = "//")
 
-guilds$st.tr.date <- paste(guilds$Station, guilds$Location, guilds$Date, guilds$Effort_Hrs, sep = "//")
-
-# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the Diet_Type as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
-
-guild.mat <- guilds %>% 
+# do this to get the zeros where we need them
+guild.mat <- temp %>% 
   pivot_wider(names_from = Diet_Type, 
               values_from = n, 
               values_fill = 0) %>%
@@ -221,56 +224,283 @@ guild.mat$st.tr.date <- rownames(guild.mat)
 # now you have a column with that whole mess of info
 # let's separate the info back out into 3 separate columns
 guild.mat <- guild.mat %>% 
-  separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
+  separate(st.tr.date, c('Station', 'Location', 'Date'), sep = "//")
 
 # remove column of NA data which was made when we incorporated the surveys during which no snakes were found
+guild.mat <- guild.mat %>%
+  select(-"NA")
 
-guild.mat <- guild.mat[-4]
+# dont' need the temp df anymore
+rm(temp)
 
-# and lets get Diet_Type richness
-guild.mat$richness <- specnumber(guild.mat[1:3])
+# this is annoying but now reformat it so have columns for Diet_Type, etc
+guild.mat <- guild.mat %>% 
+  pivot_longer(cols = c("no mammals", "mostly mammals", "mixed"),
+    names_to = "Diet_Type",
+    values_to = "n_per_guild")
 
-# and just in case we want to look at it this way, get n guilds found over time spent searching
-guild.mat$Diet_Type.per.hr <- (guild.mat$richness/as.numeric(guild.mat$Effort_Hrs))
+# add this to the plotting df
 
+snake.plot.df <- left_join(guild.mat, snake.plot.df, by = c("Location", "Date", "Station"))
 ```
 
 ## Visualize + explore data
 
-Incorporate the time spent sampling and make some plots, starting with snake abundance per effort hour:
+Let's make some boxplots.
 
-```{r plots of abund over samp effort}
+```{r prelim snake abundance plots}
 
 # use ggplot to make some boxplots
 
-abun.p <- snake.mat %>%
-  ggplot(aes(x= Station, y= snakes.per.hr, fill = Station)) +
-    geom_boxplot() + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + scale_fill_manual(values=c("gold3", "orangered3")) + scale_x_discrete(labels = c("Unhunted forest (TBS)", "Hunted forest (YRS)")) +
-ylab("# snakes found\n per hour searching") + ggtitle("Snake abundance")
+snake.plot.df %>%
+  filter(total_found != 0) %>%
+  ggplot(aes(x = Station, y = total_found, fill = Station)) +
+    geom_boxplot() + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + scale_fill_manual(values=c("darkseagreen3", "deeppink3")) + scale_x_discrete(labels = c("Unhunted forest (TBS)", "Hunted forest (YRS)")) +
+ylab("Total snakes") + ggtitle("Total snakes found per survey night")
 
-abun.p
+#####
 
-# save
-# ggsave(plot = abun.p, "snake_surv_abun.jpg", width = 4, height = 4)
+snake.plot.df %>%
+  filter(total.hr != 0) %>%
+  ggplot(aes(x = Station, y = total.hr, fill = Station)) +
+    geom_boxplot() + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + scale_fill_manual(values=c("darkseagreen3", "deeppink3")) + scale_x_discrete(labels = c("Unhunted forest (TBS)", "Hunted forest (YRS)")) +
+ylab("# snakes found\nper hour") + ggtitle("Snakes found per hour searching")
 
-# do we want to think about standardizing for person effort hours?
+####
 
-# remove plot from env
-rm(abun.p)
+snake.plot.df %>%
+  filter(richness.hr != 0) %>%
+  ggplot(aes(x = Station, y = richness.hr, fill = Station)) +
+    geom_boxplot() + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + scale_fill_manual(values=c("darkseagreen3", "deeppink3")) + scale_x_discrete(labels = c("Unhunted forest (TBS)", "Hunted forest (YRS)")) +
+ylab("Total snake species found\nper hour") + ggtitle("N species found per hour searching")
+
+###
+
+snake.plot.df %>%
+  filter(simpson_diversity !=0) %>%
+  ggplot(aes(x = Station, y = simpson_diversity, fill = Station)) +
+    geom_boxplot() + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) + scale_fill_manual(values=c("darkseagreen3", "deeppink3")) + scale_x_discrete(labels = c("Unhunted forest (TBS)", "Hunted forest (YRS)")) +
+ylab("Simpson diversity") + ggtitle("Snake diversity")
+
+####
+
+snake.plot.df %>%
+  ggplot(aes(x = Diet_Type, y = n_per_guild, fill = Station)) +
+    geom_boxplot() + theme_bw() + scale_fill_manual(values=c("darkseagreen3", "deeppink3", "burlywood3")) + ylab("N snakes") + ggtitle("Diet types")
+
 ```
 
-What about the number of each diet type found in each station?
+Okay cool good start. Want to make a little more informative plots with standard errors now. 
 
-```{r diet type abundance}
+```{r get summary species richness data and plot it}
+
+richness.hr.summ <- snake.plot.df %>%
+  group_by(Station) %>%
+  summarise(mean_richness.hr = mean(richness.hr),
+            sdrichness.hr = sd(richness.hr),
+            nrichness.hr = n()) %>%
+  mutate(SErichness.hr = sdrichness.hr / sqrt(nrichness.hr),
+         lower.ci.richness.hr = mean_richness.hr - qt(1 - (0.05 / 2), nrichness.hr - 1) * SErichness.hr,
+         upper.ci.richness.hr = mean_richness.hr + qt(1 - (0.05 / 2), nrichness.hr - 1) * SErichness.hr,
+         lower.se.richness.hr = mean_richness.hr - SErichness.hr,
+         upper.se.richness.hr = mean_richness.hr + SErichness.hr)
 
 
+###
+
+# plot 
+richness.hr.summ.plot <- richness.hr.summ %>%  
+  ggplot(aes(x= Station, y= mean_richness.hr, color = Station, shape = Station)) +
+  scale_colour_manual(values = c("seagreen4", "deeppink4")) +
+  geom_linerange(aes(ymin = lower.se.richness.hr, ymax = upper.se.richness.hr), linewidth = 0.15, color = "black") +
+  geom_point(size = 3) + 
+  ylab("N species found per hour") +
+  xlab(NULL) +
+  ggtitle("Snake species richness") +
+  theme_light() +
+  theme(axis.title.y = element_text(colour = "black")) +
+  theme(axis.title.x = element_text(colour = "black")) +
+  theme(axis.text = element_text(colour = "black")) +
+  theme(strip.text.x = element_text(colour = "black")) + 
+  theme(legend.position = "none")
+
+richness.hr.summ.plot
+
+#ggsave(plot = richness.hr.summ.plot, "snake_richness.jpg", width = 4, height = 4)
+
+# clean env
+rm(richness.hr.summ.plot)
 ```
 
 
 
+```{r get summary species abundance data and plot it}
+
+abund.hr.summ <- snake.plot.df %>%
+  group_by(Station) %>%
+  summarise(mean_abund.hr = mean(total.hr),
+            SD.abund.hr = sd(total.hr),
+            N.abund.hr = n()) %>%
+  mutate(SE.abund.hr = SD.abund.hr / sqrt(N.abund.hr),
+         lower.ci.abund.hr = mean_abund.hr - qt(1 - (0.05 / 2), N.abund.hr - 1) * SE.abund.hr,
+         upper.ci.abund.hr = mean_abund.hr + qt(1 - (0.05 / 2), N.abund.hr - 1) * SE.abund.hr,
+         lower.se.abund.hr = mean_abund.hr - SE.abund.hr,
+         upper.se.abund.hr = mean_abund.hr + SE.abund.hr)
+
+###
+
+# plot 
+abund.hr.summ.plot <- abund.hr.summ %>%  
+  ggplot(aes(x= Station, y= mean_abund.hr, color = Station, shape = Station)) +
+  scale_colour_manual(values = c("seagreen4", "deeppink4")) +
+  geom_linerange(aes(ymin = lower.se.abund.hr, ymax = upper.se.abund.hr), linewidth = 0.15, color = "black") +
+  geom_point(size = 3) + 
+  ylab("Total snakes found per hour") +
+  xlab(NULL) +
+  ggtitle("Snake abundances") +
+  theme_light() +
+  theme(axis.title.y = element_text(colour = "black")) +
+  theme(axis.title.x = element_text(colour = "black")) +
+  theme(axis.text = element_text(colour = "black")) +
+  theme(strip.text.x = element_text(colour = "black")) + 
+  theme(legend.position = "none")
+
+abund.hr.summ.plot
+
+#ggsave(plot = abund.hr.summ.plot, file = "snake_abundance.jpg", height = 4, width = 4)
+
+# clean env
+rm(abund.hr.summ.plot)
+```
+
+
+```{r get summary species diversity data and plot it}
+
+diversity.hr.summ <- snake.plot.df %>%
+  group_by(Station) %>%
+  summarise(mean_diversity.hr = mean(diversity.hr),
+            sddiversity.hr = sd(diversity.hr),
+            ndiversity.hr = n()) %>%
+  mutate(SEdiversity.hr = sddiversity.hr / sqrt(ndiversity.hr),
+         lower.ci.diversity.hr = mean_diversity.hr - qt(1 - (0.05 / 2), ndiversity.hr - 1) * SEdiversity.hr,
+         upper.ci.diversity.hr = mean_diversity.hr + qt(1 - (0.05 / 2), ndiversity.hr - 1) * SEdiversity.hr,
+         lower.se.diversity.hr = mean_diversity.hr - SEdiversity.hr,
+         upper.se.diversity.hr = mean_diversity.hr + SEdiversity.hr)
+
+
+###
+
+# plot 
+diversity.hr.summ.plot <- diversity.hr.summ %>%  
+  ggplot(aes(x= Station, y= mean_diversity.hr, color = Station, shape = Station)) +
+  scale_colour_manual(values = c("seagreen4", "deeppink4")) +
+  geom_linerange(aes(ymin = lower.se.diversity.hr, ymax = upper.se.diversity.hr), linewidth = 0.15, color = "black") +
+  geom_point(size = 3) + 
+  ylab("Diversity (Simpson's) per hour") +
+  xlab(NULL) +
+  ggtitle("Snake species diversity") +
+  theme_light() +
+  theme(axis.title.y = element_text(colour = "black")) +
+  theme(axis.title.x = element_text(colour = "black")) +
+  theme(axis.text = element_text(colour = "black")) +
+  theme(strip.text.x = element_text(colour = "black")) + 
+  theme(legend.position = "none")
+
+diversity.hr.summ.plot
+
+#ggsave(plot = diversity.hr.summ.plot, file = "snake_diversity.jpg", height = 4, width = 4)
+
+# clean env
+rm(diversity.hr.summ.plot)
+
+```
+
+
+```{r get summary diet type data and plot it}
+
+guild.summ <- snake.plot.df %>%
+  group_by(Station, Diet_Type) %>%
+  summarise(mean_perguild = mean(n_per_guild),
+            SDperguild = sd(n_per_guild),
+            Nperguild = n()) %>%
+  mutate(SEperguild = SDperguild / sqrt(Nperguild),
+         lower.ci.richness.hr = mean_perguild - qt(1 - (0.05 / 2), Nperguild - 1) * SEperguild,
+         upper.ci.perguild = mean_perguild + qt(1 - (0.05 / 2), Nperguild - 1) * SEperguild,
+         lower.se.perguild = mean_perguild - SEperguild,
+         upper.se.perguild = mean_perguild + SEperguild)
+###
+
+# plot 
+guild.summ.plot <- guild.summ %>%  
+  
+  ggplot(aes(x= Diet_Type, y= mean_perguild, shape = Station, group = Station, color = Station)) +
+  geom_pointrange(aes(ymin = lower.se.perguild, 
+                     ymax = upper.se.perguild), position = position_dodge(width = 0.3), size = 1) +
+  scale_color_manual(values = c("seagreen4", "deeppink4")) +
+  ylab("N snakes per guild") +
+  xlab(NULL) +
+  ggtitle("Snake abundance per diet type") +
+  theme_light() +
+  theme(axis.title.y = element_text(colour = "black")) +
+  theme(axis.title.x = element_text(colour = "black")) +
+  theme(axis.text = element_text(colour = "black")) +
+  theme(strip.text.x = element_text(colour = "black"))
+
+guild.summ.plot
+
+# save figures (quick and dirty)
+#ggsave(plot = guild.summ.plot, file = "snakes_per_guild.jpg", height = 4, width = 4)
+
+```
+
+```{r sample size overview}
+
+# n surveys per station
+snake.sur %>%
+  group_by(Station) %>%
+  summarize(n = n_distinct(Date))
+
+# 14 (if counting pilot) surveys at TBS
+# 12 at YRS
+
+# different routes
+
+snake.sur %>%
+  group_by(Station) %>%
+  summarize(n = n_distinct(Location))
+
+#9 distinct routes at TBS (with pilot)
+#6 at YRS
+
+# cumulative time spent searching
+snake.mat %>%
+  group_by(Station) %>%
+  summarize(hours = sum(as.numeric(Effort_Hrs)))
+
+# 42 hours vs 34 hours
+
+# n species found at each
+
+snake.sur %>%
+  group_by(Station) %>%
+  summarize(n_species = n_distinct(na.omit(Species)))
+# 13 at TBS, 10 at YRS
+
+# n snakes found at each
+snake.mat %>%
+  group_by(Station) %>%
+  summarize(n_found = sum(total_found))
+
+# standardize by hours
+
+snake.mat %>%
+  group_by(Station) %>%
+  summarize(n_found.per.hr = (sum(total_found))/(sum(as.numeric(Effort_Hrs))))
+
+
+```
 
 ## Community dissimilarity
-
 
 ```{r pull out predictors and community data for analysis}
 
