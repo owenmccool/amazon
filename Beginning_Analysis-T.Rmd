@@ -438,7 +438,7 @@ guild.summ.plot <- guild.summ %>%
                      ymax = upper.se.perguild), position = position_dodge(width = 0.3), size = 1) +
   scale_color_manual(values = c("seagreen4", "deeppink4")) +
   ylab("N snakes per guild") +
-  xlab(NULL) +
+  xlab(NULL) + scale_x_discrete(labels = (c("Mixed diet", "Mostly mammals", "No mammals"))) +
   ggtitle("Snake abundance per diet type") +
   theme_light() +
   theme(axis.title.y = element_text(colour = "black")) +
@@ -446,10 +446,11 @@ guild.summ.plot <- guild.summ %>%
   theme(axis.text = element_text(colour = "black")) +
   theme(strip.text.x = element_text(colour = "black"))
 
+
 guild.summ.plot
 
 # save figures (quick and dirty)
-#ggsave(plot = guild.summ.plot, file = "snakes_per_guild.jpg", height = 4, width = 4)
+#ggsave(plot = guild.summ.plot, file = "snakes_per_guild.jpg", height = 4, width = 7)
 
 ```
 
