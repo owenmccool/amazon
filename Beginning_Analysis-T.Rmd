@@ -53,25 +53,27 @@ Data preparation summary:
 
 ```{r data read in and do prelim cleaning}
 
-snake.sur <- read.csv("Snake_Surveys.csv", na.strings = c("", "NA")) #reading in csv file
+snake.sur <- read.csv("snake.sur.csv", na.strings = c("", "NA")) #reading in csv file
 enviro <- read.csv("Environment_Sheet.csv", na.strings = c("", "NA"))
 
-df.snake.non.sur <- read.csv("snake.non_survey.csv") 
+snake.non.sur <- read.csv("snake.non.sur.csv") 
 
 snake.sur<- snake.sur[-2,] #removing row 2 from UPDATEDsnakes.csv
 colnames(snake.sur) <- snake.sur[1, ] #takes 1st row and makes it column names
 snake.sur <- snake.sur[-1, ] #removed extra row that originally had column names but were now useless
-snake.sur <- snake.sur[ ,-23] #removing column 23
+snake.sur <- snake.sur[ ,-24] #removing column 23
 
 
-colnames(df.snake.non.sur) <- df.snake.non.sur[1, ] #takes row 1 and makes them column names 
-df.snake.non.sur <- df.snake.non.sur[-1, ] #removing first row since it is the same as column names now
+colnames(snake.non.sur) <- snake.non.sur[1, ] #takes row 1 and makes them column names 
+snake.non.sur <- snake.non.sur[-1, ] #removing first row since it is the same as column names now
 
 # we will now compare column names
 
 #colnames(df.snake.sur)
-#colnames(df.snake.non.sur)
+#colnames(snake.non.sur)
 
+snake.sur$Species <- trimws(snake.sur$Species)
+snake.non.sur$Species <- trimws(snake.non.sur$Species) #removing trailing spaces
 
 snake.sur$Species <- str_replace_all(snake.sur$Species, " ", "_") #replaces all spaces w/ underscore
 
@@ -83,34 +85,39 @@ snake.sur$Date <- gsub("\\*", "", snake.sur$Date)
 snake.sur$Date <- as.Date(snake.sur$Date, format = "%m/%d/%y")
 
 
-df.snake.non.sur$Date <- as.Date(df.snake.non.sur$Date, format = "%m/%d/%y")
+snake.non.sur$Date <- as.Date(snake.non.sur$Date, format = "%m/%d/%y")
 
 
-df.snake.non.sur <- df.snake.non.sur[, -21]
+snake.non.sur <- snake.non.sur[, -22]
 
 snake.sur$Obs_type <- "Survey"
-colnames(df.snake.non.sur)[4] <- "Obs_type"
+colnames(snake.non.sur)[4] <- "Obs_type"
 
-colnames(snake.sur)[7] <- "Snake_ID" #changing reptile Id to snake ID
+colnames(snake.sur)[8] <- "Snake_ID" #changing reptile Id to snake ID
 
-colnames(snake.sur)[10] <- "Time_Found"
+colnames(snake.sur)[11] <- "Time_Found"
 
 colnames(snake.sur)[3] <- "Location"
-colnames(df.snake.non.sur)[3] <- "Location" 
+colnames(snake.non.sur)[3] <- "Location" 
 
-df.snake.non.sur$Survey_Start_Time <- NA
-df.snake.non.sur$Surveyors <- NA
-df.snake.non.sur$Survey_End_Time <- NA
+snake.non.sur$Survey_Start_Time <- NA
+snake.non.sur$Surveyors <- NA
+snake.non.sur$Survey_End_Time <- NA
 
-colnames(snake.sur)[15] <- "Distance_m"
-colnames(df.snake.non.sur)[6] <- "During_My_Rotation"
+colnames(snake.sur)[16] <- "Distance_m"
+colnames(snake.non.sur)[7] <- "During_My_Rotation"
 
-df.snake.non.sur$Distance_m <- NA
+snake.non.sur$Distance_m <- NA
 
 
 snake.sur$During_My_Rotation <- "Yes"
 
-snake.master <- rbind(df.snake.non.sur, snake.sur)
+snake.master <- rbind(snake.non.sur, snake.sur)
+
+snake.master$Species <- str_replace_all(snake.master$Species, " ", "_") #making sure all snakes have underscored between genus and species
+
+#making new master csv, ensuring that extra row names are not added by R
+#write.csv(snake.master, "snake.master.csv", row.names = FALSE)
 ```
 
 Begin looking at variation in sampling effort. First, calculate time spend sampling during each night for surveys.
@@ -212,43 +219,46 @@ Look at Jaccard dissimilarity index
 
 # use dplyr (tidyverse) functions to aggregate the data, now group by station, zone, date, species, use snake.master dataset
 
-occ <- snake.master %>% #need to get snake.master updated to new csv combo
-  group_by(Station, Zone, Species, Date) %>%
+occ <- snake.sur %>% #need to get snake.master updated to new csv combo
+  group_by(Station, Species) %>%
   tally()
 
 
 # make an extra column that has the station ID and trail walked and date, separated by //, remove effort hours, location will become 'ZONE'
 
-occ$st.zn.date <- paste(occ$Station, occ$Zone, 
-                               occ$Species, occ$Date, sep = "//")
+occ$st.diet <- paste(occ$Station, occ$Diet_Type, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
 snake.occ.mat <- occ %>% 
-  pivot_wider(names_from = Species, 
+  pivot_wider(names_from = Diet_Type, #makes the column into the rownames
               values_from = n, 
-              values_fill = 0) %>%
-  column_to_rownames(var = "st.zn.date")
+              values_fill = 0) %>% #will fill spaces with no snakes as 0
+  column_to_rownames(var = "st.diet") #will make this new combo the unique identifier as rownames
 
-# cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
-
-snake.occ.mat$st.zn.date <- rownames(snake.occ.mat)
-
-# now you have a column with that whole mess of info
-# let's separate the info back out into 3 separate columns
-snake.occ.mat <- snake.occ.mat %>% 
-  separate(st.zn.date, c('Station', 'Zone', 'Species', 'Date'), sep = "//")
-
-# remove column of NA data which was made when we incorporated the surveys during which no snakes were found
-
-snake.occ.mat <- snake.occ.mat %>%
-  select(-"NA")
-
-# great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
-
+#snake.occ.mat <- snake.occ.mat[, -23] #removing NA column (23)
 
 
 ```
+
+``` {r Pull Out Predictors and Community Data}
+
+community <- snake.occ.mat[, c(2:3)] #made matrix from all data columns with n snake data
+
+
+predictors <- as.data.frame(snake.occ.mat[, 1]) #separating non-snake stuff (station)
+colnames(predictors)[1] <- "Station"
+
+Jaccard.dis.mat <- vegdist(community, method = "jaccard")
+
+
+pnova.jac.sp <- adonis2(Jaccard.dis.mat ~ predictors$Station, method = "jaccard")
+
+Jaccard.dis.mat
+
+```
+
+
 
 
 ``` {r Owens plots practice }
