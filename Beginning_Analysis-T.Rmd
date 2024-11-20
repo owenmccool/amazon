@@ -116,6 +116,11 @@ snake.master <- rbind(snake.non.sur, snake.sur)
 
 snake.master$Species <- str_replace_all(snake.master$Species, " ", "_") #making sure all snakes have underscored between genus and species
 
+# make a genus column
+snake.master <- snake.master %>%
+  separate(Species, c("Genus", "Species"))
+# cases where only genus or family level existed, species column is populated with NA (that's what the warning message is for, can ignore)
+
 #making new master csv, ensuring that extra row names are not added by R
 #write.csv(snake.master, "snake.master.csv", row.names = FALSE)
 ```
@@ -149,14 +154,13 @@ temp <- snake.sur %>%
   group_by(Station, Location, Date, Species, Effort_Hrs) %>%
   tally()
 
-
 # make an extra column that has the station ID and trail walked and date, separated by //
 
 temp$st.tr.date <- paste(temp$Station, temp$Location, temp$Date, temp$Effort_Hrs, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
-snake.mat <- temp %>% 
+snk.sur.mat <- temp %>% 
   pivot_wider(names_from = Species, 
               values_from = n, 
               values_fill = 0) %>%
@@ -164,45 +168,41 @@ snake.mat <- temp %>%
 
 # cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
 
-snake.mat$st.tr.date <- rownames(snake.mat)
+snk.sur.mat$st.tr.date <- rownames(snk.sur.mat)
 
 # now you have a column with that whole mess of info
 # let's separate the info back out into 3 separate columns
-snake.mat <- snake.mat %>% 
+snk.sur.mat <- snk.sur.mat %>% 
   separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
 
 # remove column of NA data which was made when we incorporated the surveys during which no snakes were found
 
-snake.mat <- snake.mat %>%
+snk.sur.mat <- snk.sur.mat %>%
   select(-"NA")
 
 # great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
 
 # get abundance next
-snake.mat$total_found <- rowSums(snake.mat[1:16])
+snk.sur.mat$total_found <- rowSums(snk.sur.mat[1:17])
 
 # for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
-snake.mat$simpson_diversity <- diversity(snake.mat[1:16], index = "simpson")
+snk.sur.mat$simpson_diversity <- diversity(snk.sur.mat[1:17], index = "simpson")
 
 # remove temp df
 rm(temp)
 
 # and lets get species richness
-snake.mat$richness <- specnumber(snake.mat[1:16])
+snk.sur.mat$richness <- specnumber(snk.sur.mat[1:17])
 
 # at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
 
 # now, get a rate of n snakes obs per hours of searching
-snake.mat$total.hr <- (snake.mat$total_found/as.numeric(snake.mat$Effort_Hrs))
+snk.sur.mat$total.hr <- (snk.sur.mat$total_found/as.numeric(snk.sur.mat$Effort_Hrs))
 
 # repeat this for richness and diversity
-snake.mat$richness.hr <- (snake.mat$richness/as.numeric(snake.mat$Effort_Hrs))
+snk.sur.mat$richness.hr <- (snk.sur.mat$richness/as.numeric(snk.sur.mat$Effort_Hrs))
 
-snake.mat$diversity.hr <- (snake.mat$simpson_diversity/as.numeric(snake.mat$Effort_Hrs))
-
-# start building a df for plotting
-
-snake.plot.df <- as.data.frame(snake.mat[17:26])
+snk.sur.mat$diversity.hr <- (snk.sur.mat$simpson_diversity/as.numeric(snk.sur.mat$Effort_Hrs))
 
 ```
 # Next steps: 
@@ -219,46 +219,75 @@ Look at Jaccard dissimilarity index
 
 # use dplyr (tidyverse) functions to aggregate the data, now group by station, zone, date, species, use snake.master dataset
 
-occ <- snake.sur %>% #need to get snake.master updated to new csv combo
-  group_by(Station, Species) %>%
+occ <- snake.master %>% #need to get snake.master updated to new csv combo
+  group_by(Station, Zone, Species) %>%
   tally()
 
+# remove NAs bc they don't tell us anything in this context
+occ<-na.omit(occ)
 
 # make an extra column that has the station ID and trail walked and date, separated by //, remove effort hours, location will become 'ZONE'
 
-occ$st.diet <- paste(occ$Station, occ$Diet_Type, sep = "//")
+occ$st.zn.sp <- paste(occ$Station, occ$Zone, occ$Species, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
 snake.occ.mat <- occ %>% 
-  pivot_wider(names_from = Diet_Type, #makes the column into the rownames
+  pivot_wider(names_from = Species, #makes the column into the rownames
               values_from = n, 
               values_fill = 0) %>% #will fill spaces with no snakes as 0
-  column_to_rownames(var = "st.diet") #will make this new combo the unique identifier as rownames
-
-#snake.occ.mat <- snake.occ.mat[, -23] #removing NA column (23)
-
+  column_to_rownames(var = "st.zn.sp") #will make this new combo the unique identifier as rownames
 
 ```
 
-``` {r Pull Out Predictors and Community Data}
-
-community <- snake.occ.mat[, c(2:3)] #made matrix from all data columns with n snake data
+To look at community dissimilarity, we can do a handful of things. Start with computing dissimilarity values based on Jaccard index. This compared presence and absence of species and doesnt tell us much....
 
 
-predictors <- as.data.frame(snake.occ.mat[, 1]) #separating non-snake stuff (station)
-colnames(predictors)[1] <- "Station"
+``` {r prep predictor and community data}
+
+community <- snake.occ.mat[, c(3:31)] #made matrix from all data columns with n snake data
+
+
+predictors <- snake.occ.mat[, c(1,2)] #separating non-snake stuff (station)
+                          
+# remove cases with empty rows, which are 'meaningless' with jaccard. These were the surveys during which we did not find anything. 
 
 Jaccard.dis.mat <- vegdist(community, method = "jaccard")
 
-
 pnova.jac.sp <- adonis2(Jaccard.dis.mat ~ predictors$Station, method = "jaccard")
 
-Jaccard.dis.mat
-
+# look at results
+print(pnova.jac.sp)
 ```
 
 
+Bray Curtis index. 0 = totally the same, 1 = totally dissimilar.
+
+In summary, "to calculate Bray-Curtis dissimilarity between two samples, you need to find the sum of the lesser abundances of each species present in both samples, then divide that sum by the total combined abundance of all species in both samples, and finally subtract the result from 1; essentially, it measures the proportion of difference in species abundance between two samples, with a value ranging from 0 (identical samples) to 1 (completely different samples)." 
+```{r repeat with bray curtis}
+
+bc.dis.mat <- vegdist(community, method = "bray")
+
+pnova.bc.sp <- adonis2(bc.dis.mat ~ predictors$Station, method = "bray")
+
+# look at results
+print(pnova.bc.sp)
+```
+"The Morisita and the Horn-Morisita indices measure the probability that individuals drawn one from each vector will belong to different species, relative to drawing from each vector separately. The Morisita index is formulated for count data only, whereas the Horn-Morisita index can be used with transformed counts or proportions."
+
+```{r repeat with horn morisita}
+
+horn.dis.mat <- vegdist(community, method = "horn")
+
+pnova.horn.sp <- adonis2(horn.dis.mat ~ predictors$Station)
+
+# look at results
+print(pnova.horn.sp)
+```
+```{r nmds visualization with horn}
+nmds.horn <- metaMDS(community, distance = "horn", autotransform = TRUE, maxtry = 200)
+
+```
 
 
 ``` {r Owens plots practice }
