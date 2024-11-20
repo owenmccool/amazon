@@ -285,7 +285,7 @@ pnova.horn.sp <- adonis2(horn.dis.mat ~ predictors$Station)
 print(pnova.horn.sp)
 ```
 ```{r nmds visualization with horn}
-nmds.horn <- metaMDS(community, distance = "horn", autotransform = TRUE, maxtry = 200)
+nmds.horn <- metaMDS(community, distance = "bray", autotransform = TRUE, maxtry = 200)
 
 ```
 
