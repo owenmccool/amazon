@@ -212,35 +212,36 @@ Look at Jaccard dissimilarity index
 
 # use dplyr (tidyverse) functions to aggregate the data, now group by station, zone, date, species, use snake.master dataset
 
-temp <- snake.sur %>%
-  group_by(Station, Location, Date, Species, Effort_Hrs) %>%
+occ <- snake.master %>% #need to get snake.master updated to new csv combo
+  group_by(Station, Zone, Species, Date) %>%
   tally()
 
 
 # make an extra column that has the station ID and trail walked and date, separated by //, remove effort hours, location will become 'ZONE'
 
-temp$st.tr.date <- paste(temp$Station, temp$Location, temp$Date, temp$Effort_Hrs, sep = "//")
+occ$st.zn.date <- paste(occ$Station, occ$Zone, 
+                               occ$Species, occ$Date, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
-snake.mat <- temp %>% 
+snake.occ.mat <- occ %>% 
   pivot_wider(names_from = Species, 
               values_from = n, 
               values_fill = 0) %>%
-  column_to_rownames(var = "st.tr.date")
+  column_to_rownames(var = "st.zn.date")
 
 # cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
 
-snake.mat$st.tr.date <- rownames(snake.mat)
+snake.occ.mat$st.zn.date <- rownames(snake.occ.mat)
 
 # now you have a column with that whole mess of info
 # let's separate the info back out into 3 separate columns
-snake.mat <- snake.mat %>% 
-  separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
+snake.occ.mat <- snake.occ.mat %>% 
+  separate(st.zn.date, c('Station', 'Zone', 'Species', 'Date'), sep = "//")
 
 # remove column of NA data which was made when we incorporated the surveys during which no snakes were found
 
-snake.mat <- snake.mat %>%
+snake.occ.mat <- snake.occ.mat %>%
   select(-"NA")
 
 # great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
