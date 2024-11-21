@@ -151,14 +151,15 @@ Now, we want to summarize how many snakes were seen per hour. This is going to i
 # use dplyr (tidyverse) functions to aggregate the data
 
 temp <- snake.sur %>%
-  group_by(Station, Location, Date, Species, Effort_Hrs) %>%
+  group_by(Station, Zone, Date, Species, Effort_Hrs) %>%
   tally()
 
 # make an extra column that has the station ID and trail walked and date, separated by //
 
-temp$st.tr.date <- paste(temp$Station, temp$Location, temp$Date, temp$Effort_Hrs, sep = "//")
+temp$st.tr.date <- paste(temp$Station, temp$Zone, temp$Date, temp$Effort_Hrs, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+temp <- na.omit(temp)
 
 snk.sur.mat <- temp %>% 
   pivot_wider(names_from = Species, 
@@ -168,6 +169,7 @@ snk.sur.mat <- temp %>%
 
 # cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
 
+
 snk.sur.mat$st.tr.date <- rownames(snk.sur.mat)
 
 # now you have a column with that whole mess of info
@@ -175,24 +177,20 @@ snk.sur.mat$st.tr.date <- rownames(snk.sur.mat)
 snk.sur.mat <- snk.sur.mat %>% 
   separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
 
-# remove column of NA data which was made when we incorporated the surveys during which no snakes were found
-
-snk.sur.mat <- snk.sur.mat %>%
-  select(-"NA")
 
 # great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
 
 # get abundance next
-snk.sur.mat$total_found <- rowSums(snk.sur.mat[1:17])
+snk.sur.mat$total_found <- rowSums(snk.sur.mat[2:18])
 
 # for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
-snk.sur.mat$simpson_diversity <- diversity(snk.sur.mat[1:17], index = "simpson")
+snk.sur.mat$simpson_diversity <- diversity(snk.sur.mat[2:18], index = "simpson")
 
 # remove temp df
 rm(temp)
 
 # and lets get species richness
-snk.sur.mat$richness <- specnumber(snk.sur.mat[1:17])
+snk.sur.mat$richness <- specnumber(snk.sur.mat[2:18])
 
 # at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
 
@@ -248,13 +246,13 @@ To look at community dissimilarity, we can do a handful of things. Start with co
 community <- snake.occ.mat[, c(3:31)] #made matrix from all data columns with n snake data
 
 
-predictors <- snake.occ.mat[, c(1,2)] #separating non-snake stuff (station)
+predictors <- snake.occ.mat[, c(1,2)] #separating non-snake stuff (station and zone)
                           
 # remove cases with empty rows, which are 'meaningless' with jaccard. These were the surveys during which we did not find anything. 
 
-Jaccard.dis.mat <- vegdist(community, method = "jaccard")
+Jaccard.dis.mat <- vegdist(community, method = "jaccard") #jaccard only accounts for presence absence 
 
-pnova.jac.sp <- adonis2(Jaccard.dis.mat ~ predictors$Station, method = "jaccard")
+pnova.jac.sp <- adonis2(Jaccard.dis.mat ~ predictors$Station, method = "jaccard") #adonis looks at specific differences between groups, our group factor is station
 
 # look at results
 print(pnova.jac.sp)
@@ -265,10 +263,13 @@ Bray Curtis index. 0 = totally the same, 1 = totally dissimilar.
 
 In summary, "to calculate Bray-Curtis dissimilarity between two samples, you need to find the sum of the lesser abundances of each species present in both samples, then divide that sum by the total combined abundance of all species in both samples, and finally subtract the result from 1; essentially, it measures the proportion of difference in species abundance between two samples, with a value ranging from 0 (identical samples) to 1 (completely different samples)." 
 ```{r repeat with bray curtis}
+sk.sur <- snk.sur.mat[, c(2:18)] #making matrix of snake observations
 
-bc.dis.mat <- vegdist(community, method = "bray")
+groupings <- snk.sur.mat[, c(1, 19)] #making matrix for station and zone
 
-pnova.bc.sp <- adonis2(bc.dis.mat ~ predictors$Station, method = "bray")
+bc.dis.mat <- vegdist(sk.sur, method = "bray")
+
+pnova.bc.sp <- adonis2(bc.dis.mat ~ groupings$Station, method = "bray")
 
 # look at results
 print(pnova.bc.sp)
@@ -277,9 +278,9 @@ print(pnova.bc.sp)
 
 ```{r repeat with horn morisita}
 
-horn.dis.mat <- vegdist(community, method = "horn")
+horn.dis.mat <- vegdist(sk.sur, method = "horn")
 
-pnova.horn.sp <- adonis2(horn.dis.mat ~ predictors$Station)
+pnova.horn.sp <- adonis2(horn.dis.mat ~ groupings$Station)
 
 # look at results
 print(pnova.horn.sp)
@@ -318,7 +319,7 @@ ggplot(data = unique_species, aes(x = Sites, y = UniqueSpecies)) +
 
 
 
-
+# Get figure set up: boxplot with total/hr from snk.sur.mat, grouped by station, do a kruskal wallis test eventually
 
 
 
