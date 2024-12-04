@@ -321,8 +321,19 @@ ggplot(data = unique_species, aes(x = Sites, y = UniqueSpecies)) +
 
 # Get figure set up: boxplot with total/hr from snk.sur.mat, grouped by station, do a kruskal wallis test eventually
 
+``` {r Boxplot for Snake Totals per Hour}
+
+boxplot(snk.sur.mat$total.hr[snk.sur.mat$Station == "TBS"],
+        snk.sur.mat$total.hr[snk.sur.mat$Station == "YRS"],
+        names = c("TBS", "YRS"), 
+        col = c("red", "blue"), 
+        xlab = "Station", 
+        ylab = "Snakes per Hour",
+        main = "Snake Totals per Survey Hours by Station")
 
 
+
+```
 
 
 
