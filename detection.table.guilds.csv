@@ -1,0 +1,23 @@
+"Station","Diet_Type","Obs_type","n"
+"TBS","","TPE",2
+"TBS","mixed","OE",2
+"TBS","mixed","Survey",3
+"TBS","mixed","TPE",1
+"TBS","mostly mammals","Survey",2
+"TBS","mostly mammals","TPE",2
+"TBS","no mammals","OE",8
+"TBS","no mammals","Survey",26
+"TBS","no mammals","TPE",9
+"TBS",NA,"Survey",4
+"YRS","","TPE",2
+"YRS","mixed","OE",3
+"YRS","mixed","Survey",7
+"YRS","mixed","TPE",4
+"YRS","mixed","TPE*",1
+"YRS","mixed ","TPE",1
+"YRS","mostly mammals","OE",3
+"YRS","mostly mammals","Survey",4
+"YRS","no mammals","OE",8
+"YRS","no mammals","Survey",12
+"YRS","no mammals","TPE",4
+"YRS",NA,"Survey",2
