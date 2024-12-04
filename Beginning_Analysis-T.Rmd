@@ -132,6 +132,8 @@ Begin looking at variation in sampling effort. First, calculate time spend sampl
 ```{r survey samp effort}
 
 # this is only relevant to the snake surveys, to get n hours spent searching
+snake.sur <- snake.master %>%
+  filter(Obs_type == "Survey")
 
 # first, combine date and time so that you can use 'difftime' to get time elapsed between start and end
 
@@ -199,10 +201,91 @@ snk.sur.mat$richness <- specnumber(snk.sur.mat[2:18])
 # now, get a rate of n snakes obs per hours of searching
 snk.sur.mat$total.hr <- (snk.sur.mat$total_found/as.numeric(snk.sur.mat$Effort_Hrs))
 
-# repeat this for richness and diversity
+# repeat this for richness and diversity (may not use this)
 snk.sur.mat$richness.hr <- (snk.sur.mat$richness/as.numeric(snk.sur.mat$Effort_Hrs))
 
 snk.sur.mat$diversity.hr <- (snk.sur.mat$simpson_diversity/as.numeric(snk.sur.mat$Effort_Hrs))
+
+```
+
+Now, get a plot of the detection rates at each hunted and unhunted study area. 
+
+```{r snake plot detection rate}
+
+pooled.detection.plot <- snk.sur.mat %>%
+  ggplot(aes(x= Station, y= total.hr, color = Station)) +
+  ylab("N snakes found per hour") +
+  xlab("") + theme_light() +
+  geom_boxplot() + scale_color_manual(values=c("#E69F00", "darkgreen"))
+
+pooled.detection.plot
+
+```
+What about snakes found per hour in each feeding guild?
+
+```{r prep to look at feeding guild detections}
+
+# use dplyr (tidyverse) functions to aggregate the data
+
+survey_snake_guilds <- snake.sur %>%
+  group_by(Station, Zone, Date, Diet_Type, Effort_Hrs) %>%
+  tally()
+
+# make NA's 0s
+#survey_snake_guilds <- survey_snake_guilds %>%
+ # mutate(n = ifelse(is.na(Diet_Type), 0, n))
+
+# remove NAs
+survey_snake_guilds <- na.omit(survey_snake_guilds)
+
+survey_snake_guilds$st.tr.date <- paste(survey_snake_guilds$Station, survey_snake_guilds$Zone, survey_snake_guilds$Date, survey_snake_guilds$Effort_Hrs, sep = "//")
+
+
+snk.sur.guilds.mat <- survey_snake_guilds %>% 
+  pivot_wider(names_from = Diet_Type, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.tr.date")
+
+# cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
+
+snk.sur.guilds.mat$st.tr.date <- rownames(snk.sur.guilds.mat)
+
+# now you have a column with that whole mess of info
+# let's separate the info back out into 3 separate columns
+snk.sur.guilds.mat <- snk.sur.guilds.mat %>% 
+  separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
+
+
+# great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
+
+# get abundance next
+snk.sur.guilds.mat$total_found <- rowSums(snk.sur.mat[2:4])
+
+# now, get a rate of n snakes obs per hours of searching
+snk.sur.guilds.mat$total.hr <- (snk.sur.guilds.mat$total_found/as.numeric(snk.sur.guilds.mat$Effort_Hrs))
+
+# transpose
+
+snk.sur.guilds <- snk.sur.guilds %>%
+  pivot_longer(total.hr)
+
+snk.sur.guilds <- survey_snake_guilds %>% 
+  pivot_longer(names_from = Diet_Type, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.tr.date")
+```
+
+```{r plot differences in feeding guild detection rates}
+
+per.guild.detection.plot <- snk.sur.guilds.mat %>%
+  ggplot(aes(x= Station, y = total.hr, color = Station)) +
+  ylab("N snakes found per hour") + theme_light() +
+  geom_boxplot() + scale_color_manual(values=c("#E69F00", "darkgreen"))
+
+per.guild.detection.plot
+
 
 ```
 # Next steps: 
