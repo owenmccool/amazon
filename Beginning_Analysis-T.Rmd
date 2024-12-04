@@ -68,7 +68,7 @@ Data preparation: Join snake data collected during standard surveys with the opp
 #colnames(df.snake.sur)
 #colnames(snake.non.sur)
 
-#snake.sur$Species <- trimws(snake.sur$Species)
+#snake.sur$Species <- trimws(snake.sur$Species) #removing hanging spaces
 #snake.non.sur$Species <- trimws(snake.non.sur$Species) #removing trailing spaces
 
 #snake.sur$Species <- str_replace_all(snake.sur$Species, " ", "_") #replaces all spaces w/ underscore
@@ -213,7 +213,7 @@ Now, get a plot of the detection rates at each hunted and unhunted study area.
 ```{r snake plot detection rate}
 
 pooled.detection.plot <- snk.sur.mat %>%
-  ggplot(aes(x= Station, y= total.hr, color = Station)) +
+  ggplot(aes(x= Station, y= total.hr, color = Station)) + #aesthetics, telling it what you want x and y axis to be
   ylab("N snakes found per hour") +
   xlab("") + theme_light() +
   geom_boxplot() + scale_color_manual(values=c("#E69F00", "darkgreen"))
