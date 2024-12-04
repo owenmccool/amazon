@@ -10,10 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
   
 ```{r package read in}
+
 library(vegan)
 library(stringr)
 library(ggplot2)
 library(tidyverse)
+
 ```
 
 
@@ -224,65 +226,59 @@ pooled.detection.plot
 What about snakes found per hour in each feeding guild?
 
 ```{r prep to look at feeding guild detections}
+# most of the steps below, if not all, are repeated from above
 
-# use dplyr (tidyverse) functions to aggregate the data
-
-survey_snake_guilds <- snake.sur %>%
+# get data aggragated according to diet type
+grped.by.guild <- snake.sur %>%
   group_by(Station, Zone, Date, Diet_Type, Effort_Hrs) %>%
-  tally()
+  tally() # count n rows we have per survey per diet type
 
-# make NA's 0s
-#survey_snake_guilds <- survey_snake_guilds %>%
- # mutate(n = ifelse(is.na(Diet_Type), 0, n))
+# make a separate data set with effort hours per night at each zone
+surveys.all <- as.data.frame(grped.by.guild[,c(1:3,5)])
+surveys.all <- surveys.all %>%
+  distinct(Date, .keep_all = TRUE)
 
 # remove NAs
-survey_snake_guilds <- na.omit(survey_snake_guilds)
+grped.by.guild <- na.omit(grped.by.guild)
 
-survey_snake_guilds$st.tr.date <- paste(survey_snake_guilds$Station, survey_snake_guilds$Zone, survey_snake_guilds$Date, survey_snake_guilds$Effort_Hrs, sep = "//")
+grped.by.guild$st.tr.date <- paste(grped.by.guild$Station, grped.by.guild$Zone, grped.by.guild$Date, grped.by.guild$Effort_Hrs, sep = "//")
 
-
-snk.sur.guilds.mat <- survey_snake_guilds %>% 
+mat.grped.by.guild <- grped.by.guild %>% 
   pivot_wider(names_from = Diet_Type, 
               values_from = n, 
               values_fill = 0) %>%
   column_to_rownames(var = "st.tr.date")
 
-# cool, now, we need to pull the info out of the row names and make that info columns again. Note, there is probably a better way to do this but here we are. 
+mat.grped.by.guild$st.tr.date <- rownames(mat.grped.by.guild)
 
-snk.sur.guilds.mat$st.tr.date <- rownames(snk.sur.guilds.mat)
-
-# now you have a column with that whole mess of info
-# let's separate the info back out into 3 separate columns
-snk.sur.guilds.mat <- snk.sur.guilds.mat %>% 
+mat.grped.by.guild <- mat.grped.by.guild %>% 
   separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
 
-
-# great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
-
 # get abundance next
-snk.sur.guilds.mat$total_found <- rowSums(snk.sur.mat[2:4])
+mat.grped.by.guild$total_found <- rowSums(mat.grped.by.guild[2:4])
 
 # now, get a rate of n snakes obs per hours of searching
-snk.sur.guilds.mat$total.hr <- (snk.sur.guilds.mat$total_found/as.numeric(snk.sur.guilds.mat$Effort_Hrs))
+mat.grped.by.guild$total.hr <- (mat.grped.by.guild$total_found/as.numeric(mat.grped.by.guild$Effort_Hrs))
 
-# transpose
+# transpose using pivot longer
 
-snk.sur.guilds <- snk.sur.guilds %>%
-  pivot_longer(total.hr)
+n.per.guild <- mat.grped.by.guild %>%
+  select(-c(total_found, Location, total.hr)) %>%
+  pivot_longer(cols = c("no mammals", "mostly mammals", "mixed"), 
+                        names_to = "Diet_Type", 
+                        values_to = "n")
 
-snk.sur.guilds <- survey_snake_guilds %>% 
-  pivot_longer(names_from = Diet_Type, 
-              values_from = n, 
-              values_fill = 0) %>%
-  column_to_rownames(var = "st.tr.date")
+# Next steps (T: Dec 4 2024)
+# get n found per hour
+# add n per guild from other observation types
 ```
 
 ```{r plot differences in feeding guild detection rates}
 
-per.guild.detection.plot <- snk.sur.guilds.mat %>%
-  ggplot(aes(x= Station, y = total.hr, color = Station)) +
-  ylab("N snakes found per hour") + theme_light() +
-  geom_boxplot() + scale_color_manual(values=c("#E69F00", "darkgreen"))
+per.guild.detection.plot <- n.per.guild %>%
+  ggplot(aes(x= Diet_Type, y = n, fill = Station)) +
+  ylab("N individuals found per nightly survey") + theme_light() +
+  geom_boxplot()
 
 per.guild.detection.plot
 
