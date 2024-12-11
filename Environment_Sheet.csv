@@ -1,31 +1,30 @@
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Environment Data Sheet,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Date,Station,Trail_Walked,Survey_Start_Time,Survey_End_Time,Survey Zone,Notes,Searching_Time,Surveyors,Understory_Density_1,Understory_Density_2,Understory_Density_3,Understory_Density_4,Understory_Density_5,Understory_Density_6,Understory_Density_7,Understory_Density_8,Understory_Density_9,Understory_Density_10,Understory_Density_11,Understory_Density_12,Understory_Density_13, Temperature_1, Temperature_2, Temperature_3, Temperature_4, Temperature_5, Temperature_6, Temperature_7,Humidity_1,Humidity_2,Humidity_3,Humidity_4,Humidity_5,Humidity_6,Humidity_7,Number_of_Small_Mammals_Spotted,Number_of_Water_Bodies_Spotted
 06/11/24*,TBS,Numa-Chichico-Matapalo,8:37 PM,11:36 PM,Matapalo Zone,,2:59,"O,M,T,A",,,,,,,,,,,,,,,,,,,,,,,,,,,,2,6
-06/13/24,TBS,Guacamayo-Danta-Lago,8:59 PM,11:54 PM,Danta Zone,timer stopped @ recorded data,2:55,"O,M,T",0,1,0,8,2,3,9,9,1,4,8,7,,81.6,82,83.7,80.2,83,80.8,,80.4,83.4,73.9,84.7,79.8,85.2,,0,5
-06/17/24,TBS,Matapalo-Torre-Murcielago-Matapalo-Numa,8:04 PM,12:11 AM,Matapalo Zone,timer stopped @ recorded data,3:01,"O,T",1,7,12,3,4,1,8,4,3,3,7,2,2,80.2,79.5,78.6,79,78.8,78.1,78.4,83.7,92,90.5,88.3,88.4,89.8,89.4,1,3
-06/19/24,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,7:58 PM,10:50 PM,Chorongo Zone,,2:52,"O,M,Jess,Amy",0,5,8,2,8,0,2,3,5,2,3,4,,77,76.4,76.3,76.6,76.4,77.2,,90.5,93,92.3,93.7,92.1,91.6,,2,3
+6/13/24,TBS,Guacamayo-Danta-Lago,8:59 PM,11:54 PM,Danta Zone,timer stopped @ recorded data,2:55,"O,M,T",0,1,0,8,2,3,9,9,1,4,8,7,,81.6,82,83.7,80.2,83,80.8,,80.4,83.4,73.9,84.7,79.8,85.2,,0,5
+6/17/24,TBS,Matapalo-Torre-Murcielago-Matapalo-Numa,8:04 PM,12:11 AM,Matapalo Zone,timer stopped @ recorded data,3:01,"O,T",1,7,12,3,4,1,8,4,3,3,7,2,2,80.2,79.5,78.6,79,78.8,78.1,78.4,83.7,92,90.5,88.3,88.4,89.8,89.4,1,3
+6/19/24,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,7:58 PM,10:50 PM,Chorongo Zone,,2:52,"O,M,Jess,Amy",0,5,8,2,8,0,2,3,5,2,3,4,,77,76.4,76.3,76.6,76.4,77.2,,90.5,93,92.3,93.7,92.1,91.6,,2,3
 06/21/24*,TBS,Matapalo-Harpia,8:11 PM,9:36 PM,Matapalo Zone,,1:25,"O,Ramiro",3,3,4,1,2,,,,,,,,,75.4,77.2,76.3,,,,,94.7,91.1,90.5,,,,,1,1
-06/22/24,TBS,Anaconda-Lago,8:06 PM,10:29 PM,Lago Zone,,2:23,"O,T,Jess,Amy,Adrian",3,0,1,2,4,7,3,4,1,4,,,,85.3,84.1,83.1,83,77.6,,,78.4,81.5,79.7,78.9,90.1,,,2,5
-06/23/24,TBS,Matapalo-Murcielago-Murcielago Pond,8:00 PM,10:36 PM,Matapalo Zone,,2:36,"O,M,Ramiro",1,3,8,1,1,7,5,5,1,5,2,,,79.2,80.3,80.5,79.9,79.3,78.4,,92.3,89.8,89,90.5,90.1,91.8,,1,2
-06/27/24,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,8:07 PM,11:04 PM,West Zone,timer stopped @ recorded data,2:44,"O,T",2,3,0,2,1,2,4,2,2,1,3,0,,83.4,78,77.7,77.5,77.2,77.8,,76,86.3,86,86.5,87,85.8,,2,6
-06/29/24,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,8:04 PM,11:19 PM,Gawape Zone,timer stopped @ recorded data,3:06,"O,M,Dimitri",3,2,4,2,2,4,0,4,4,6,3,2,1,81.1,79.3,78.5,80.3,79.6,78.6,77.1,88,93.2,92.8,91.1,92.5,93.1,94.5,7,6
-07/02/24,YRS,Forest Plot Perimeter,8:00 PM,11:11 PM,Forest Plot Zone,timer stopped @ recorded data,3:00,"O,T",2,0,2,1,2,3,2,2,0,1,1,2,5,79.5,80.1,78,79.1,80.5,79.1,78.7,83.4,86,87.5,85.3,82.3,85.4,90,8,5
-07/03/24,YRS,Ceiba-Peru,8:11 PM,11:07 PM,Ceiba Zone,timer stopped @ recorded data,2:28,"O,M",5,5,0,2,2,1,3,5,6,2,,,,77.1,77.6,77.5,77.6,76.9,,,93.2,92.7,92.6,92.1,94,,,3,4
-07/04/24,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,8:12 PM,11:00 PM,West Zone,timer stopped @ recorded data,2:40,"O,Sophia",5,1,2,6,2,1,0,1,2,3,5,,,81.2,78.3,77.2,77.1,76.6,78.2,,80.2,87,92.1,92.1,93.3,89.4,,5,7
-07/06/24,YRS,Forest Plot Perimeter,8:29 PM,11:28 PM,Forest Plot Zone,timer stopped @ recorded data,2:52,"O,A",0,0,1,2,2,1,0,1,4,0,5,0,,73.8,73.3,72.9,72.4,72.6,72.4,,81.8,95.6,94.6,96.7,97.1,97.2,,3,4
-07/08/24,TBS,Matapalo-Torre-Murcielago-Murcielago Pond-Matapalo-Numa,8:01 PM,10:53 PM,Matapalo Zone,timer stopped @ recorded data,2:49,"O,Ethan",2,2,3,0,1,5,0,0,0,1,1,2,,74,75,76.3,74.6,74.6,74.9,,91.8,84.9,84.4,86.6,87.8,91.1,,0,4
-07/10/24,TBS,Guacamayo-Danta-Lago,8:07 PM,10:58 PM,Danta Zone,timer stopped @ recorded data,2:43,"O,M",0,3,0,1,0,3,0,0,4,1,2,,,75.6,75.8,76.2,76.2,76.9,76.2,,97.6,96.8,94.4,93.8,91.9,92.3,,5,5
-07/11/24,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,8:08 PM,10:57 PM,Chorongo Zone,timer stopped @ recorded data,2:45,"O,T",1,3,2,0,4,3,3,2,0,5,2,2,,78.7,78.7,79.7,79.8,79.6,80.6,,89.2,85.6,81.6,80.7,81.2,78.6,,4,3
-07/14/24,TBS,Harpia Plot-Harpia,8:51 PM,12:05 AM,Harpia Zone,timer stopped @ recorded data,3:00,"O,T",1,2,4,3,1,0,7,2,3,1,4,4,2,76.2,78.6,77.8,79.6,79.5,78,76.2,90.4,84.3,87,81.4,81,85.5,88.1,1,6
-07/15/24,TBS,Anaconda-Lago,8:14 PM,11:42 PM,Lago Zone,timer stopped @ recorded data,3:00,"O,M",1,1,0,6,2,0,1,3,5,0,9,1,2,74.9,75.8,74.5,74.9,74.5,75.8,76.3,95.2,92.9,92.8,91.3,92.4,88.6,88,4,5
-07/17/24,TBS,Puma-Puma Plot,8:14 PM,11:22 PM,Puma Zone,timer stopped @ recorded data,2:46,"O,T",0,2,1,2,4,0,3,0,2,1,0,2,,74.1,75.5,74.8,74.6,75,74.8,,87.4,86.1,89.7,90.5,89.4,90.6,,0,7
-07/18/24,TBS,Harpia Plot-Harpia,8:00 PM,10:50 PM,Harpia Zone,timer stopped @ recorded data,2:31,"O,Brian",1,1,1,0,4,0,1,11,2,0,5,,,77.3,82.7,77.9,77.5,77.4,76.1,,94.7,83.9,90.5,92.4,91,88.8,,2,5
-07/20/24,TBS,Puma-Puma Plot,8:06 PM,11:51 PM,Puma Zone,timer stopped @ recorded data,2:50,"O,T",1,0,3,0,2,0,4,2,0,1,3,1,,71.7,73.3,74,74.2,74.2,73.5,,99.4,99.1,96,97.8,93.5,94.8,,2,5
-07/23/24,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,8:09 PM,10:45 PM,Tinamou Zone,timer stopped @ recorded data,2:06,"O,T",3,1,1,2,1,2,0,2,1,,,,,77.6,79.8,79.3,78.8,78,,,90.5,87.2,86.3,91.3,89.7,,,6,4
-07/25/24,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,8:19 PM,10:44 PM,Edge-Tower Zone,timer stopped @ recorded data,2:02,"O,T",7,2,0,1,2,0,5,0,0,,,,,77.3,81.2,80.4,78.6,79,,,91.5,83.5,84.3,86.1,84.3,,,10,6
-07/26/24,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,8:02 PM,10:54 PM,Gawape Zone,timer stopped @ recorded data,2:46,"O,A",0,3,3,3,2,5,2,6,2,0,3,1,,78.4,76.7,78.2,77.1,76.6,76.2,,88.2,93.7,91.2,93.1,94.6,94.3,,7,6
-07/28/25,YRS,Ceiba-Peru,8:27 PM,11:31 PM,Ceiba Zone,timer stopped @ recorded data,2:56,"O,M",1,3,5,4,6,1,2,2,1,1,4,2,,73,78.1,76.9,76.8,76.8,75.8,,96,89.5,86.7,87.6,87.3,89.3,,7,3
-07/29/24,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,8:20 PM,10:48 PM,West Zone,timer stopped @ recorded data,2:15,"O,T",2,0,2,4,0,1,4,1,9,3,,,,79.4,77.4,77.6,78.3,76.6,,,90.4,92.1,92.1,93.9,92.4,,,6,4
-07/31/24,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,8:38 PM,11:53 PM,Edge-Tower Zone,timer stopped @ recorded data,3:00,"O,M",5,12,0,0,1,3,2,4,0,1,3,2,3,77.7,77.8,77.4,76.5,77,76.4,76.5,93.7,92.6,92.6,93.9,93.6,93.4,93.5,5,5
-08/01/24,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,8:07 PM,10:19 PM,Tinamou Zone,timer stopped @ recorded data,1:58,"O,T,A",1,1,2,0,4,3,3,5,,,,,,77,74.6,74.4,73.1,,,,86.4,93.6,93.3,94.9,,,,5,4
+6/22/24,TBS,Anaconda-Lago,8:06 PM,10:29 PM,Lago Zone,,2:23,"O,T,Jess,Amy,Adrian",3,0,1,2,4,7,3,4,1,4,,,,85.3,84.1,83.1,83,77.6,,,78.4,81.5,79.7,78.9,90.1,,,2,5
+6/23/24,TBS,Matapalo-Murcielago-Murcielago Pond,8:00 PM,10:36 PM,Matapalo Zone,,2:36,"O,M,Ramiro",1,3,8,1,1,7,5,5,1,5,2,,,79.2,80.3,80.5,79.9,79.3,78.4,,92.3,89.8,89,90.5,90.1,91.8,,1,2
+6/27/24,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,8:07 PM,11:04 PM,West Zone,timer stopped @ recorded data,2:44,"O,T",2,3,0,2,1,2,4,2,2,1,3,0,,83.4,78,77.7,77.5,77.2,77.8,,76,86.3,86,86.5,87,85.8,,2,6
+6/29/24,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,8:04 PM,11:19 PM,Gawape Zone,timer stopped @ recorded data,3:06,"O,M,Dimitri",3,2,4,2,2,4,0,4,4,6,3,2,1,81.1,79.3,78.5,80.3,79.6,78.6,77.1,88,93.2,92.8,91.1,92.5,93.1,94.5,7,6
+7/2/24,YRS,Forest Plot Perimeter,8:00 PM,11:11 PM,Forest Plot Zone,timer stopped @ recorded data,3:00,"O,T",2,0,2,1,2,3,2,2,0,1,1,2,5,79.5,80.1,78,79.1,80.5,79.1,78.7,83.4,86,87.5,85.3,82.3,85.4,90,8,5
+7/3/24,YRS,Ceiba-Peru,8:11 PM,11:07 PM,Ceiba Zone,timer stopped @ recorded data,2:28,"O,M",5,5,0,2,2,1,3,5,6,2,,,,77.1,77.6,77.5,77.6,76.9,,,93.2,92.7,92.6,92.1,94,,,3,4
+7/4/24,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,8:12 PM,11:00 PM,West Zone,timer stopped @ recorded data,2:40,"O,Sophia",5,1,2,6,2,1,0,1,2,3,5,,,81.2,78.3,77.2,77.1,76.6,78.2,,80.2,87,92.1,92.1,93.3,89.4,,5,7
+7/6/24,YRS,Forest Plot Perimeter,8:29 PM,11:28 PM,Forest Plot Zone,timer stopped @ recorded data,2:52,"O,A",0,0,1,2,2,1,0,1,4,0,5,0,,73.8,73.3,72.9,72.4,72.6,72.4,,81.8,95.6,94.6,96.7,97.1,97.2,,3,4
+7/8/24,TBS,Matapalo-Torre-Murcielago-Murcielago Pond-Matapalo-Numa,8:01 PM,10:53 PM,Matapalo Zone,timer stopped @ recorded data,2:49,"O,Ethan",2,2,3,0,1,5,0,0,0,1,1,2,,74,75,76.3,74.6,74.6,74.9,,91.8,84.9,84.4,86.6,87.8,91.1,,0,4
+7/10/24,TBS,Guacamayo-Danta-Lago,8:07 PM,10:58 PM,Danta Zone,timer stopped @ recorded data,2:43,"O,M",0,3,0,1,0,3,0,0,4,1,2,,,75.6,75.8,76.2,76.2,76.9,76.2,,97.6,96.8,94.4,93.8,91.9,92.3,,5,5
+7/11/24,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,8:08 PM,10:57 PM,Chorongo Zone,timer stopped @ recorded data,2:45,"O,T",1,3,2,0,4,3,3,2,0,5,2,2,,78.7,78.7,79.7,79.8,79.6,80.6,,89.2,85.6,81.6,80.7,81.2,78.6,,4,3
+7/14/24,TBS,Harpia Plot-Harpia,8:51 PM,12:05 AM,Harpia Zone,timer stopped @ recorded data,3:00,"O,T",1,2,4,3,1,0,7,2,3,1,4,4,2,76.2,78.6,77.8,79.6,79.5,78,76.2,90.4,84.3,87,81.4,81,85.5,88.1,1,6
+7/15/24,TBS,Anaconda-Lago,8:14 PM,11:42 PM,Lago Zone,timer stopped @ recorded data,3:00,"O,M",1,1,0,6,2,0,1,3,5,0,9,1,2,74.9,75.8,74.5,74.9,74.5,75.8,76.3,95.2,92.9,92.8,91.3,92.4,88.6,88,4,5
+7/17/24,TBS,Puma-Puma Plot,8:14 PM,11:22 PM,Puma Zone,timer stopped @ recorded data,2:46,"O,T",0,2,1,2,4,0,3,0,2,1,0,2,,74.1,75.5,74.8,74.6,75,74.8,,87.4,86.1,89.7,90.5,89.4,90.6,,0,7
+7/18/24,TBS,Harpia Plot-Harpia,8:00 PM,10:50 PM,Harpia Zone,timer stopped @ recorded data,2:31,"O,Brian",1,1,1,0,4,0,1,11,2,0,5,,,77.3,82.7,77.9,77.5,77.4,76.1,,94.7,83.9,90.5,92.4,91,88.8,,2,5
+7/20/24,TBS,Puma-Puma Plot,8:06 PM,11:51 PM,Puma Zone,timer stopped @ recorded data,2:50,"O,T",1,0,3,0,2,0,4,2,0,1,3,1,,71.7,73.3,74,74.2,74.2,73.5,,99.4,99.1,96,97.8,93.5,94.8,,2,5
+7/23/24,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,8:09 PM,10:45 PM,Tinamou Zone,timer stopped @ recorded data,2:06,"O,T",3,1,1,2,1,2,0,2,1,,,,,77.6,79.8,79.3,78.8,78,,,90.5,87.2,86.3,91.3,89.7,,,6,4
+7/25/24,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,8:19 PM,10:44 PM,Edge-Tower Zone,timer stopped @ recorded data,2:02,"O,T",7,2,0,1,2,0,5,0,0,,,,,77.3,81.2,80.4,78.6,79,,,91.5,83.5,84.3,86.1,84.3,,,10,6
+7/26/24,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,8:02 PM,10:54 PM,Gawape Zone,timer stopped @ recorded data,2:46,"O,A",0,3,3,3,2,5,2,6,2,0,3,1,,78.4,76.7,78.2,77.1,76.6,76.2,,88.2,93.7,91.2,93.1,94.6,94.3,,7,6
+7/28/24,YRS,Ceiba-Peru,8:27 PM,11:31 PM,Ceiba Zone,timer stopped @ recorded data,2:56,"O,M",1,3,5,4,6,1,2,2,1,1,4,2,,73,78.1,76.9,76.8,76.8,75.8,,96,89.5,86.7,87.6,87.3,89.3,,7,3
+7/29/24,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,8:20 PM,10:48 PM,West Zone,timer stopped @ recorded data,2:15,"O,T",2,0,2,4,0,1,4,1,9,3,,,,79.4,77.4,77.6,78.3,76.6,,,90.4,92.1,92.1,93.9,92.4,,,6,4
+7/31/24,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,8:38 PM,11:53 PM,Edge-Tower Zone,timer stopped @ recorded data,3:00,"O,M",5,12,0,0,1,3,2,4,0,1,3,2,3,77.7,77.8,77.4,76.5,77,76.4,76.5,93.7,92.6,92.6,93.9,93.6,93.4,93.5,5,5
+8/1/24,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,8:07 PM,10:19 PM,Tinamou Zone,timer stopped @ recorded data,1:58,"O,T,A",1,1,2,0,4,3,3,5,,,,,,77,74.6,74.4,73.1,,,,86.4,93.6,93.3,94.9,,,,5,4
