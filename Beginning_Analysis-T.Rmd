@@ -66,7 +66,7 @@ Data preparation: Join snake data collected during standard surveys with the opp
 
 # we will now compare column names
 
-#colnames(df.snake.sur)
+#colnames(snake.sur)
 #colnames(snake.non.sur)
 
 #snake.sur$Species <- trimws(snake.sur$Species) #removing hanging spaces
@@ -83,7 +83,7 @@ Data preparation: Join snake data collected during standard surveys with the opp
 
 #snake.non.sur$Date <- as.Date(snake.non.sur$Date, format = "%m/%d/%y")
 
-#snake.non.sur <- snake.non.sur[, -22]
+#snake.non.sur <- snake.non.sur[, -22] #getting rid of last column
 
 #snake.sur$Obs_type <- "Survey"
 #colnames(snake.non.sur)[4] <- "Obs_type"
@@ -94,6 +94,7 @@ Data preparation: Join snake data collected during standard surveys with the opp
 
 #colnames(snake.sur)[3] <- "Location"
 #colnames(snake.non.sur)[3] <- "Location" 
+# making both spatial references into simply 'Location'
 
 #snake.non.sur$Survey_Start_Time <- NA
 #snake.non.sur$Surveyors <- NA
@@ -106,24 +107,41 @@ Data preparation: Join snake data collected during standard surveys with the opp
 
 #snake.sur$During_My_Rotation <- "Yes"
 
+#snake.sur$Start_Date <- as.Date(snake.sur$Date, format = "%m/%d/%y") #adding column called start date to survey data, appeared to be missing somehow
+#snake.non.sur$Start_Date <- NA
+
 #snake.master <- rbind(snake.non.sur, snake.sur)
+
+#snake.master$Start_Date <- as.Date(snake.master$Start_Date, format = "%m%d%y") #fixing the date to stay in date format after binding
 
 #snake.master$Species <- str_replace_all(snake.master$Species, " ", "_") #making sure all snakes have underscored between genus and species
 
 # make a genus column
 #snake.master <- snake.master %>%
- # separate(Species, c("Genus", "Species"))
+ #separate(Species, c("Genus", "Species"))
 # cases where only genus or family level existed, species column is populated with NA (that's what the warning message is for, can ignore)
 
-#making new master csv, ensuring that extra row names are not added by R
+#making new master csv, ensuring that extra row names are not added by R, this is why we can now comment out this chunk
 #write.csv(snake.master, "snake.master.csv", row.names = FALSE)
 ```
 
 ```{r read in cleaned and prepped data}
-enviro <- read.csv("Environment_Sheet.csv", na.strings = c("", "NA"))
+enviro <- read.csv("Environment_Sheet.csv", na.strings = c("", "NA")) #replacing all blank spaces with NAs
 
 snake.master <- read.csv("snake.master.csv")
 ```
+
+
+```{r environment data cleaning}
+
+colnames(enviro) <- enviro[1, ] #changing column names to correct format in R
+
+enviro$Date <- gsub("\\*", "", enviro$Date) #getting rid of asterisks next to dates
+
+enviro <- enviro[-1, ] #getting rid of rows 1 
+
+```
+
 
 Begin looking at variation in sampling effort. First, calculate time spend sampling during each night for surveys.
 
@@ -135,15 +153,21 @@ snake.sur <- snake.master %>%
 
 # first, combine date and time so that you can use 'difftime' to get time elapsed between start and end
 
-snake.sur$Date_Start_Time <- paste(snake.sur$Date, snake.sur$Survey_Start_Time, sep = " ")
+snake.sur$Date_Start_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_Start_Time, sep = " ")
 
 #combining end date and time into one column for the full snake dataframe, separated with spaces
 # note, R is handeling surveys that lasted past midnight oddly, so we are just using the start Date here as well
-snake.sur$Date_End_Time <- paste(snake.sur$Date, snake.sur$Survey_End_Time, sep = " ")
+snake.sur$Date_End_Time <- paste(snake.sur$End_Date, snake.sur$Survey_End_Time, sep = " ")
+
+snake.sur$Date_Start_Time <- mdy_hm(snake.sur$Date_Start_Time) #changing start time columns to fix negative survey time length issues
+
+snake.sur$Date_End_Time <- mdy_hm(snake.sur$Date_End_Time)
 
 # using difftime to calculate effort hours on each survey
 snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
 
+
+#WARNING: ALL FORMATS FAILED TO PARSE
 ```
 
 Now, we want to summarize how many snakes were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n snakes per hour.
@@ -153,7 +177,7 @@ Now, we want to summarize how many snakes were seen per hour. This is going to i
 # first, I want to remove the surveys during which we did not find any snakes
 
 surveys.master <- snake.sur %>%
-  distinct(Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Zone, Surveyors, Weather)
+  distinct(Start_Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Zone, Surveyors, Weather) #look across these columns, and where all the values across a row are the same( eg. date, station, time, etc.) to avoid duplicates: one copy of each survey
 
 # isolate surveys where no snakes were found (n = 6)
 surveys.no.snakes <- snake.sur %>%
@@ -165,12 +189,12 @@ snake.sur <- snake.sur %>%
 
 # now, use dplyr (tidyverse) functions to aggregate the data
 temp <- snake.sur %>%
-  group_by(Date, Station, Zone, Common_Name, Effort_Hrs) %>% tally()
+  group_by(Start_Date, Station, Zone, Common_Name, Effort_Hrs) %>% tally()
 
 
 # make an extra column that has the station ID and trail walked and date, separated by //
 
-temp$st.date.zone <- paste(temp$Station, temp$Date, temp$Zone, temp$Effort_Hrs, sep = "//")
+temp$st.date.zone <- paste(temp$Station, temp$Start_Date, temp$Zone, temp$Effort_Hrs, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
@@ -202,10 +226,10 @@ snk.sur.mat$richness <- specnumber(snk.sur.mat[5:21])
 
 # pull out the date and total found per survey
 temp <- snk.sur.mat %>%
-  distinct(Date, total_found)
+  distinct(Start_Date, total_found)
 
 # add it to the surveys.master
-surveys.master <- left_join(surveys.master, temp)
+surveys.master <- left_join(surveys.master, temp) #joins two dataframes, one on left it keeps all info from and one on right matches up with it based on column they have in common
 
 # fill NAs in with zeros
 surveys.master <- surveys.master %>%
@@ -217,6 +241,23 @@ Now, get the environmental data for each survey put into the surveys.master df
 ```{r add env data to survey master}
 
 # add in some of the continuous variables: mean density, humidity, temperature
+enviro$Date_Start_Time <- paste(enviro$Date, enviro$Survey_Start_Time, sep = " ")
+enviro$Date_Start_Time <- mdy_hm(enviro$Date_Start_Time) #getting month day year and time all in one, will aggregate by later
+
+enviro2 <- enviro %>%
+  pivot_longer(cols = c(23:29), names_to = "temperature", values_to = "Degrees_F") #doing long list of temp values matched with survey start times and date
+
+enviro2 <- enviro2 %>%
+  select(Date_Start_Time, Degrees_F) %>%
+  na.omit()
+
+enviro_temp_means <- enviro2 %>%
+  group_by(Date_Start_Time) %>%
+  reframe(mean_F = (mean((as.numeric(Degrees_F)))))
+
+surveys.master <- left_join(surveys.master, enviro_temp_means)
+
+plot(surveys.master$total_found ~ surveys.master$mean_F)
 
 ```
 
