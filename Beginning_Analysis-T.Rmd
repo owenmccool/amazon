@@ -282,9 +282,15 @@ plot(surveys.master$total_found ~ surveys.master$mean_F)
 Now, get a plot of the detection rates at each hunted and unhunted study area. 
 
 ```{r snake plot detection rate}
+# T - adding this Jan 7 2025
+# add Detections Per Hour into Snake Survey Matrix (first, make effort hours numeric)
+snk.sur.mat$Effort_Hrs<-as.numeric(snk.sur.mat$Effort_Hrs)
+# get detection rate
+snk.sur.mat$detections.per.hr <- snk.sur.mat$total_found/snk.sur.mat$Effort_Hrs
 # incomplete- need to add the detections per hour back into the snk.sur.mat before we run this
+
 pooled.detection.plot <- snk.sur.mat %>%
-  ggplot(aes(x= Station, y= total.hr, color = Station)) + #aesthetics, telling it what you want x and y axis to be
+  ggplot(aes(x= Station, y= detections.per.hr, color = Station)) + #aesthetics, telling it what you want x and y axis to be
   ylab("N snakes found per hour") +
   xlab("") + theme_light() +
   geom_boxplot() + scale_color_manual(values=c("#E69F00", "darkgreen"))
@@ -414,9 +420,9 @@ Bray Curtis index. 0 = totally the same, 1 = totally dissimilar.
 
 In summary, "to calculate Bray-Curtis dissimilarity between two samples, you need to find the sum of the lesser abundances of each species present in both samples, then divide that sum by the total combined abundance of all species in both samples, and finally subtract the result from 1; essentially, it measures the proportion of difference in species abundance between two samples, with a value ranging from 0 (identical samples) to 1 (completely different samples)." 
 ```{r repeat with bray curtis}
-sk.sur <- snk.sur.mat[, c(2:18)] #making matrix of snake observations
+sk.sur <- snk.sur.mat[, c(5:21)] #making matrix of snake observations, pull out the numeric values that correspond to abundance of each species found during each survey
 
-groupings <- snk.sur.mat[, c(1, 19)] #making matrix for station and zone
+groupings <- snk.sur.mat[, c(2, 3)] #making matrix for station and zone (you want to subset the columns that contain your 'predictor' variables; for now, that is just the research station and perhaps the zone, in the future it could be environmental/temperature variables)
 
 bc.dis.mat <- vegdist(sk.sur, method = "bray")
 
@@ -436,9 +442,11 @@ pnova.horn.sp <- adonis2(horn.dis.mat ~ groupings$Station)
 # look at results
 print(pnova.horn.sp)
 ```
+
+
 ```{r nmds visualization with horn}
 nmds.horn <- metaMDS(community, distance = "bray", autotransform = TRUE, maxtry = 200)
-
+# warning message leads me to believe that we should re-group the survey data by genus or some other broader grouping variable so that we have more data per category; we could also look at grouping by Zone rather than by date (that might be better)
 ```
 
 
