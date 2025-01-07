@@ -155,19 +155,37 @@ snake.sur <- snake.master %>%
 
 snake.sur$Date_Start_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_Start_Time, sep = " ")
 
-#combining end date and time into one column for the full snake dataframe, separated with spaces
-# note, R is handeling surveys that lasted past midnight oddly, so we are just using the start Date here as well
-snake.sur$Date_End_Time <- paste(snake.sur$End_Date, snake.sur$Survey_End_Time, sep = " ")
+# what class is the Date_Start_Time column?
+class(snake.sur$Date_Start_Time)
 
-snake.sur$Date_Start_Time <- mdy_hm(snake.sur$Date_Start_Time) #changing start time columns to fix negative survey time length issues
+# currently a 'character', we want a date-time object, fix this:
+snake.sur$Date_Start_Time <- ymd_hm(snake.sur$Date_Start_Time)
 
-snake.sur$Date_End_Time <- mdy_hm(snake.sur$Date_End_Time)
+# now check the class:
+class(snake.sur$Date_Start_Time)
+# "POSIXct" is what we want, so this is good now
+
+# repeat with end time
+
+snake.sur$Date_End_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_End_Time, sep = " ")
+
+# what class is the Date_End_Time column?
+class(snake.sur$Date_End_Time)
+
+# currently a 'character', we want a date-time object, fix this:
+snake.sur$Date_End_Time <- ymd_hm(snake.sur$Date_End_Time)
+
+# now check the class:
+class(snake.sur$Date_End_Time)
+# "POSIXct" is what we want, so this is good now
+
+# add 1 day to cases where we end after midnight
+
+snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.sur$Survey_End_Time == "12:11 AM")]<-  snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.sur$Survey_End_Time == "12:11 AM")] + lubridate::ddays(x =1)
 
 # using difftime to calculate effort hours on each survey
 snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
 
-
-#WARNING: ALL FORMATS FAILED TO PARSE
 ```
 
 Now, we want to summarize how many snakes were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n snakes per hour.
