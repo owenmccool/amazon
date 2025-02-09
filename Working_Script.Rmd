@@ -50,80 +50,7 @@ Data preparation: Join snake data collected during standard surveys with the opp
 
 **Note this is commented out and the cleaned and prepped snake data is just read in after the following chunk**
 
-```{r snake data read in and do prelim cleaning}
 
-#snake.sur <- read.csv("snake.sur.csv", na.strings = c("", "NA")) #reading in csv file
-
-#snake.non.sur <- read.csv("snake.non.sur.csv") 
-
-#snake.sur<- snake.sur[-2,] #removing row 2 from UPDATEDsnakes.csv
-#colnames(snake.sur) <- snake.sur[1, ] #takes 1st row and makes it column names
-#snake.sur <- snake.sur[-1, ] #removed extra row that originally had column names but were now useless
-#snake.sur <- snake.sur[ ,-24] #removing column 23
-
-#colnames(snake.non.sur) <- snake.non.sur[1, ] #takes row 1 and makes them column names 
-#snake.non.sur <- snake.non.sur[-1, ] #removing first row since it is the same as column names now
-
-# we will now compare column names
-
-#colnames(snake.sur)
-#colnames(snake.non.sur)
-
-#snake.sur$Species <- trimws(snake.sur$Species) #removing hanging spaces
-#snake.non.sur$Species <- trimws(snake.non.sur$Species) #removing trailing spaces
-
-#snake.sur$Species <- str_replace_all(snake.sur$Species, " ", "_") #replaces all spaces w/ underscore
-
-# also get rid of asterisks in dates
-#snake.sur$Date <- gsub("\\*", "", snake.sur$Date)
-
-# tell R that the Date column are Dates
-
-#snake.sur$Date <- as.Date(snake.sur$Date, format = "%m/%d/%y")
-
-#snake.non.sur$Date <- as.Date(snake.non.sur$Date, format = "%m/%d/%y")
-
-#snake.non.sur <- snake.non.sur[, -22] #getting rid of last column
-
-#snake.sur$Obs_type <- "Survey"
-#colnames(snake.non.sur)[4] <- "Obs_type"
-
-#colnames(snake.sur)[8] <- "Snake_ID" #changing reptile Id to snake ID
-
-#colnames(snake.sur)[11] <- "Time_Found"
-
-#colnames(snake.sur)[3] <- "Location"
-#colnames(snake.non.sur)[3] <- "Location" 
-# making both spatial references into simply 'Location'
-
-#snake.non.sur$Survey_Start_Time <- NA
-#snake.non.sur$Surveyors <- NA
-#snake.non.sur$Survey_End_Time <- NA
-
-#colnames(snake.sur)[16] <- "Distance_m"
-#colnames(snake.non.sur)[7] <- "During_My_Rotation"
-
-#snake.non.sur$Distance_m <- NA
-
-#snake.sur$During_My_Rotation <- "Yes"
-
-#snake.sur$Start_Date <- as.Date(snake.sur$Date, format = "%m/%d/%y") #adding column called start date to survey data, appeared to be missing somehow
-#snake.non.sur$Start_Date <- NA
-
-#snake.master <- rbind(snake.non.sur, snake.sur)
-
-#snake.master$Start_Date <- as.Date(snake.master$Start_Date, format = "%m%d%y") #fixing the date to stay in date format after binding
-
-#snake.master$Species <- str_replace_all(snake.master$Species, " ", "_") #making sure all snakes have underscored between genus and species
-
-# make a genus column
-#snake.master <- snake.master %>%
- #separate(Species, c("Genus", "Species"))
-# cases where only genus or family level existed, species column is populated with NA (that's what the warning message is for, can ignore)
-
-#making new master csv, ensuring that extra row names are not added by R, this is why we can now comment out this chunk
-#write.csv(snake.master, "snake.master.csv", row.names = FALSE)
-```
 
 ```{r read in cleaned and prepped data}
 enviro <- read.csv("Environment_Sheet.csv", na.strings = c("", "NA")) #replacing all blank spaces with NAs
@@ -169,7 +96,7 @@ class(snake.sur$Date_Start_Time)
 
 snake.sur$Date_End_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_End_Time, sep = " ")
 
-# what class is the Date_End_Time column?
+# what class is the Date_End_Time column?, says its a character
 class(snake.sur$Date_End_Time)
 
 # currently a 'character', we want a date-time object, fix this:
