@@ -159,7 +159,7 @@ snake.sur$Date_Start_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_Start_
 class(snake.sur$Date_Start_Time)
 
 # currently a 'character', we want a date-time object, fix this:
-snake.sur$Date_Start_Time <- ymd_hm(snake.sur$Date_Start_Time)
+snake.sur$Date_Start_Time <- mdy_hm(snake.sur$Date_Start_Time)
 
 # now check the class:
 class(snake.sur$Date_Start_Time)
@@ -173,7 +173,7 @@ snake.sur$Date_End_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_End_Time
 class(snake.sur$Date_End_Time)
 
 # currently a 'character', we want a date-time object, fix this:
-snake.sur$Date_End_Time <- ymd_hm(snake.sur$Date_End_Time)
+snake.sur$Date_End_Time <- mdy_hm(snake.sur$Date_End_Time)
 
 # now check the class:
 class(snake.sur$Date_End_Time)
@@ -252,6 +252,29 @@ surveys.master <- left_join(surveys.master, temp) #joins two dataframes, one on 
 # fill NAs in with zeros
 surveys.master <- surveys.master %>%
   mutate(total_found = ifelse(is.na(total_found), 0, total_found))
+```
+Owen gathering overview results
+
+```{r getting overview dat}
+# total number of species per station
+snk.sur.mat %>%
+  group_by(Station) %>%
+  reframe(raw.abundance = sum(total_found))
+
+# repeat the above but with species richness
+
+# mean and sd snakes during survey at TBS and YRS
+mean.snakes.per.survey <- snk.sur.mat %>%
+  group_by(Station) %>%
+  reframe(mean.n = mean(total_found),
+          sd.n = sd(total_found))
+
+# do the same thing to summarize the number of species you found per survey at each station
+means.species.per.survey <- snk.sur.mat %>%
+  group_by(Station) %>%
+  reframe(mean.S = mean(richness),
+          sd.S = sd(richness))
+
 ```
 
 Now, get the environmental data for each survey put into the surveys.master df
@@ -344,31 +367,41 @@ n.per.guild <- mat.grped.by.guild %>%
                         names_to = "Diet_Type", 
                         values_to = "n")
 
-# Next steps (T: Dec 4 2024)
-# get n found per hour
-# add n per guild from other observation types
+n.per.guild$det.rate <- n.per.guild$n/as.numeric(n.per.guild$Effort_Hrs)
 ```
 
 ```{r plot differences in feeding guild detection rates}
 
 per.guild.detection.plot <- n.per.guild %>%
-  ggplot(aes(x= Diet_Type, y = n, fill = Station)) +
-  ylab("N individuals found per nightly survey") + theme_light() +
-  geom_boxplot()
+  ggplot(aes(x= Diet_Type, y = det.rate, fill = Station)) +
+  ylab("N individuals found per hour on nightly surveys") + theme_light() +
+  geom_boxplot() + xlab("Diet") +
+  scale_fill_manual(name = "Hunting Status", labels = c("Unhunted", "Hunted"), values = c("aquamarine2", "orange")) 
 
 per.guild.detection.plot
 
+# quick model
+library(glmmTMB)
+library(car)
+library(DHARMa)
 
+mod <- glmmTMB(det.rate ~ Station/Diet_Type + (1|Zone), family = tweedie, data = n.per.guild)
+
+Anova(mod)
+summary(mod)
+# validate
+sim <- simulateResiduals(fittedModel = mod, plot = T)
+
+# dispersion and zero-inflation tests
+testDispersion(mod , plot = F)
+testZeroInflation(mod, plot = F)
+
+# clean
+rm(sim, mod)
 ```
-# Next steps: 
-- 11/14/24
 
-Look at Jaccard dissimilarity index
-1. Add zone from enviro sheet to snake master (match coordinates, make station its own zone)
-2. make master df into an occurrence matrix with species as columns
-3. separate predictor and visitor variables
-4. get jaccard values per date per zone
-5. make an NMDS visualization 
+Note, I ran some stats and there is a significant effect of station on number of snakes in the no mammals guild. Let me know if you want to talk about understanding the model and presenting that information. 
+
  
 ```{r master snake matrix}
 
