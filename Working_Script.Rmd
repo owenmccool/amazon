@@ -86,7 +86,7 @@ snake.sur$Date_Start_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_Start_
 class(snake.sur$Date_Start_Time)
 
 # currently a 'character', we want a date-time object, fix this:
-snake.sur$Date_Start_Time <- ymd_hm(snake.sur$Date_Start_Time)
+snake.sur$Date_Start_Time <- ymd_hm(snake.sur$Date_Start_Time) #ymd_hm is year, month, day & hours, minutes
 
 # now check the class:
 class(snake.sur$Date_Start_Time)
@@ -108,7 +108,7 @@ class(snake.sur$Date_End_Time)
 
 # add 1 day to cases where we end after midnight
 
-snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.sur$Survey_End_Time == "12:11 AM")]<-  snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.sur$Survey_End_Time == "12:11 AM")] + lubridate::ddays(x =1)
+snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.sur$Survey_End_Time == "12:11 AM")]<-  snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.sur$Survey_End_Time == "12:11 AM")] + lubridate::ddays(x =1) # i don't understand this part still after the + lubridate()
 
 # using difftime to calculate effort hours on each survey
 snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
