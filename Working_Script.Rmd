@@ -113,6 +113,28 @@ snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.su
 # using difftime to calculate effort hours on each survey
 snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
 
+tbs.no.mammals <- snake.master[snake.master$Station == "TBS" & 
+                                 snake.master$Diet_Type == "no mammals", ] #getting counts for all TBS guilds
+
+tbs.mixed <- snake.master[snake.master$Station == "TBS" & 
+                                 snake.master$Diet_Type == "mixed", ]
+
+tbs.mammals <- snake.master[snake.master$Station == "TBS" & 
+                                 snake.master$Diet_Type == "mostly mammals", ]
+
+
+yrs.no.mammals <- snake.master[snake.master$Station == "YRS" & 
+                                 snake.master$Diet_Type == "no mammals", ] #getting counts for all YRS guilds
+
+yrs.mixed <- snake.master[snake.master$Station == "YRS" & 
+                                 snake.master$Diet_Type == "mixed", ]
+
+yrs.mammals <- snake.master[snake.master$Station == "YRS" & 
+                                 snake.master$Diet_Type == "mostly mammals", ]
+yrs.unknown <- snake.master[snake.master$Station == "YRS" & 
+                                 snake.master$Diet_Type == "unknown", ] #getting counts for all TBS guilds
+
+mod1 <- glm(snake.master$Family ~ snake.master$Station, family = "poisson")
 ```
 
 Now, we want to summarize how many snakes were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n snakes per hour.
