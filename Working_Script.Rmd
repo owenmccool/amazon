@@ -134,7 +134,6 @@ yrs.mammals <- snake.master[snake.master$Station == "YRS" &
 yrs.unknown <- snake.master[snake.master$Station == "YRS" & 
                                  snake.master$Diet_Type == "unknown", ] #getting counts for all TBS guilds
 
-mod1 <- glm(snake.master$Family ~ snake.master$Station, family = "poisson")
 ```
 
 Now, we want to summarize how many snakes were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n snakes per hour.
