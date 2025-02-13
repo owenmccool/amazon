@@ -15,7 +15,8 @@ library(vegan)
 library(stringr)
 library(ggplot2)
 library(tidyverse)
-
+library(iNEXT) # species diversity
+library(hillR) # species diversity
 ```
 
 
@@ -122,6 +123,7 @@ Data preparation: Join snake data collected during standard surveys with the opp
 # cases where only genus or family level existed, species column is populated with NA (that's what the warning message is for, can ignore)
 
 #making new master csv, ensuring that extra row names are not added by R, this is why we can now comment out this chunk
+
 #write.csv(snake.master, "snake.master.csv", row.names = FALSE)
 ```
 
@@ -187,6 +189,52 @@ snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.su
 snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
 
 ```
+Small mammals! Making a boxplot with y axis = n small mammals found per hour per survey (one boxplot of this per research station).
+
+```{r small mammal boxplot}
+
+# add the n small mammals found per survey to the snake.sur dataframe because that has the effort hours already in it
+
+# subset data - just want the n small mammmals and keep the date column to join by
+small.mamms.temp <- enviro %>%
+  select(Station, Date, Number_of_Small_Mammals_Spotted)
+
+# isolate effort hours per survey
+effort <- snake.sur %>%
+  select(Date, Effort_Hrs)
+
+# make effort hours numeric
+effort$Effort_Hrs <- as.numeric(effort$Effort_Hrs)
+
+# join effort to small mamms
+small.mamms.temp <- left_join(small.mamms.temp, effort)
+
+# get rid of nas
+small.mamms.temp <- small.mamms.temp %>%
+  na.omit()
+
+# clean 
+rm(effort)
+
+small.mamms.temp$Number_of_Small_Mammals_Spotted <- as.numeric(small.mamms.temp$Number_of_Small_Mammals_Spotted)
+
+# get rate of n mammals per hour
+small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/small.mamms.temp$Effort_Hrs
+
+# make a boxplot!
+
+smammals.plot <- ggplot(data = small.mamms.temp, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() +
+  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
+  theme(legend.title=element_blank()) + ylab("N small mammals per hour") + ggtitle("Small mammal abundance hunted vs unhunted forest")
+
+smammals.plot
+
+# save plot
+#ggsave(smammals.plot, file="small_mammal_plot.png")
+# can add dimension specifications with width = x and height = x
+
+```
+
 
 Now, we want to summarize how many snakes were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n snakes per hour.
 
@@ -208,7 +256,6 @@ snake.sur <- snake.sur %>%
 # now, use dplyr (tidyverse) functions to aggregate the data
 temp <- snake.sur %>%
   group_by(Start_Date, Station, Common_Name, Effort_Hrs) %>% tally()
-
 
 # make an extra column that has the station ID and trail walked and date, separated by //
 
@@ -252,6 +299,9 @@ surveys.master <- left_join(surveys.master, temp) #joins two dataframes, one on 
 # fill NAs in with zeros
 surveys.master <- surveys.master %>%
   mutate(total_found = ifelse(is.na(total_found), 0, total_found))
+
+# clean 
+rm(temp)
 ```
 Owen gathering overview results
 
@@ -272,7 +322,6 @@ mean.snakes.per.survey <- snk.sur.mat %>%
   reframe(mean.n = mean(total_found),
           sd.n = sd(total_found))
 
-
 # do the same thing to summarize the number of species you found per survey at each station
 means.species.per.survey <- snk.sur.mat %>%
   group_by(Station) %>%
@@ -282,12 +331,92 @@ means.species.per.survey <- snk.sur.mat %>%
 #plotting snakes/survey
 sk.mean <- mean.snakes.per.survey$mean.n
 sk.sd <- c(1.97, 1.22)
+
 barplot(mean.snakes.per.survey$mean.n, names.arg = c("TBS", "YRS"), 
         ylim = c(0, 6), xlab = "Station", 
         ylab = "Frequency", main = "Mean Number of Snakes Found Per Survey", 
         col = c("cornflowerblue", "darkgoldenrod1"))
 arrows(x0 = 1:length(sk.mean), y0 = sk.mean - sk.sd, y1 = sk.mean + sk.sd, 
        angle = 90, code = 3, length = 0.1, col = "red")
+
+# T and Owen making a ggplot boxplot version of the above
+# use surveys.master because this includes the surveys where we found nothing
+
+# first, get rate of snakes per hour
+surveys.master <- surveys.master %>%
+  mutate(snake.per.hr = total_found/as.numeric(Effort_Hrs))
+
+# now make the boxplot
+
+snakes.per.surv.plot <- ggplot(data = surveys.master, aes(x = Station, y = snake.per.hr, fill = Station)) + geom_boxplot() + theme_bw() +
+  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
+  theme(legend.title=element_blank()) + ylab("N snakes per hour") + ggtitle("Snake abundance hunted vs unhunted forest")
+
+snakes.per.surv.plot
+
+# save plot
+#ggsave(snakes.per.surv.plot, file="snakes_per_survey_plot.png")
+
+# Richness per survey 
+# use the snk.sur.mat (occurence matrix) and divide n species by effort hour
+
+snk.sur.mat <- snk.sur.mat %>%
+  mutate(Sp.per.hr = richness/as.numeric(Effort_Hrs))
+
+# subset the columns we want to join with the snake master df to make sure we include the zeros in our figure
+S.subset <- snk.sur.mat %>%
+  select(Sp.per.hr, Start_Date)
+
+surveys.master <- left_join(surveys.master, S.subset)
+
+# make NAs zero
+
+surveys.master <- surveys.master %>%
+  mutate(Sp.per.hr = replace_na(Sp.per.hr, 0))
+
+# plot n species per hour
+sp.per.surv.plot <- ggplot(data = surveys.master, aes(x = Station, y = Sp.per.hr, fill = Station)) + geom_boxplot() + theme_bw() +
+  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
+  theme(legend.title=element_blank()) + ylab("N species per hour") + ggtitle("Snake richness hunted vs unhunted forest")
+
+sp.per.surv.plot
+
+# save plot
+#ggsave(sp.per.surv.plot, file="species_per_survey_plot.png")
+
+# Diversity per survey
+
+# need data in a new species x site matrix (dif than the occurrence matrix we already have)
+
+# aggregate by station, n snakes found per survey of each species
+div.mat <- snake.sur %>%
+  group_by(Station, Common_Name) %>% 
+  reframe(n = n())
+# now get the new format, snake species as row names, station as columns
+div.mat <- div.mat %>% 
+  pivot_wider(names_from = Station, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "Common_Name")
+  
+# now we use div.mat to get the diversity and 95% CIs
+# new function uses iNEXT package (confusingly also the name of the function)
+snake.diversity = iNEXT(div.mat, q = 1, datatype = "abundance", nboot = 200)
+
+# extract values we need
+snake.diversity <- snake.diversity[["iNextEst"]][["coverage_based"]]
+snake.diversity <- snake.diversity %>% 
+  filter(Assemblage == "TBS" & m == 31 | Assemblage == "YRS" & m == 33)
+
+# plot diversity
+snake.diversity.plot <- ggplot(data = snake.diversity, aes(x = Assemblage, y = qD, color = Assemblage)) + theme_bw() + geom_pointrange(aes(ymin = qD.LCL, ymax = qD.UCL)) +
+  scale_color_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") + ylab("Species diversity (Simpsons)") + theme(legend.title=element_blank())
+
+snake.diversity.plot
+
+# save plot
+#ggsave(snake.diversity.plot, file="snakes_diversity_plot.png")
+
 
 
 #plotting species/survey
