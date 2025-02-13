@@ -195,7 +195,7 @@ Now, we want to summarize how many snakes were seen per hour. This is going to i
 # first, I want to remove the surveys during which we did not find any snakes
 
 surveys.master <- snake.sur %>%
-  distinct(Start_Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Zone, Surveyors, Weather) #look across these columns, and where all the values across a row are the same( eg. date, station, time, etc.) to avoid duplicates: one copy of each survey
+  distinct(Start_Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Surveyors, Weather) #look across these columns, and where all the values across a row are the same( eg. date, station, time, etc.) to avoid duplicates: one copy of each survey
 
 # isolate surveys where no snakes were found (n = 6)
 surveys.no.snakes <- snake.sur %>%
@@ -207,12 +207,12 @@ snake.sur <- snake.sur %>%
 
 # now, use dplyr (tidyverse) functions to aggregate the data
 temp <- snake.sur %>%
-  group_by(Start_Date, Station, Zone, Common_Name, Effort_Hrs) %>% tally()
+  group_by(Start_Date, Station, Common_Name, Effort_Hrs) %>% tally()
 
 
 # make an extra column that has the station ID and trail walked and date, separated by //
 
-temp$st.date.zone <- paste(temp$Station, temp$Start_Date, temp$Zone, temp$Effort_Hrs, sep = "//")
+temp$st.date.zone <- paste(temp$Station, temp$Start_Date, temp$Effort_Hrs, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
@@ -225,16 +225,16 @@ snk.sur.mat <- temp %>%
 # great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
 
 # get abundance next
-snk.sur.mat$total_found <- rowSums(snk.sur.mat[5:21])
+snk.sur.mat$total_found <- rowSums(snk.sur.mat[4:20])
 
 # for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
-snk.sur.mat$simpson_diversity <- diversity(snk.sur.mat[5:21], index = "simpson")
+snk.sur.mat$simpson_diversity <- diversity(snk.sur.mat[4:20], index = "simpson")
 
 # remove temp df
 rm(temp)
 
 # and lets get species richness
-snk.sur.mat$richness <- specnumber(snk.sur.mat[5:21])
+snk.sur.mat$richness <- specnumber(snk.sur.mat[4:20])
 
 # at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
 
@@ -262,6 +262,9 @@ snk.sur.mat %>%
   reframe(raw.abundance = sum(total_found))
 
 # repeat the above but with species richness
+snk.sur.mat %>%
+  group_by(Station) %>%
+  reframe(species.count = sum(richness))
 
 # mean and sd snakes during survey at TBS and YRS
 mean.snakes.per.survey <- snk.sur.mat %>%
@@ -269,11 +272,33 @@ mean.snakes.per.survey <- snk.sur.mat %>%
   reframe(mean.n = mean(total_found),
           sd.n = sd(total_found))
 
+
 # do the same thing to summarize the number of species you found per survey at each station
 means.species.per.survey <- snk.sur.mat %>%
   group_by(Station) %>%
   reframe(mean.S = mean(richness),
           sd.S = sd(richness))
+
+#plotting snakes/survey
+sk.mean <- mean.snakes.per.survey$mean.n
+sk.sd <- c(1.97, 1.22)
+barplot(mean.snakes.per.survey$mean.n, names.arg = c("TBS", "YRS"), 
+        ylim = c(0, 6), xlab = "Station", 
+        ylab = "Frequency", main = "Mean Number of Snakes Found Per Survey", 
+        col = c("cornflowerblue", "darkgoldenrod1"))
+arrows(x0 = 1:length(sk.mean), y0 = sk.mean - sk.sd, y1 = sk.mean + sk.sd, 
+       angle = 90, code = 3, length = 0.1, col = "red")
+
+
+#plotting species/survey
+sp.mean <- means.species.per.survey$mean.S
+sp.sd <- c(1.78, .98)
+barplot(means.species.per.survey$mean.S, names.arg = c("TBS", "YRS"), 
+        ylim = c(0, 5), xlab = "Station",
+        ylab = "Frequency", main = "Mean Number of Species Found Per Survey", 
+        col = c("cornflowerblue", "darkgoldenrod1"))
+arrows(x0 = 1:length(sk.mean), y0 = sp.mean - sp.sd, y1 = sp.mean + sp.sd, 
+       angle = 90, code = 3, length = 0.1, col = "red")
 
 ```
 
@@ -374,8 +399,8 @@ n.per.guild$det.rate <- n.per.guild$n/as.numeric(n.per.guild$Effort_Hrs)
 
 per.guild.detection.plot <- n.per.guild %>%
   ggplot(aes(x= Diet_Type, y = det.rate, fill = Station)) +
-  ylab("N individuals found per hour on nightly surveys") + theme_light() +
-  geom_boxplot() + xlab("Diet") +
+  ylab("N Individuals Found Per Hour on Surveys") + theme_light() +
+  geom_boxplot() + xlab("Diet Type") +
   scale_fill_manual(name = "Hunting Status", labels = c("Unhunted", "Hunted"), values = c("aquamarine2", "orange")) 
 
 per.guild.detection.plot
