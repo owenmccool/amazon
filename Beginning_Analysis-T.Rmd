@@ -17,6 +17,8 @@ library(ggplot2)
 library(tidyverse)
 library(iNEXT) # species diversity
 library(hillR) # species diversity
+library(DHARMa) # checking models
+library(car) # reporting model stats
 ```
 
 
@@ -196,8 +198,12 @@ Small mammals! Making a boxplot with y axis = n small mammals found per hour per
 # add the n small mammals found per survey to the snake.sur dataframe because that has the effort hours already in it
 
 # subset data - just want the n small mammmals and keep the date column to join by
+# fix survey zone name - no spaces
+enviro <- enviro %>%
+  rename(Survey_zone = `Survey Zone`)
+
 small.mamms.temp <- enviro %>%
-  select(Station, Date, Number_of_Small_Mammals_Spotted)
+  select(Station, Date, Survey_zone, Number_of_Small_Mammals_Spotted)
 
 # isolate effort hours per survey
 effort <- snake.sur %>%
@@ -224,8 +230,8 @@ small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted
 # make a boxplot!
 
 smammals.plot <- ggplot(data = small.mamms.temp, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() +
-  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
-  theme(legend.title=element_blank()) + ylab("N small mammals per hour") + ggtitle("Small mammal abundance hunted vs unhunted forest")
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("") +
+  theme(legend.title=element_blank()) + ylab("Small mammals detected per hour") + ggtitle("Small mammal abundance in hunted vs unhunted forest")
 
 smammals.plot
 
@@ -233,6 +239,51 @@ smammals.plot
 #ggsave(smammals.plot, file="small_mammal_plot.png")
 # can add dimension specifications with width = x and height = x
 
+# another way to plot that makes judging sig easier 
+
+smams.mean.se <- small.mamms.temp %>%
+  group_by(Station) %>%
+  summarise(mean = mean(smammals.hr),
+            sd = sd(smammals.hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+p <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +  
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = small.mamms.temp, aes( x = Station, y = smammals.hr), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Small mammals detected per hour") + ggtitle("Small mammal detections") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 10)) 
+
+p
+```
+
+How is this data distributed?
+```{r model small mammal data}
+hist(small.mamms.temp$smammals.hr, breaks = 15)
+mean(small.mamms.temp$smammals.hr)
+
+# doesn't look terrible 'normal' or 'parametric' (grouped around the mean value)
+
+# Mann Whitney U test is good for this
+
+smam.test <- wilcox.test(smammals.hr ~ Station, data = small.mamms.temp, exact = FALSE)
+
+smam.test
+
+glm <- glmmTMB(smammals.hr ~ Station + (1|Survey_zone), data = small.mamms.temp, family = gaussian)
+
+summary(glm)
+
+Anova(glm)
+
+# validate
+sim <- simulateResiduals(fittedModel = glm, plot = T)
+
+# dispersion and zero-inflation tests
+testDispersion(glm, plot = F)
+testZeroInflation(glm, plot = F)
+
+# clean
+rm(sim, m1)
 ```
 
 
