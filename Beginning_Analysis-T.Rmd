@@ -224,13 +224,16 @@ small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted
 # make a boxplot!
 
 smammals.plot <- ggplot(data = small.mamms.temp, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() +
-  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
-  theme(legend.title=element_blank()) + ylab("N small mammals per hour") + ggtitle("Small mammal abundance hunted vs unhunted forest")
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
+  theme(legend.title=element_blank(), 
+        text = element_text(family = "Tahoma", size = 16), 
+        legend.text = element_text(size = 14)) + ylab("N Small Mammals Per Hour") + ggtitle("Small Mammal Detection Rates by Station")
 
 smammals.plot
 
 # save plot
-#ggsave(smammals.plot, file="small_mammal_plot.png")
+ggsave(smammals.plot, file="small_mammal_plot.png", width = 6, 
+       height = 4)
 # can add dimension specifications with width = x and height = x
 
 ```
@@ -328,16 +331,23 @@ means.species.per.survey <- snk.sur.mat %>%
   reframe(mean.S = mean(richness),
           sd.S = sd(richness))
 
-#plotting snakes/survey
+#plotting snakes/survey #OWENS PLOT
 sk.mean <- mean.snakes.per.survey$mean.n
 sk.sd <- c(1.97, 1.22)
 
 barplot(mean.snakes.per.survey$mean.n, names.arg = c("TBS", "YRS"), 
         ylim = c(0, 6), xlab = "Station", 
         ylab = "Frequency", main = "Mean Number of Snakes Found Per Survey", 
-        col = c("cornflowerblue", "darkgoldenrod1"))
+        col = c("cornflowerblue", "goldenrod1"))
 arrows(x0 = 1:length(sk.mean), y0 = sk.mean - sk.sd, y1 = sk.mean + sk.sd, 
        angle = 90, code = 3, length = 0.1, col = "red")
+
+
+
+
+
+
+
 
 # T and Owen making a ggplot boxplot version of the above
 # use surveys.master because this includes the surveys where we found nothing
@@ -346,16 +356,21 @@ arrows(x0 = 1:length(sk.mean), y0 = sk.mean - sk.sd, y1 = sk.mean + sk.sd,
 surveys.master <- surveys.master %>%
   mutate(snake.per.hr = total_found/as.numeric(Effort_Hrs))
 
+
+############ USE THIS
 # now make the boxplot
 
 snakes.per.surv.plot <- ggplot(data = surveys.master, aes(x = Station, y = snake.per.hr, fill = Station)) + geom_boxplot() + theme_bw() +
-  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
-  theme(legend.title=element_blank()) + ylab("N snakes per hour") + ggtitle("Snake abundance hunted vs unhunted forest")
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
+  theme(legend.title=element_blank(), 
+        text = element_text(size = 16, family = "Tahoma"), 
+        legend.text = element_text(size = 14)) + ylab("N Snakes Per Hour") + ggtitle("Snake Abundance Rates by Station")
 
 snakes.per.surv.plot
 
 # save plot
-#ggsave(snakes.per.surv.plot, file="snakes_per_survey_plot.png")
+ggsave(snakes.per.surv.plot, file="snakes_per_survey_plot.png", width = 6, 
+       height = 4)
 
 # Richness per survey 
 # use the snk.sur.mat (occurence matrix) and divide n species by effort hour
@@ -374,15 +389,22 @@ surveys.master <- left_join(surveys.master, S.subset)
 surveys.master <- surveys.master %>%
   mutate(Sp.per.hr = replace_na(Sp.per.hr, 0))
 
-# plot n species per hour
+
+########### USE THIS
+# plot n species per hour 
 sp.per.surv.plot <- ggplot(data = surveys.master, aes(x = Station, y = Sp.per.hr, fill = Station)) + geom_boxplot() + theme_bw() +
-  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
-  theme(legend.title=element_blank()) + ylab("N species per hour") + ggtitle("Snake richness hunted vs unhunted forest")
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
+  theme(legend.title=element_blank(), 
+        text = element_text(size = 16, family = "Tahoma"), 
+        legend.text = element_text(size = 14)) + ylab("N Species Per Hour") + ggtitle("Snake Richness Rates by Station")
 
 sp.per.surv.plot
 
 # save plot
-#ggsave(sp.per.surv.plot, file="species_per_survey_plot.png")
+ggsave(sp.per.surv.plot, file="species_per_survey_plot.png", width = 6, 
+       height = 4)
+
+
 
 # Diversity per survey
 
@@ -407,19 +429,22 @@ snake.diversity = iNEXT(div.mat, q = 1, datatype = "abundance", nboot = 200)
 snake.diversity <- snake.diversity[["iNextEst"]][["coverage_based"]]
 snake.diversity <- snake.diversity %>% 
   filter(Assemblage == "TBS" & m == 31 | Assemblage == "YRS" & m == 33)
-
+ 
+###### USE THIS ######
+ 
 # plot diversity
 snake.diversity.plot <- ggplot(data = snake.diversity, aes(x = Assemblage, y = qD, color = Assemblage)) + theme_bw() + geom_pointrange(aes(ymin = qD.LCL, ymax = qD.UCL)) +
-  scale_color_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") + ylab("Species diversity (Simpsons)") + theme(legend.title=element_blank())
+  scale_color_manual(values = c("purple", "red"), labels = c("Unhunted", "Hunted")) + xlab("Station") + ylab("Species Diversity (Simpson's)") + theme(legend.title=element_blank(), text = element_text(size = 16,                                                                                                          family = "Tahoma")) + ggtitle("Simpson's Diversity Index by Station")
 
 snake.diversity.plot
 
 # save plot
-#ggsave(snake.diversity.plot, file="snakes_diversity_plot.png")
+ggsave(snake.diversity.plot, file="snakes_diversity_plot.png", width = 6, 
+       height = 4)
 
 
 
-#plotting species/survey
+#plotting species/survey OWENS PLOT
 sp.mean <- means.species.per.survey$mean.S
 sp.sd <- c(1.78, .98)
 barplot(means.species.per.survey$mean.S, names.arg = c("TBS", "YRS"), 
@@ -527,12 +552,25 @@ n.per.guild$det.rate <- n.per.guild$n/as.numeric(n.per.guild$Effort_Hrs)
 ```{r plot differences in feeding guild detection rates}
 
 per.guild.detection.plot <- n.per.guild %>%
-  ggplot(aes(x= Diet_Type, y = det.rate, fill = Station)) +
-  ylab("N Individuals Found Per Hour on Surveys") + theme_light() +
-  geom_boxplot() + xlab("Diet Type") +
-  scale_fill_manual(name = "Hunting Status", labels = c("Unhunted", "Hunted"), values = c("aquamarine2", "orange")) 
+  ggplot(aes(x = Diet_Type, y = det.rate, fill = Station)) +
+  ylab("N Individuals Found Per Hour on Surveys") + 
+  theme_light() +
+  geom_boxplot() + 
+  xlab("Diet Type") +
+  scale_fill_manual(name = "Hunting Status", 
+                    labels = c("Unhunted", "Hunted"), 
+                    values = c("aquamarine2", "orange")) + 
+  ggtitle("Snake Detection Rates by Dietary Guild") +
+  theme(legend.title = element_blank(),
+    text = element_text(family = "Tahoma", size = 16),
+    legend.text = element_text(size = 14), 
+    axis.title.x = element_text(margin = margin(t = 15))
+  )
 
 per.guild.detection.plot
+
+ggsave(per.guild.detection.plot, file="per.guild.detection.plot.png", width = 7, 
+       height = 5)
 
 # quick model
 library(glmmTMB)
