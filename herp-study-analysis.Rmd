@@ -170,6 +170,7 @@ head(umf)
 
 
 ```{r test a model}
+
 null <- distsamp(~1 ~1, umf, keyfun="uniform", output="density", unitsOut="ha")
 m1 <- distsamp(~1 ~ Station, umf, keyfun="uniform", output="density", unitsOut="ha")
 
