@@ -154,7 +154,6 @@ yDat <- formatDistData(snake.dist.df, distCol="Distance_m", transectNameCol="sur
 yDat
 
 # might want to truncate or group broader (nothing between 6-7 m for example)
-
 covs <- snake.dist.df %>%
   dplyr::select(Station, survey, Date, Effort_Hrs) %>%
   distinct()
@@ -163,7 +162,8 @@ covs <- snake.dist.df %>%
 covs$length_est_m <- as.numeric(covs$Effort_Hrs*0.5*1000)
 
 # make the unmarked dataframe for distance sampling
-umf <- unmarkedFrameDS(y=as.matrix(yDat), siteCovs=covs, survey="line", dist.breaks=c(0, 1,2,3,4,5,6,7,8), tlength = covs$length_est, unitsIn = "m")
+
+umf <- unmarkedFrameDS(y=as.matrix(yDat), siteCovs=covs, survey="line", dist.breaks=c(0, 1,2,3,4,5,6,7,8), tlength = covs$length_est_m, unitsIn = "m")
 
 head(umf)
 ```
@@ -172,6 +172,7 @@ head(umf)
 ```{r test a model}
 
 null <- distsamp(~1 ~1, umf, keyfun="uniform", output="density", unitsOut="ha")
+
 m1 <- distsamp(~1 ~ Station, umf, keyfun="uniform", output="density", unitsOut="ha")
 
 null
