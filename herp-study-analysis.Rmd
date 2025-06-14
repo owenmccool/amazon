@@ -56,6 +56,8 @@ Snakes were given a classification as to whether they were small mammal consumer
 enviro <- read.csv("Environment_Sheet.csv", na.strings = c("", "NA")) #replacing all blank spaces with NAs
 
 snake.master <- read.csv("snake.master.csv")
+
+amph <- read.csv("amphibians.csv", na.strings = c("", "NA"))
 ```
 
 ## Survey data
@@ -63,7 +65,8 @@ snake.master <- read.csv("snake.master.csv")
 Calculate time spend sampling during each night for surveys.
 
 ```{r survey samp effort}
-# this is only relevant to the snake surveys, to get n hours spent searching
+
+# isolate survey data (snakes)
 snake.sur <- snake.master %>%
   filter(Obs_type == "Survey")
 
@@ -101,13 +104,34 @@ snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.su
 
 # using difftime to calculate effort hours on each survey
 snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
+
+# repeat with amphibians - steps same as above
+
+amph$Date_Start_Time <- paste(amph$Date, amph$Survey_Start_Time, sep = " ")
+
+amph$Date_Start_Time <- mdy_hm(amph$Date_Start_Time)
+
+amph$Date_End_Time <- paste(amph$Date, amph$Survey_End_Time, sep = " ")
+
+amph$Date_End_Time <- mdy_hm(amph$Date_End_Time)
+
+# add 1 day to cases where we end after midnight
+amph$Date_End_Time[which(amph$Survey_End_Time == "12:05 AM" | amph$Survey_End_Time == "12:11 AM")]<-  amph$Date_End_Time[which(amph$Survey_End_Time == "12:05 AM" | amph$Survey_End_Time == "12:11 AM")] + lubridate::ddays(x =1)
+
+# using difftime to calculate effort hours on each survey
+amph$Effort_Hrs <- difftime(amph$Date_End_Time, amph$Date_Start_Time, units = "hours")
+
+unique(amph$Common_Name)
 ```
 
-We want to summarize how many snakes were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n snakes per hour.
+### Detection rate, Richness, Diversity
+
+We want to summarize how many snakes and frogs were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n per hour.
 
 Also get diversity and richness here.
 
 ```{r survey detections}
+
 # first, I want to remove the surveys during which we did not find any snakes
 
 surveys.master <- snake.sur %>%
@@ -170,7 +194,40 @@ surveys.master <- surveys.master %>%
 
 # clean 
 rm(temp)
+
+
+### repeat with amphibians
+
+amph.survey.metadata <- amph %>%
+  distinct(Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Surveyors, Weather) 
+
+# now, use dplyr (tidyverse) functions to aggregate the data
+amph.EL <- amph %>% # EL stands for Edge List
+  group_by(Date, Station, Common_Name, Effort_Hrs) %>% tally()
+
+# make an extra column that has the station ID and trail walked and date, separated by //
+
+amph.EL$Station.Date.Hrs <- paste(amph.EL$Station, amph.EL$Date, amph.EL$Effort_Hrs, sep = "//")
+# flip this into a matrix of occurences/detections during surveys for each species
+amph.mat <- amph.EL %>% 
+  pivot_wider(names_from = Common_Name, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "Station.Date.Hrs")
+
+# get abundance next
+amph.mat$total_found <- rowSums(amph.mat[4:52])
+
+# for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
+amph.mat$simpson_diversity <- diversity(amph.mat[4:52], index = "simpson")
+
+# and lets get species richness
+amph.mat$richness <- specnumber(amph.mat[4:52])
+
+# get amphibian detection rate
+amph.mat$det.hrly <- amph.mat$total_found/(as.integer(amph.mat$Effort_Hrs))
 ```
+
 ## Environmental data
 
 ### Understory
@@ -507,7 +564,47 @@ m1
 predict(m1, type = 'state')
 
 ```
+
 ## Detection rates
+
+### Amphibians
+
+```{r amphibian prelim plots}
+# detection rate
+A <- amph.mat %>%
+ggplot(aes(x = Station, y = det.hrly, fill = Station)) + scale_fill_manual(values = c("palegreen", "palegreen4")) + geom_boxplot(outliers = FALSE)+ theme_bw() + xlab(NULL) + theme(legend.position = "none") + ylab("# amphibians found per hour") + geom_jitter(width = 0.05, pch = 21, size = 2, alpha = 0.6)
+
+# richness
+B <- amph.mat %>%
+ggplot(aes(x = Station, y = richness, fill = Station)) + scale_fill_manual(values = c("lightblue", "lightblue4")) + geom_boxplot(outliers = FALSE)+ theme_bw() + xlab(NULL) + theme(legend.position = "none") + ylab("amphibian species richness") + geom_jitter(width = 0.05, pch = 21, size = 2, alpha = 0.6)
+
+B
+
+C <- amph.mat %>%
+ggplot(aes(x = Station, y = simpson_diversity, fill = Station)) + scale_fill_manual(values = c("gold", "gold4")) + geom_boxplot(outliers = FALSE)+ theme_bw() + xlab(NULL) + theme(legend.position = "none") + ylab("amphibian diversity (Simpson Index)") + geom_jitter(width = 0.05, pch = 21, size = 2, alpha = 0.6)
+
+C
+
+all <- ggarrange(A, B, C)
+
+all
+
+#ggsave(all, file ="prelim_amph_assessment.png")
+
+# by species
+
+# richness
+
+D <- amph.EL %>%
+ggplot(aes(x = reorder(Common_Name, -n), y = n, color = Station)) + scale_color_manual(values = c("orange", "orange4")) + geom_boxplot(outliers = FALSE)+ theme_bw() + ylab("amphibian count")+ theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + xlab(NULL)
+
+
+D
+
+#ggsave(D, file = "prelim_amphib_species.png")
+```
+
+### Snakes
 
 Owen gathering overview results
 
