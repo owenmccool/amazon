@@ -540,8 +540,6 @@ covs <- snake.dist.df %>%
   dplyr::select(Station, survey, Date, Effort_Hrs) %>%
   distinct()
 
-covs
-
 # we need the survey lengths.... but, if we did approximately 0.5km/hr, it would be
 covs$length_est_m <- as.numeric(covs$Effort_Hrs*0.5*1000)
 
@@ -606,11 +604,7 @@ D
 #ggsave(D, file = "prelim_amphib_species.png")
 ```
 
-<<<<<<< HEAD
-
-=======
 ### Snakes
->>>>>>> ec78066bea16b6fbd8c19129c9936685876076c2
 
 Owen gathering overview results
 
