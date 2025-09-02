@@ -1,0 +1,1091 @@
+---
+title: "McCool_Snake_Project"
+author: "Owen McCool, Therese Lamperty"
+date: "2024-09-04"
+output: word_document
+---
+
+
+# Packages
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+  
+```{r package read in}
+library(vegan)
+library(stringr)
+library(ggplot2)
+library(tidyverse)
+library(iNEXT) # species diversity
+library(hillR) # species diversity
+library(DHARMa) # checking models
+library(car) # reporting model stats
+library(glmmTMB)
+library(unmarked)
+library(ggpubr)
+```
+
+# Project Overview
+
+Study Site: Research was split between two different zones within the greater Yasuni Biosphere Reserve. Tiputini Biodiversity Station (TBS) served as the faunally intact site, whereas Yasuni Research Station (YRS) served as the defaunated site. Both sites are situated along the Tiputini River within the province of Orellana, Ecuador. TBS, approximately 45 km east of YRS, is only accessible by boat. YRS is along the Maxus Oil Road, and is less integrated into the Amazonian ecosystem. Additionally, unsustainable hunting activities by the indigenous communities have been prominent in the surrounding region at YRS for multiple decades, as noted from 2014. This is thought to be the root cause of defaunation in this zone. 
+
+	I transferred between the two research stations every two weeks, starting my first rotation at TBS on June 10. Time at each station was spent working on 3 separate projects: my herpetofauna surveys, frugivory surveys, and an overarching seed enemy and dispersal project. 
+
+	The rainy season in Northeastern Ecuador is at its peak between March and July. I conducted my study between the months of June and August, 2024. The average high temperature for June in this region is 85.66° F, with the average low of 70.05° F. July has an average high temperature of 86.29° F and an average low of 69.13° F. August has an average high temperature of 91.35° F and an average low of 69.60° F. June receives 143mm of precipitation on average each year, whereas July receives 99.69mm and August receives 77.55mm. (https://weatherandclimate.com/ecuador/orellana/boca-tiputini) 
+Put project description here (field sites, time frame of collection,sampling scheme, type of data (eg. species ID,temp, etc.) )
+
+Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors/night. Trail systems at each site served as the sampling paths. The surveys were repeated around 6 times on each rotation while in the field, and resampled on the second rotations. The surveys typically began around 20:00-20:30 and lasted until 23:00-00:00 CST. At each site, habitat matches were compared and assessed and trails through that habitat were consistently walked. Two different types of habitat, Terra Firma (uplands) and Varzea (flooded forest) were surveyed on the herp nocturnal walks. In addition to this, two significant bodies of water were also surveyed at each site, primarily consisting of oxbow lakes with one year-round large pond. 
+
+	Surveyors used FENIX HM60R headlamps while conducting night surveys. They carefully examined all surrounding habitat, including understory trees, shrubs, vines, water bodies, forest floor, and middle-canopy. Amphibians of the order Anura gave off reflective eyeshine and were easier to sample for, whereas members of Squamata did not. More information about this will be within the discussion section. Effort hours will be calculated based on survey time length and number of surveyors. 
+
+	Additionally, environmental information was taken throughout the course of each survey. Temperature and humidity data was collected with a Mengshen meter in 30 minute intervals on surveys. Understory vegetation density was also measured every 15 minutes along each trail. A 1.5m PVC pipe was randomly placed upright just off the right side of the trail at each measuring point, and the number of leaves making contact with the pipe was counted. 
+
+	Weather and wind were noted before each survey in four nominal categories, with weather either being “clear, partly cloudy, cloudy, rainy” and wind being “no wind, felt on face, branches move, trees move”. I also accounted for precipitation that had already occurred in 6-hour blocks as “time window of last rain event”. 
+
+	Once an animal was found, the first step of the protocol was to note what time of night the find occurred. After this, the temperature and humidity was once again collected. A rangefinder was used to estimate the perpendicular distance of each animal from the trail. A GPS was used to mark and log the coordinates of each animal found. Animals were given a two-letter code based on the Order and Suborder followed by a number, indicating its position of being found. For example, the code of the 9th snake found of the season would be SK09. Species found were also identified to the lowest taxonomic level in the field, and photographs of individuals were taken both to get positive IDs later in the lab when not possible in the field, but also to avoid counting re-captures.
+
+	Snakes found during non-survey times were also recorded. These individuals were split into one of two categories of detection. The first is an “Opportunistic Encounter” (OE), which is any snake that was found by me while out working on other non-herpetofauna projects in the field. The other type of detection is the Third Party Encounter (TPE). This was any snake that was found by other research groups during my rotations at each station, identified to lowest possible taxonomy. The same data was taken for these individuals. GPS coordinates, time of detection, trail, observer, estimation of distance from trail, and habitat type. Because the third-party observers often didn’t have access to the climate data logger, this information was retrieved later on from each station’s respective weather tower data, based on the time of detection. 
+
+Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert webpage Reptiles of Ecuador. 
+
+
+# Load and prep data
+
+```{r read in cleaned and prepped data}
+enviro <- read.csv("Environment_Sheet.csv", na.strings = c("", "NA")) #replacing all blank spaces with NAs
+
+snake.master <- read.csv("snake.master.csv")
+
+amph <- read.csv("amphibians.csv", na.strings = c("", "NA"))
+```
+
+## Survey data
+
+Calculate time spend sampling during each night for surveys.
+
+```{r survey samp effort}
+
+# isolate survey data (snakes)
+snake.sur <- snake.master %>%
+  filter(Obs_type == "Survey")
+
+# first, combine date and time so that you can use 'difftime' to get time elapsed between start and end
+
+snake.sur$Date_Start_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_Start_Time, sep = " ")
+
+# what class is the Date_Start_Time column?
+class(snake.sur$Date_Start_Time)
+
+# currently a 'character', we want a date-time object, fix this:
+snake.sur$Date_Start_Time <- mdy_hm(snake.sur$Date_Start_Time)
+
+# now check the class:
+class(snake.sur$Date_Start_Time)
+# "POSIXct" is what we want, so this is good now
+
+# repeat with end time
+
+snake.sur$Date_End_Time <- paste(snake.sur$Start_Date, snake.sur$Survey_End_Time, sep = " ")
+
+# what class is the Date_End_Time column?
+class(snake.sur$Date_End_Time)
+
+# currently a 'character', we want a date-time object, fix this:
+snake.sur$Date_End_Time <- mdy_hm(snake.sur$Date_End_Time)
+
+# now check the class:
+class(snake.sur$Date_End_Time)
+# "POSIXct" is what we want, so this is good now
+
+# add 1 day to cases where we end after midnight
+
+snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.sur$Survey_End_Time == "12:11 AM")]<-  snake.sur$Date_End_Time[which(snake.sur$Survey_End_Time == "12:05 AM" | snake.sur$Survey_End_Time == "12:11 AM")] + lubridate::ddays(x =1)
+
+# using difftime to calculate effort hours on each survey
+snake.sur$Effort_Hrs <- difftime(snake.sur$Date_End_Time, snake.sur$Date_Start_Time, units = "hours")
+
+# repeat with amphibians - steps same as above
+
+amph$Date_Start_Time <- paste(amph$Date, amph$Survey_Start_Time, sep = " ")
+
+amph$Date_Start_Time <- mdy_hm(amph$Date_Start_Time)
+
+amph$Date_End_Time <- paste(amph$Date, amph$Survey_End_Time, sep = " ")
+
+amph$Date_End_Time <- mdy_hm(amph$Date_End_Time)
+
+# add 1 day to cases where we end after midnight
+amph$Date_End_Time[which(amph$Survey_End_Time == "12:05 AM" | amph$Survey_End_Time == "12:11 AM")]<-  amph$Date_End_Time[which(amph$Survey_End_Time == "12:05 AM" | amph$Survey_End_Time == "12:11 AM")] + lubridate::ddays(x =1)
+
+# using difftime to calculate effort hours on each survey
+amph$Effort_Hrs <- difftime(amph$Date_End_Time, amph$Date_Start_Time, units = "hours")
+
+unique(amph$Common_Name)
+```
+
+### Detection rate, Richness, Diversity
+
+We want to summarize how many snakes and frogs were seen per hour. This is going to involve (1) calculating abundance per survey and then (2) getting a rate of n per hour.
+
+Also get diversity and richness here.
+
+```{r survey detections}
+
+# first, I want to remove the surveys during which we did not find any snakes
+
+surveys.master <- snake.sur %>%
+  distinct(Start_Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Surveyors, Weather) #look across these columns, and where all the values across a row are the same( eg. date, station, time, etc.) to avoid duplicates: one copy of each survey
+
+# isolate surveys where no snakes were found (n = 6)
+surveys.no.snakes <- snake.sur %>%
+  filter(is.na(Snake_ID))
+
+# remove those instances from snake.sur now
+snake.sur <- snake.sur %>%
+  filter(!is.na(Snake_ID))
+
+# now, use dplyr (tidyverse) functions to aggregate the data
+temp <- snake.sur %>%
+  group_by(Start_Date, Station, Common_Name, Effort_Hrs) %>% tally()
+
+# make an extra column that has the station ID and trail walked and date, separated by //
+
+temp$st.date.zone <- paste(temp$Station, temp$Start_Date, temp$Effort_Hrs, sep = "//")
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+snk.sur.mat <- temp %>% 
+  pivot_wider(names_from = Common_Name, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.date.zone")
+
+# great, let's start getting some info together regarding the abundance, diversity, and species richness of snakes found for each night we did a survey
+
+# get abundance next
+snk.sur.mat$total_found <- rowSums(snk.sur.mat[4:20])
+
+# for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
+snk.sur.mat$simpson_diversity <- diversity(snk.sur.mat[4:20], index = "simpson")
+
+# remove temp df
+rm(temp)
+
+# and lets get species richness
+snk.sur.mat$richness <- specnumber(snk.sur.mat[4:20])
+
+# at this point, you will want to do a sanity check. Do the data look believable based on what you remember of your time in the field?
+
+# now, get a rate of n snakes obs per hours of searching
+
+# add total snakes found per survey to the surveys.master
+
+# pull out the date and total found per survey
+temp <- snk.sur.mat %>%
+  distinct(Start_Date, total_found)
+
+# add it to the surveys.master
+surveys.master <- left_join(surveys.master, temp) #joins two dataframes, one on left it keeps all info from and one on right matches up with it based on column they have in common
+
+# fill NAs in with zeros
+surveys.master <- surveys.master %>%
+  mutate(total_found = ifelse(is.na(total_found), 0, total_found))
+
+# clean 
+rm(temp)
+
+
+### repeat with amphibians
+
+amph.survey.metadata <- amph %>%
+  distinct(Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Surveyors, Weather) 
+
+# now, use dplyr (tidyverse) functions to aggregate the data
+amph.EL <- amph %>% # EL stands for Edge List
+  group_by(Date, Station, Common_Name, Effort_Hrs) %>% tally()
+
+# make an extra column that has the station ID and trail walked and date, separated by //
+
+amph.EL$Station.Date.Hrs <- paste(amph.EL$Station, amph.EL$Date, amph.EL$Effort_Hrs, sep = "//")
+# flip this into a matrix of occurences/detections during surveys for each species
+amph.mat <- amph.EL %>% 
+  pivot_wider(names_from = Common_Name, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "Station.Date.Hrs")
+
+# get abundance next
+amph.mat$total_found <- rowSums(amph.mat[4:52])
+
+# for diversity, we know Simpson's is robust to unbalanced sampling; may change to only using Simpsons. Use function 'diversity' in vegan package, specify the index you want to use (simpson)
+amph.mat$simpson_diversity <- diversity(amph.mat[4:52], index = "simpson")
+
+# and lets get species richness
+amph.mat$richness <- specnumber(amph.mat[4:52])
+
+# get amphibian detection rate
+amph.mat$det.hrly <- amph.mat$total_found/(as.integer(amph.mat$Effort_Hrs))
+```
+
+## Environmental data
+
+### Understory
+
+```{r look at understory data}
+# in case useful, make a new column called Date_Start_Time that has Date and Time info together (this is used to calculate things like elapsed time)
+enviro$Date_Start_Time <- paste(enviro$Date, enviro$Survey_Start_Time, sep = " ", remove = FALSE)
+
+# tell R this new column has month day year hour minute info
+enviro$Date_Start_Time <- mdy_hm(enviro$Date_Start_Time) 
+
+# use 'pivot_longer' to rearrange dataframe. We want 1 column that has an identifier for each understory density reading conducting on each survey (so there are going to be a lot of rows)
+understory <- enviro %>%
+  pivot_longer(cols = c(10:22), names_to = "Record", values_to = "n_leaves")
+
+# we are just looking at understory for now, so we can remove some of the other columns
+understory <- understory %>%
+  dplyr::select(Station, Trail_Walked, Survey.Zone, Date, Record, n_leaves)
+
+# I think we can remove the NAs, which were produced because not all surveys had the same number of understory readings taken
+
+understory <- understory %>%
+  na.omit()
+
+# look at understory
+hist(understory$n_leaves, breaks = 20)
+
+# what about per trail?
+# make Trail a factor (sometimes this matters for plotting)
+understory$Trail_Walked <- as.factor(understory$Trail_Walked)
+# make n leaves an integer (again, sometimes matters)
+understory$n_leaves <- as.integer(understory$n_leaves)
+
+understory.plot <- understory %>%
+ggplot(aes(x = reorder(Trail_Walked, n_leaves), y = n_leaves, fill = Station)) + scale_fill_manual(values = c("lightblue", "navy")) + geom_boxplot()+ theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + xlab(NULL) + theme(legend.position = "none")
+
+A <- understory.plot + facet_grid(~Station, scales = "free")
+
+understory.plot2 <- understory %>%
+  arrange(Station) %>%
+ggplot(aes(x = n_leaves, fill = Station)) + scale_fill_manual(values = c("lightblue", "navy")) + geom_histogram(bins = 20, color = "black")+ theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + xlab(NULL) + theme(legend.position = "none") + ylab("Frequency") + xlab("n leaves")
+
+B<-understory.plot2 + facet_grid(~Station, scales = "free")
+
+understory.variation <- ggarrange(A, B)
+# display the above 2 plots together (ggarrange is a function in ggpubr)
+
+understory.variation
+
+# save
+#ggsave(understory.variation, file = "understory.variation.png", width = 10, height =6)
+
+# what about n snakes found and veg density?
+
+# from surveys.master (which includes the cases where 0 snakes were found), pull out the abundance data
+temp.master <- surveys.master %>%
+  select(Start_Date, total_found)
+
+# make names and format for date column unified
+colnames(temp.master)[1] <- "Date"
+temp.master$Date <- mdy(temp.master$Date)
+
+# from snk.sur.mat, pull out Effort_Hrs and richness (join by Date)
+colnames(snk.sur.mat)[1] <- "Date"
+
+temp <- snk.sur.mat %>%
+  select(Date, Effort_Hrs, richness)
+# adjust date format to match
+temp$Date <- mdy(temp$Date)
+
+understory$Date <- mdy(understory$Date)
+
+understory <- left_join(understory, temp.master)
+
+# and add the richness
+understory <- left_join(understory, temp)
+rm(temp, temp.master)
+# something is up with 6/21 matapalo harpia. no snake data but understory data? I don't see a survey for that date in the survey master sheet
+
+# scatterplot
+# make sure n snakes is integer
+understory$total_found <- as.integer(understory$total_found)
+# effort hours numeric
+understory$Effort_Hrs <- as.numeric(understory$Effort_Hrs)
+
+# and get detection rate
+understory$detection_rate <- understory$total_found/understory$Effort_Hrs
+# the NA's richness has should be 0
+understory <- understory %>% replace(is.na(.), 0)
+
+# total found as a function of veg density
+C<-understory %>%
+ggplot(aes(x = n_leaves, total_found, fill = Station)) + scale_fill_manual(values = c("gold", "gold4")) + geom_jitter(pch = 21, size = 2, color = "black") + theme_bw()  + ylab("Raw abundance")
+
+# detection rate as a function of veg density
+D<-understory %>%
+ ggplot(aes(x = n_leaves, detection_rate, fill = Station)) + scale_fill_manual(values = c("lavender", "purple4")) + geom_jitter(pch = 21, size = 2, alpha = 0.75, color = "black")+ theme_bw() + ylab("Hourly detection rate")
+
+# richness as a function of veg density
+E<-understory %>%
+ggplot(aes(x = n_leaves, richness, fill = Station)) + scale_fill_manual(values = c("palegreen", "green4")) + geom_jitter(pch = 21, size = 2, alpha = 0.75, color = "black")+ theme_bw() + ylab("Species richness")
+
+understory.snakes <- ggarrange(C, D, E)
+
+understory.snakes
+
+#ggsave(understory.snakes, file = "understory_snake_trends.png")
+
+# clean
+rm(understory.plot, understory.plot2, understory.snakes, understory.variation)
+
+```
+
+```{r prelim statistical tests}
+# is there a relationship?
+# richness
+richness.understory.mod <- glmmTMB(richness ~ n_leaves+ (1|Trail_Walked), data = understory, family = poisson)
+
+summary(richness.understory.mod)
+
+# detection rate
+detection.understory.mod <- glmmTMB(detection_rate ~ n_leaves + (1|Trail_Walked), data = understory, family = tweedie)
+
+summary(detection.understory.mod)
+
+# total 
+total.understory.mod <- glmmTMB(total_found ~ n_leaves + (1|Trail_Walked), data = understory, family = poisson)
+
+summary(total.understory.mod)
+
+# doesn't appear to be
+
+# but does density differ between stations?
+understory.mod <- glmmTMB(n_leaves ~ Station + (1|Trail_Walked), data = understory, family = poisson)
+
+summary(understory.mod)
+```
+
+So far, no apparent relationship between understory density estimates and the number of snakes found, the rate at which we detect them, or their species richness.
+
+**Note, THIS IS ALL SUPER PRELIMINARY**
+
+### Humidity
+
+```{r look at humidity data}
+
+# use 'pivot_longer' to rearrange dataframe. We want 1 column that has an identifier for each understory density reading conducting on each survey (so there are going to be a lot of rows)
+humidity <- enviro %>%
+  pivot_longer(cols = c(30:36), names_to = "Record", values_to = "humidity")
+
+# we are just looking at understory for now, so we can remove some of the other columns
+humidity <- humidity %>%
+  dplyr::select(Station, Trail_Walked, Date, Record, humidity)
+
+humidity <- humidity %>%
+  na.omit()
+
+# what about per trail?
+# make Trail a factor (sometimes this matters for plotting)
+humidity$Trail_Walked <- as.factor(humidity$Trail_Walked)
+# make n leaves an integer (again, sometimes matters)
+humidity$humidity <- as.integer(humidity$humidity)
+
+humidity.plot <- humidity %>%
+ggplot(aes(x = reorder(Trail_Walked, humidity), y = humidity, fill = Station)) + scale_fill_manual(values = c("orange", "orange4")) + geom_boxplot()+ theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + xlab(NULL) + theme(legend.position = "none")
+
+A <- humidity.plot + facet_grid(~Station, scales = "free")
+
+humidity.plot2 <- humidity %>%
+  arrange(Station) %>%
+ggplot(aes(x = humidity, fill = Station)) + scale_fill_manual(values = c("white", "gray")) + geom_histogram(bins = 20, color = "black")+ theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + xlab(NULL) + theme(legend.position = "none") + ylab("Frequency") + xlab("humidity")
+
+B<-humidity.plot2 + facet_grid(~Station, scales = "free")
+
+humidity.variation <- ggarrange(A, B)
+
+humidity.variation
+
+# save
+#ggsave(humidity.variation, file = "humidity.variation.png", width = 10, height =6)
+
+# what about n snakes found and humidity?
+
+# from surveys.master (which includes the cases where 0 snakes were found), pull out the abundance data
+temp.master <- surveys.master %>%
+  select(Start_Date, total_found)
+
+# make names and format for date column unified
+colnames(temp.master)[1] <- "Date"
+temp.master$Date <- mdy(temp.master$Date)
+
+# from snk.sur.mat, pull out Effort_Hrs and richness (join by Date)
+colnames(snk.sur.mat)[1] <- "Date"
+
+temp <- snk.sur.mat %>%
+  select(Date, Effort_Hrs, richness)
+# adjust date format to match
+temp$Date <- mdy(temp$Date)
+
+humidity$Date <- mdy(humidity$Date)
+
+humidity <- left_join(humidity, temp.master)
+
+# and add the richness
+humidity <- left_join(humidity, temp)
+rm(temp, temp.master)
+
+# scatterplot
+# make sure n snakes is integer
+humidity$total_found <- as.integer(humidity$total_found)
+# effort hours numeric
+humidity$Effort_Hrs <- as.numeric(humidity$Effort_Hrs)
+
+# and get detection rate
+humidity$detection_rate <- humidity$total_found/humidity$Effort_Hrs
+# the NA's richness has should be 0
+humidity <- humidity %>% replace(is.na(.), 0)
+
+# total found as a function of veg density
+C<-humidity %>%
+ggplot(aes(x = humidity, total_found, fill = Station)) + scale_fill_manual(values = c("tan", "tan4")) + geom_jitter(pch = 21, size = 2, color = "black") + theme_bw()  + ylab("Raw abundance")
+
+# detection rate as a function of veg density
+D<-humidity %>%
+ ggplot(aes(x = humidity, detection_rate, fill = Station)) + scale_fill_manual(values = c("lightblue", "lightblue4")) + geom_jitter(pch = 21, size = 2, alpha = 0.75, color = "black")+ theme_bw() + ylab("Hourly detection rate")
+
+# richness as a function of veg density
+E<-humidity %>%
+ggplot(aes(x = humidity, richness, fill = Station)) + scale_fill_manual(values = c("palegreen", "palegreen4")) + geom_jitter(pch = 21, size = 2, alpha = 0.75, color = "black")+ theme_bw() + ylab("Species richness")
+
+humidity.snakes <- ggarrange(C, D, E)
+
+humidity.snakes
+
+#ggsave(humidity.snakes, file = "humidity_snake_trends.png")
+
+# clean
+rm(humidity.plot, humidity.plot2, humidity.snakes, humidity.variation)
+
+```
+
+```{r prelim statistical tests with humidity}
+# is there a relationship?
+# richness
+richness.humidity.mod <- glmmTMB(richness ~ humidity+ (1|Trail_Walked), data = humidity, family = poisson)
+
+summary(richness.humidity.mod)
+
+# detection rate
+detection.humidity.mod <- glmmTMB(detection_rate ~ humidity + (1|Trail_Walked), data = humidity, family = tweedie)
+
+summary(detection.humidity.mod)
+
+# total 
+total.humidity.mod <- glmmTMB(total_found ~ humidity + (1|Trail_Walked), data = humidity, family = poisson)
+
+summary(total.humidity.mod)
+
+# doesn't appear to be
+
+# did humidity differ between stations?
+humidity.mod <- glmmTMB(humidity ~ Station + (1|Trail_Walked), data = humidity, family = poisson)
+
+summary(humidity.mod)
+```
+Need to see how to test for unimodal trends, because there may be an optimal range here and the extremes (lower and higher humidity levels) are not favored by the snakes.
+
+# Abundance estimates
+
+## Distance Sampling
+
+Histogram of Observed distances
+
+```{r obs dists}
+
+hist <- hist(snake.sur$Distance_m, breaks = 8)
+
+hist
+
+ # I am choosing breaks = 8; each bin is 1m x 8 = 8m which is the max distance we observed individuals from the transect line
+
+# starting simple- group all together across zones, research areas (YRS and TBS), dates
+
+# area of rectangle = 20 x 8 = 160
+
+# area under the curve = approximated by computing height of curb at midpoint of each histogram bar
+
+# area under the curve = 1m x (20 + 16 + 10 + 4 + 2 +1 + 0 + 1) = 54
+
+# p hat a = area under curve/area of rectangle = 54/160 = 0.34
+
+```
+
+Need a detection history matrix with trails/zones as rows and survey dates as columns (I think)
+
+```{r detections by distance}
+
+# format snake data
+snake.dist.df <- snake.sur %>%
+  filter(!is.na(Common_Name))
+
+snake.dist.df$survey <- paste(snake.dist.df$Date, snake.dist.df$Location, sep = "_")
+
+yDat <- formatDistData(snake.dist.df, distCol="Distance_m", transectNameCol="survey", dist.breaks=c(0, 1,2,3,4,5,6,7,8))  #create distance categories (m). Could change these.
+
+yDat
+
+# might want to truncate or group broader (nothing between 6-7 m for example)
+covs <- snake.dist.df %>%
+  dplyr::select(Station, survey, Date, Effort_Hrs) %>%
+  distinct()
+
+# we need the survey lengths.... but, if we did approximately 0.5km/hr, it would be
+covs$length_est_m <- as.numeric(covs$Effort_Hrs*0.5*1000)
+
+# make the unmarked dataframe for distance sampling
+
+umf <- unmarkedFrameDS(y=as.matrix(yDat), siteCovs=covs, survey="line", dist.breaks=c(0, 1,2,3,4,5,6,7,8), tlength = covs$length_est_m, unitsIn = "m")
+
+head(umf)
+```
+
+
+```{r test a model}
+
+null <- distsamp(~1 ~1, umf, keyfun="uniform", output="density", unitsOut="ha")
+
+m1 <- distsamp(~1 ~ Station, umf, keyfun="uniform", output="density", unitsOut="ha")
+
+null
+
+m1
+
+predict(m1, type = 'state')
+
+```
+
+## Detection rates
+
+### Amphibians
+
+```{r amphibian prelim plots}
+# detection rate
+A <- amph.mat %>%
+ggplot(aes(x = Station, y = det.hrly, fill = Station)) + scale_fill_manual(values = c("palegreen", "palegreen4")) + geom_boxplot(outliers = FALSE)+ theme_bw() + xlab(NULL) + theme(legend.position = "none") + ylab("# amphibians found per hour") + geom_jitter(width = 0.05, pch = 21, size = 2, alpha = 0.6)
+
+# richness
+B <- amph.mat %>%
+ggplot(aes(x = Station, y = richness, fill = Station)) + scale_fill_manual(values = c("lightblue", "lightblue4")) + geom_boxplot(outliers = FALSE)+ theme_bw() + xlab(NULL) + theme(legend.position = "none") + ylab("amphibian species richness") + geom_jitter(width = 0.05, pch = 21, size = 2, alpha = 0.6)
+
+B
+
+C <- amph.mat %>%
+ggplot(aes(x = Station, y = simpson_diversity, fill = Station)) + scale_fill_manual(values = c("gold", "gold4")) + geom_boxplot(outliers = FALSE)+ theme_bw() + xlab(NULL) + theme(legend.position = "none") + ylab("amphibian diversity (Simpson Index)") + geom_jitter(width = 0.05, pch = 21, size = 2, alpha = 0.6)
+
+C
+
+all <- ggarrange(A, B, C)
+
+all
+
+#ggsave(all, file ="prelim_amph_assessment.png")
+
+# by species
+
+# richness
+
+D <- amph.EL %>%
+ggplot(aes(x = reorder(Common_Name, -n), y = n, color = Station)) + scale_color_manual(values = c("orange", "orange4")) + geom_boxplot(outliers = FALSE)+ theme_bw() + ylab("amphibian count")+ theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + xlab(NULL)
+
+
+D
+
+#ggsave(D, file = "prelim_amphib_species.png")
+```
+
+### Snakes
+
+Owen gathering overview results
+
+```{r getting overview dat}
+# total number of species per station
+snk.sur.mat %>%
+  group_by(Station) %>%
+  reframe(raw.abundance = sum(total_found))
+
+# repeat the above but with species richness
+snk.sur.mat %>%
+  group_by(Station) %>%
+  reframe(species.count = sum(richness))
+
+# mean and sd snakes during survey at TBS and YRS
+mean.snakes.per.survey <- snk.sur.mat %>%
+  group_by(Station) %>%
+  reframe(mean.n = mean(total_found),
+          sd.n = sd(total_found))
+
+# do the same thing to summarize the number of species you found per survey at each station
+means.species.per.survey <- snk.sur.mat %>%
+  group_by(Station) %>%
+  reframe(mean.S = mean(richness),
+          sd.S = sd(richness))
+
+#plotting snakes/survey
+sk.mean <- mean.snakes.per.survey$mean.n
+sk.sd <- c(1.97, 1.22)
+
+barplot(mean.snakes.per.survey$mean.n, names.arg = c("TBS", "YRS"), 
+        ylim = c(0, 6), xlab = "Station", 
+        ylab = "Frequency", main = "Mean Number of Snakes Found Per Survey", 
+        col = c("cornflowerblue", "darkgoldenrod1"))
+arrows(x0 = 1:length(sk.mean), y0 = sk.mean - sk.sd, y1 = sk.mean + sk.sd, 
+       angle = 90, code = 3, length = 0.1, col = "red")
+
+# T and Owen making a ggplot boxplot version of the above
+# use surveys.master because this includes the surveys where we found nothing
+
+# first, get rate of snakes per hour
+surveys.master <- surveys.master %>%
+  mutate(snake.per.hr = total_found/as.numeric(Effort_Hrs))
+
+# now make the boxplot
+
+snakes.per.surv.plot <- ggplot(data = surveys.master, aes(x = Station, y = snake.per.hr, fill = Station)) + geom_boxplot() + theme_bw() +
+  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
+  theme(legend.title=element_blank()) + ylab("N snakes per hour") + ggtitle("Snake abundance hunted vs unhunted forest")
+
+snakes.per.surv.plot
+
+# save plot
+#ggsave(snakes.per.surv.plot, file="snakes_per_survey_plot.png")
+
+# Richness per survey 
+# use the snk.sur.mat (occurence matrix) and divide n species by effort hour
+
+snk.sur.mat <- snk.sur.mat %>%
+  mutate(Sp.per.hr = richness/as.numeric(Effort_Hrs))
+
+# subset the columns we want to join with the snake master df to make sure we include the zeros in our figure
+S.subset <- snk.sur.mat %>%
+  select(Sp.per.hr, Start_Date)
+
+surveys.master <- left_join(surveys.master, S.subset)
+
+# make NAs zero
+
+surveys.master <- surveys.master %>%
+  mutate(Sp.per.hr = replace_na(Sp.per.hr, 0))
+
+# plot n species per hour
+sp.per.surv.plot <- ggplot(data = surveys.master, aes(x = Station, y = Sp.per.hr, fill = Station)) + geom_boxplot() + theme_bw() +
+  scale_fill_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") +
+  theme(legend.title=element_blank()) + ylab("N species per hour") + ggtitle("Snake richness hunted vs unhunted forest")
+
+sp.per.surv.plot
+
+# save plot
+#ggsave(sp.per.surv.plot, file="species_per_survey_plot.png")
+
+# Diversity per survey
+
+# need data in a new species x site matrix (dif than the occurrence matrix we already have)
+
+# aggregate by station, n snakes found per survey of each species
+div.mat <- snake.sur %>%
+  group_by(Station, Common_Name) %>% 
+  reframe(n = n())
+# now get the new format, snake species as row names, station as columns
+div.mat <- div.mat %>% 
+  pivot_wider(names_from = Station, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "Common_Name")
+  
+# now we use div.mat to get the diversity and 95% CIs
+# new function uses iNEXT package (confusingly also the name of the function)
+snake.diversity = iNEXT(div.mat, q = 1, datatype = "abundance", nboot = 200)
+
+# extract values we need
+snake.diversity <- snake.diversity[["iNextEst"]][["coverage_based"]]
+snake.diversity <- snake.diversity %>% 
+  filter(Assemblage == "TBS" & m == 31 | Assemblage == "YRS" & m == 33)
+
+# plot diversity
+snake.diversity.plot <- ggplot(data = snake.diversity, aes(x = Assemblage, y = qD, color = Assemblage)) + theme_bw() + geom_pointrange(aes(ymin = qD.LCL, ymax = qD.UCL)) +
+  scale_color_manual(values = c("blue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Study area") + ylab("Species diversity (Simpsons)") + theme(legend.title=element_blank())
+
+snake.diversity.plot
+
+# save plot
+#ggsave(snake.diversity.plot, file="snakes_diversity_plot.png")
+
+
+
+#plotting species/survey
+sp.mean <- means.species.per.survey$mean.S
+sp.sd <- c(1.78, .98)
+barplot(means.species.per.survey$mean.S, names.arg = c("TBS", "YRS"), 
+        ylim = c(0, 5), xlab = "Station",
+        ylab = "Frequency", main = "Mean Number of Species Found Per Survey", 
+        col = c("cornflowerblue", "darkgoldenrod1"))
+arrows(x0 = 1:length(sk.mean), y0 = sp.mean - sp.sd, y1 = sp.mean + sp.sd, 
+       angle = 90, code = 3, length = 0.1, col = "red")
+
+```
+
+Explore trends with temperature and n snakes detected
+
+```{r add env data to survey master}
+
+# add in some of the continuous variables: mean density, humidity, temperature
+enviro$Date_Start_Time <- paste(enviro$Date, enviro$Survey_Start_Time, sep = " ")
+enviro$Date_Start_Time <- mdy_hm(enviro$Date_Start_Time) #getting month day year and time all in one, will aggregate by later
+
+enviro2 <- enviro %>%
+  pivot_longer(cols = c(23:29), names_to = "temperature", values_to = "Degrees_F") #doing long list of temp values matched with survey start times and date
+
+enviro2 <- enviro2 %>%
+  select(Date_Start_Time, Degrees_F) %>%
+  na.omit()
+
+enviro_temp_means <- enviro2 %>%
+  group_by(Date_Start_Time) %>%
+  reframe(mean_F = (mean((as.numeric(Degrees_F)))))
+
+surveys.master <- left_join(surveys.master, enviro_temp_means)
+
+plot(surveys.master$total_found ~ surveys.master$mean_F)
+
+```
+
+Now, get a plot of the detection rates at each hunted and unhunted study area. 
+
+```{r snake plot detection rate}
+# T - adding this Jan 7 2025
+# add Detections Per Hour into Snake Survey Matrix (first, make effort hours numeric)
+snk.sur.mat$Effort_Hrs<-as.numeric(snk.sur.mat$Effort_Hrs)
+# get detection rate
+snk.sur.mat$detections.per.hr <- snk.sur.mat$total_found/snk.sur.mat$Effort_Hrs
+# incomplete- need to add the detections per hour back into the snk.sur.mat before we run this
+
+pooled.detection.plot <- snk.sur.mat %>%
+  ggplot(aes(x= Station, y= detections.per.hr, color = Station)) + #aesthetics, telling it what you want x and y axis to be
+  ylab("N snakes found per hour") +
+  xlab("") + theme_light() +
+  geom_boxplot() + scale_color_manual(values=c("#E69F00", "darkgreen"))
+
+pooled.detection.plot
+
+```
+
+What about snakes found per hour in each feeding guild?
+
+```{r prep to look at feeding guild detections}
+
+# most of the steps below, if not all, are repeated from above
+
+# get data aggragated according to diet type
+grped.by.guild <- snake.sur %>%
+  group_by(Station, Zone, Date, Diet_Type, Effort_Hrs) %>%
+  tally() # count n rows we have per survey per diet type
+
+# make a separate data set with effort hours per night at each zone
+surveys.all <- as.data.frame(grped.by.guild[,c(1:3,5)])
+surveys.all <- surveys.all %>%
+  distinct(Date, .keep_all = TRUE)
+
+# remove NAs
+grped.by.guild <- na.omit(grped.by.guild)
+
+grped.by.guild$st.tr.date <- paste(grped.by.guild$Station, grped.by.guild$Zone, grped.by.guild$Date, grped.by.guild$Effort_Hrs, sep = "//")
+
+mat.grped.by.guild <- grped.by.guild %>% 
+  pivot_wider(names_from = Diet_Type, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.tr.date")
+
+mat.grped.by.guild$st.tr.date <- rownames(mat.grped.by.guild)
+
+mat.grped.by.guild <- mat.grped.by.guild %>% 
+  separate(st.tr.date, c('Station', 'Location', 'Date', 'Effort_Hrs'), sep = "//")
+
+# get abundance next
+mat.grped.by.guild$total_found <- rowSums(mat.grped.by.guild[2:4])
+
+# now, get a rate of n snakes obs per hours of searching
+mat.grped.by.guild$total.hr <- (mat.grped.by.guild$total_found/as.numeric(mat.grped.by.guild$Effort_Hrs))
+
+# transpose using pivot longer
+
+n.per.guild <- mat.grped.by.guild %>%
+  select(-c(total_found, Location, total.hr)) %>%
+  pivot_longer(cols = c("no mammals", "mostly mammals", "mixed"), 
+                        names_to = "Diet_Type", 
+                        values_to = "n")
+
+n.per.guild$det.rate <- n.per.guild$n/as.numeric(n.per.guild$Effort_Hrs)
+```
+
+```{r plot differences in feeding guild detection rates}
+
+per.guild.detection.plot <- n.per.guild %>%
+  ggplot(aes(x= Diet_Type, y = det.rate, fill = Station)) +
+  ylab("N Individuals Found Per Hour on Surveys") + theme_light() +
+  geom_boxplot() + xlab("Diet Type") +
+  scale_fill_manual(name = "Hunting Status", labels = c("Unhunted", "Hunted"), values = c("aquamarine2", "orange")) 
+
+per.guild.detection.plot
+
+# quick model
+library(glmmTMB)
+library(car)
+library(DHARMa)
+
+mod <- glmmTMB(det.rate ~ Station/Diet_Type + (1|Zone), family = tweedie, data = n.per.guild)
+
+Anova(mod)
+summary(mod)
+# validate
+sim <- simulateResiduals(fittedModel = mod, plot = T)
+
+# dispersion and zero-inflation tests
+testDispersion(mod , plot = F)
+testZeroInflation(mod, plot = F)
+
+# clean
+rm(sim, mod)
+```
+
+Note, I ran some stats and there is a significant effect of station on number of snakes in the no mammals guild. Let me know if you want to talk about understanding the model and presenting that information. 
+
+```{r master snake matrix}
+
+# use dplyr (tidyverse) functions to aggregate the data, now group by station, zone, date, species, use snake.master dataset
+
+occ <- snake.master %>% #need to get snake.master updated to new csv combo
+  group_by(Station, Zone, Species) %>%
+  tally()
+
+# remove NAs bc they don't tell us anything in this context
+occ<-na.omit(occ)
+
+# make an extra column that has the station ID and trail walked and date, separated by //, remove effort hours, location will become 'ZONE'
+
+occ$st.zn.sp <- paste(occ$Station, occ$Zone, occ$Species, sep = "//")
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+snake.occ.mat <- occ %>% 
+  pivot_wider(names_from = Species, #makes the column into the rownames
+              values_from = n, 
+              values_fill = 0) %>% #will fill spaces with no snakes as 0
+  column_to_rownames(var = "st.zn.sp") #will make this new combo the unique identifier as rownames
+
+```
+
+To look at community dissimilarity, we can do a handful of things. Start with computing dissimilarity values based on Jaccard index. This compared presence and absence of species and doesnt tell us much....
+
+``` {r prep predictor and community data}
+
+community <- snake.occ.mat[, c(3:31)] #made matrix from all data columns with n snake data
+
+
+predictors <- snake.occ.mat[, c(1,2)] #separating non-snake stuff (station and zone)
+                          
+# remove cases with empty rows, which are 'meaningless' with jaccard. These were the surveys during which we did not find anything. 
+
+Jaccard.dis.mat <- vegdist(community, method = "jaccard") #jaccard only accounts for presence absence 
+
+pnova.jac.sp <- adonis2(Jaccard.dis.mat ~ predictors$Station, method = "jaccard") #adonis looks at specific differences between groups, our group factor is station
+
+# look at results
+print(pnova.jac.sp)
+```
+
+Bray Curtis index. 0 = totally the same, 1 = totally dissimilar.
+
+In summary, "to calculate Bray-Curtis dissimilarity between two samples, you need to find the sum of the lesser abundances of each species present in both samples, then divide that sum by the total combined abundance of all species in both samples, and finally subtract the result from 1; essentially, it measures the proportion of difference in species abundance between two samples, with a value ranging from 0 (identical samples) to 1 (completely different samples)." 
+
+```{r repeat with bray curtis}
+sk.sur <- snk.sur.mat[, c(5:21)] #making matrix of snake observations, pull out the numeric values that correspond to abundance of each species found during each survey
+
+groupings <- snk.sur.mat[, c(2, 3)] #making matrix for station and zone (you want to subset the columns that contain your 'predictor' variables; for now, that is just the research station and perhaps the zone, in the future it could be environmental/temperature variables)
+
+bc.dis.mat <- vegdist(sk.sur, method = "bray")
+
+pnova.bc.sp <- adonis2(bc.dis.mat ~ groupings$Station, method = "bray")
+
+# look at results
+print(pnova.bc.sp)
+```
+
+"The Morisita and the Horn-Morisita indices measure the probability that individuals drawn one from each vector will belong to different species, relative to drawing from each vector separately. The Morisita index is formulated for count data only, whereas the Horn-Morisita index can be used with transformed counts or proportions."
+
+```{r repeat with horn morisita}
+
+horn.dis.mat <- vegdist(sk.sur, method = "horn")
+
+pnova.horn.sp <- adonis2(horn.dis.mat ~ groupings$Station)
+
+# look at results
+print(pnova.horn.sp)
+```
+
+```{r nmds visualization with horn}
+nmds.horn <- metaMDS(community, distance = "bray", autotransform = TRUE, maxtry = 200)
+# warning message leads me to believe that we should re-group the survey data by genus or some other broader grouping variable so that we have more data per category; we could also look at grouping by Zone rather than by date (that might be better)
+```
+
+# Small mammals
+
+Small mammals! Making a boxplot with y axis = n small mammals found per hour per survey (one boxplot of this per research station).
+
+```{r small mammal data prep}
+
+# add the n small mammals found per survey to the snake.sur dataframe because that has the effort hours already in it
+
+# subset data - just want the n small mammmals and keep the date column to join by
+# fix survey zone name - no spaces
+enviro <- enviro %>%
+  rename(Survey_zone = `Survey Zone`)
+
+small.mamms.temp <- enviro %>%
+  select(Station, Date, Survey_zone, Number_of_Small_Mammals_Spotted)
+
+# isolate effort hours per survey
+effort <- snake.sur %>%
+  select(Date, Effort_Hrs)
+
+# make effort hours numeric
+effort$Effort_Hrs <- as.numeric(effort$Effort_Hrs)
+
+# join effort to small mamms
+small.mamms.temp <- left_join(small.mamms.temp, effort)
+
+# get rid of nas
+small.mamms.temp <- small.mamms.temp %>%
+  na.omit()
+
+# clean 
+rm(effort)
+
+small.mamms.temp$Number_of_Small_Mammals_Spotted <- as.numeric(small.mamms.temp$Number_of_Small_Mammals_Spotted)
+
+# get rate of n mammals per hour
+small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/small.mamms.temp$Effort_Hrs
+```
+
+```{r smammals fig}
+# make a boxplot!
+
+smammals.plot <- ggplot(data = small.mamms.temp, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() +
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("") +
+  theme(legend.title=element_blank()) + ylab("Small mammals detected per hour") + ggtitle("Small mammal abundance in hunted vs unhunted forest")
+
+smammals.plot
+
+# save plot
+#ggsave(smammals.plot, file="small_mammal_plot.png")
+# can add dimension specifications with width = x and height = x
+
+# another way to plot that makes judging sig easier 
+
+smams.mean.se <- small.mamms.temp %>%
+  group_by(Station) %>%
+  summarise(mean = mean(smammals.hr),
+            sd = sd(smammals.hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+p <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +  
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = small.mamms.temp, aes( x = Station, y = smammals.hr), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Small mammals detected per hour") + ggtitle("Small mammal detections") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 10)) 
+
+p
+```
+
+How is this data distributed?
+
+```{r model small mammal data}
+hist(small.mamms.temp$smammals.hr, breaks = 15)
+mean(small.mamms.temp$smammals.hr)
+
+# doesn't look terrible 'normal' or 'parametric' (grouped around the mean value)
+```
+
+```{r test effects on smammals}
+# Mann Whitney U test is good for this
+
+smam.test <- wilcox.test(smammals.hr ~ Station, data = small.mamms.temp, exact = FALSE)
+
+smam.test
+
+glm <- glmmTMB(smammals.hr ~ Station + (1|Survey_zone), data = small.mamms.temp, family = gaussian)
+
+summary(glm)
+
+Anova(glm)
+
+# validate
+sim <- simulateResiduals(fittedModel = glm, plot = T)
+
+# dispersion and zero-inflation tests
+testDispersion(glm, plot = F)
+testZeroInflation(glm, plot = F)
+
+# clean
+rm(sim, m1)
+```
+
+
+# Misc Code
+
+``` {r Owens plots practice }
+ #OWEN'S EXPERIMENTAL PLOTS 
+
+unique(snake.master$Species)
+spec.TBS = unique(snake.master$Species[snake.master$Station == "TBS"])
+spec.YRS = unique(snake.master$Species[snake.master$Station == "YRS"])
+
+head(snake.master$Species)
+
+unique_species <- data.frame(Sites = c("YRS", "TBS"),
+                             UniqueSpecies = c(length(unique(snake.master$Species[snake.master$Station == "YRS"])),
+                                               length(unique(snake.master$Species[snake.master$Station == "TBS"]))))
+
+# figure with number of unique species per site
+
+require(ggplot2)
+
+ggplot(data = unique_species, aes(x = Sites, y = UniqueSpecies)) +
+  geom_bar(stat = "identity", fill = c("blue", "green")) +
+  xlab("Site ID") +
+  ylab("Number of unique species") +
+  theme_bw() # theme I like
+```
+
+``` {r Boxplot for Snake Totals per Hour}
+
+boxplot(snk.sur.mat$total.hr[snk.sur.mat$Station == "TBS"],
+        snk.sur.mat$total.hr[snk.sur.mat$Station == "YRS"],
+        names = c("TBS", "YRS"), 
+        col = c("red", "blue"), 
+        xlab = "Station", 
+        ylab = "Snakes per Hour",
+        main = "Snake Totals per Survey Hours by Station")
+
+```
+
+
+
+
+
+
+
+
+
+
+
