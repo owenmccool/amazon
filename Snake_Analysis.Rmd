@@ -1,0 +1,822 @@
+---
+title: "Snake_Analysis"
+author: "Owen McCool, Therese Lamperty"
+date: "2025-07-16"
+output: word_document
+---
+
+## Code Setup 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Packages
+
+```{r read in packages}
+library(vegan)
+library(stringr)
+library(ggplot2)
+library(tidyverse)
+library(iNEXT) # species diversity
+library(hillR) # species diversity
+library(DHARMa) # checking models
+library(car) # reporting model stats
+library(glmmTMB)
+library(unmarked)
+library(tidyr)
+
+```
+
+## Project Overview
+
+Study Site: Research was split between two different zones within the greater Yasuni Biosphere Reserve. Tiputini Biodiversity Station (TBS) served as the faunally intact site, whereas Yasuni Research Station (YRS) served as the defaunated site. Both sites are situated along the Tiputini River within the province of Orellana, Ecuador. TBS, approximately 45 km east of YRS, is only accessible by boat. YRS is along the Maxus Oil Road, and is less integrated into the Amazonian ecosystem. Additionally, unsustainable hunting activities by the indigenous communities have been prominent in the surrounding region at YRS for multiple decades, as noted from 2014. This is thought to be the root cause of defaunation in this zone. 
+
+	I transferred between the two research stations every two weeks, starting my first rotation at TBS on June 10. Time at each station was spent working on 3 separate projects: my herpetofauna surveys, frugivory surveys, and an overarching seed enemy and dispersal project. 
+
+	The rainy season in Northeastern Ecuador is at its peak between March and July. I conducted my study between the months of June and August, 2024. The average high temperature for June in this region is 85.66° F, with the average low of 70.05° F. July has an average high temperature of 86.29° F and an average low of 69.13° F. August has an average high temperature of 91.35° F and an average low of 69.60° F. June receives 143mm of precipitation on average each year, whereas July receives 99.69mm and August receives 77.55mm. (https://weatherandclimate.com/ecuador/orellana/boca-tiputini) 
+Put project description here (field sites, time frame of collection,sampling scheme, type of data (eg. species ID,temp, etc.) )
+
+Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors/night. Trail systems at each site served as the sampling paths. The surveys were repeated around 6 times on each rotation while in the field, and resampled on the second rotations. The surveys typically began around 20:00-20:30 and lasted until 23:00-00:00 CST. At each site, habitat matches were compared and assessed and trails through that habitat were consistently walked. Two different types of habitat, Terra Firma (uplands) and Varzea (flooded forest) were surveyed on the herp nocturnal walks. In addition to this, two significant bodies of water were also surveyed at each site, primarily consisting of oxbow lakes with one year-round large pond. 
+
+	Surveyors used FENIX HM60R headlamps while conducting night surveys. They carefully examined all surrounding habitat, including understory trees, shrubs, vines, water bodies, forest floor, and middle-canopy. Amphibians of the order Anura gave off reflective eyeshine and were easier to sample for, whereas members of Squamata did not. More information about this will be within the discussion section. Effort hours will be calculated based on survey time length and number of surveyors. 
+
+	Additionally, environmental information was taken throughout the course of each survey. Temperature and humidity data was collected with a Mengshen meter in 30 minute intervals on surveys. Understory vegetation density was also measured every 15 minutes along each trail. A 1.5m PVC pipe was randomly placed upright just off the right side of the trail at each measuring point, and the number of leaves making contact with the pipe was counted. 
+
+	Weather and wind were noted before each survey in four nominal categories, with weather either being “clear, partly cloudy, cloudy, rainy” and wind being “no wind, felt on face, branches move, trees move”. I also accounted for precipitation that had already occurred in 6-hour blocks as “time window of last rain event”. 
+
+	Once an animal was found, the first step of the protocol was to note what time of night the find occurred. After this, the temperature and humidity was once again collected. A rangefinder was used to estimate the perpendicular distance of each animal from the trail. A GPS was used to mark and log the coordinates of each animal found. Animals were given a two-letter code based on the Order and Suborder followed by a number, indicating its position of being found. For example, the code of the 9th snake found of the season would be SK09. Species found were also identified to the lowest taxonomic level in the field, and photographs of individuals were taken both to get positive IDs later in the lab when not possible in the field, but also to avoid counting re-captures.
+
+	Snakes found during non-survey times were also recorded. These individuals were split into one of two categories of detection. The first is an “Opportunistic Encounter” (OE), which is any snake that was found by me while out working on other non-herpetofauna projects in the field. The other type of detection is the Third Party Encounter (TPE). This was any snake that was found by other research groups during my rotations at each station, identified to lowest possible taxonomy. The same data was taken for these individuals. GPS coordinates, time of detection, trail, observer, estimation of distance from trail, and habitat type. Because the third-party observers often didn’t have access to the climate data logger, this information was retrieved later on from each station’s respective weather tower data, based on the time of detection. 
+
+Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert field book Reptiles of Ecuador. 
+
+
+## Initial Data Read-Ins
+
+```{r read in raw, unclean data: surveyed snakes of both seasons}
+
+snake.sur1 <- read.csv("Field Season 1/snake.sur.csv", na.strings = c("", "NA"))
+snake.sur2 <- read.csv("Field Season 2/survey_snakes_2.csv", na.strings = c("", "NA"))
+
+```
+
+```{r read in raw, unclean data: non-surveyed snakes of both seasons}
+
+snake.nonsur1 <- read.csv("Field Season 1/snake.non.sur.csv", na.strings = c("", "NA"))
+snake.nonsur2 <- read.csv("Field Season 2/Season_2_nonsursnakes.csv", na.strings = c("", "NA"))
+
+```
+
+```{r read in raw, unclean data: non-surveyed snakes of both seasons}
+
+enviro1 <- read.csv("Field Season 1/Environment_Sheet.csv", na.strings = c("", "NA"))
+enviro2 <- read.csv("Field Season 2/enviro_2.csv", na.strings = c("", "NA"))
+
+```
+
+
+## Cleaning V.1
+
+```{r preliminary data cleaning}
+
+# Start with the surveyed snakes, season 1
+
+snake.sur1 <- snake.sur1[-2, ] #remove row 2, as it is blank
+colnames(snake.sur1) <- snake.sur1[1, ] #takes 1st row and makes it column names
+snake.sur1 <- snake.sur1[-1, ] #removed extra row that originally had column names but were now useless
+
+# Season 2 surveyed snakes doesn't need much cleaning since we based datasheet off clean version from season 1
+
+
+# Time to clean the non-survey snake data
+
+colnames(snake.nonsur1) <- snake.nonsur1[1, ] #takes row 1 and makes them column names 
+snake.nonsur1 <- snake.nonsur1[-1, ] #removing first row since one is the same as column names now
+
+# Once again, season 2 nonsurveyed snakes doesn't need much cleaning since we based datasheet off clean version from season 1
+
+# Finally, time for environmental data
+
+colnames(enviro1) <- enviro1[1, ] #make top row the new column headers
+enviro1 <- enviro1[-1, ] #now removes useless first row
+
+# Once again, season 2 environment doesn't need much cleaning since we based datasheet off clean version from season 1
+
+
+
+#Compare column names, we need to get them to match season-to-season for three types of sheets
+colnames(snake.sur1)
+colnames(snake.sur2) #some differences that need to be addressed
+
+snake.sur1$Size <- NA #add column for size, added for season 2
+snake.sur1 <- snake.sur1 %>%
+  rename(Snake_ID = Reptile_ID) #making sure both dataframes have 'Snake ID' as column
+
+names(snake.sur1) <- gsub("_", " ", names(snake.sur1)) #getting rid of all "_" to fix an error
+names(snake.sur1) <- trimws(names(snake.sur1)) #remove trailing spaces in column names
+names(snake.sur1) <- gsub(" ", "_", names(snake.sur1)) #now put the underscores back
+
+names(snake.sur2) <- gsub("_", " ", names(snake.sur2)) #getting rid of all "_" to fix an error
+names(snake.sur2) <- trimws(names(snake.sur2)) #remove trailing spaces in column names
+names(snake.sur2) <- gsub(" ", "_", names(snake.sur2))
+snake.sur2 <- snake.sur2[, -c(3, 9)] #remove columns for 'Gross ID' and 'Survey Type'
+
+colnames(snake.sur1)
+colnames(snake.sur2) #looks good
+
+
+
+
+#Now for non-surveyed data
+
+colnames(snake.nonsur1)
+colnames(snake.nonsur2) #lots of problems
+
+snake.nonsur1 <- snake.nonsur1[, -6] #removing 'Zone' column
+names(snake.nonsur1) <- trimws(names(snake.nonsur1)) #remove trailing spaces in headers
+snake.nonsur1$Size <- NA #make 'Size' column as it's a new addition, populate with NA
+
+snake.nonsur2 <- snake.nonsur2 %>%
+  rename(Size = Size_Estimate) #change name of 'Size_Estimate' column to just 'Size'
+
+colnames(snake.nonsur1)
+colnames(snake.nonsur2) #looks good
+
+
+
+
+
+#Finally, environment
+
+colnames(enviro1)
+colnames(enviro2) #ooh rough
+
+names(enviro1) <- trimws(names(enviro1)) #to start, remove trailing spaces
+enviro1$Understory_Density_Final <- NA
+enviro1$Humidity_8 <- NA
+enviro1$Humidity_Final <- NA
+enviro1$Temperature_8 <- NA
+enviro1$Temperature_Final <- NA #all these columns that didn't exist at first now do, filled with NA
+
+enviro2 <- enviro2[, -c(45, 46)] #this one's easy, remove these weird blank columns
+enviro2 <- enviro2[, -3] #and remove the column that has 'Survey Type' as they are all night 
+
+colnames(enviro1)
+colnames(enviro2) #looks good
+
+```
+
+
+## Binding Dataframes from Both Seasons
+
+```{r combining sheets between seasons}
+
+#Now we want to combine each pair, this chunk can be ignored if we want to analzye seasons separately but a new chunk will have to be added for just the data
+
+snakes.sur <- rbind(snake.sur1, snake.sur2) #surveys
+
+snakes.nonsur <- rbind(snake.nonsur1, snake.nonsur2) #nonsurveys
+
+enviro <- rbind(enviro1, enviro2) #environment sheet
+
+#Let's clean out the R environment a bit
+
+rm(snake.sur1)
+rm(snake.sur2)
+rm(snake.nonsur1)
+rm(snake.nonsur2)
+rm(enviro1)
+rm(enviro2)
+
+``` 
+
+
+## Cleaning V.2
+
+```{r more advanced data cleaning for species and diet guilds}
+
+
+# Standardize species names in both datasets by making function to clean them
+clean_categories <- function(category) {
+  category <- trimws(category)             # Remove leading/trailing whitespace
+  category <- str_replace_all(category, "\\s+", "_") # Replace all internal whitespace with underscores             
+  return(category)
+} #this function removes trailing spaces/bad whitespace and replaces internal with underscore, and then returns the new correct 'Species'
+
+snakes.sur$Species <- clean_categories(snakes.sur$Species) #populate new columns with function ran on current values
+snakes.nonsur$Species <- clean_categories(snakes.nonsur$Species) #populate new columns with function ran on current values
+
+# Check unique values to make sure the function works
+
+unique(snakes.sur$Species)
+unique(snakes.nonsur$Species) #looks correct
+
+
+
+#Also want to clean the "Diet Type" column, since it shows that there are more than just 3 unique and one NA value for each dataframe and shows some repeats
+
+unique(snakes.sur$Diet_Type)
+unique(snakes.sur$Diet_Type) #idk why this happened but we need to fix it
+
+
+snakes.sur$Diet_Type <- clean_categories(snakes.sur$Diet_Type) #populate new columns with function ran on current values
+snakes.nonsur$Diet_Type <- clean_categories(snakes.nonsur$Diet_Type) #populate new columns with function ran on current values
+
+# Check unique values to make sure the function works
+
+unique(snakes.sur$Diet_Type)
+unique(snakes.nonsur$Diet_Type) #looks good
+
+# Also do it for common names
+snakes.sur$Common_Name <- clean_categories(snakes.sur$Common_Name)
+snakes.nonsur$Common_Name <- clean_categories(snakes.nonsur$Common_Name) #should be fixed
+
+unique(snakes.sur$Common_Name)
+unique(snakes.nonsur$Common_Name) #looks good
+
+
+# Miscellaneous cleaning
+
+snakes.sur$Date <- gsub("\\*", "", snakes.sur$Date) #getting rid of asterisks in dates
+snakes.nonsur$Type_of_Encounter <- sub("\\*$", "", snakes.nonsur$Type_of_Encounter) #also an asterisk on Kai's observation, needs to be gone
+
+# OK now all the weird important stuff should be fixed, BUT THIS CHUNK CAN BE ADDED TO WHEN I NEED TO FIX DUPLICATES IN WEATHER, WIND, ETC.
+
+```
+
+
+## Formatting Dates
+
+```{r fixing dates surveys and non-surveys}
+
+# tell R that the Date column are Dates as an object, not a jumble of characters
+
+snakes.sur$Date <- as.Date(snakes.sur$Date, format = "%m/%d/%y")
+snakes.nonsur$Date <- as.Date(snakes.nonsur$Date, format = "%m/%d/%y")
+enviro$Date <-  as.Date(enviro$Date, format = "%m/%d/%y")
+
+```
+
+## Making Master CSV
+
+```{r preparing for snake master sheet}
+
+#Time to make one giant dataset with all snakes, but needs to be prepped first
+
+snakes.sur$Type_of_Encounter <- "Survey" #add new column for Type of Encounter since normally not associated with other observations, fill with 'Survey'
+
+colnames(snakes.sur)[4] <- "Location"
+colnames(snakes.nonsur)[3] <- "Location" # making both spatial references into simply 'Location'
+
+snakes.nonsur$Survey_Start_Time <- NA
+snakes.nonsur$Surveyors <- NA
+snakes.nonsur$Survey_End_Time <- NA #adding these columns so I can match up both dataframes
+
+
+snakes.nonsur$Distance_From_Trail_m <- NA #adding this column, populating with NAs
+
+snakes.sur$During_My_Rotation <- "Yes" #adding this column, populating with 'Yes' since all survey snakes are during my rotation
+
+snakes.sur$Start_Date <- as.Date(snakes.sur$Date, format = "%m/%d/%y") #adding column called start date to survey data since we need an end date as well for surveys ending past midnight (which we'll deal with in next chunk)
+snakes.sur$Method_of_Detection <- "Found on survey" #filling in this new column
+
+
+snakes.nonsur$Start_Date <- NA 
+snakes.nonsur$Trail_Walked <- NA 
+snakes.nonsur$Survey_Start_Time <- NA
+snakes.nonsur$Survey_End_Time <- NA
+snakes.nonsur$Notes <- NA #adding these columns to make the dataframes the same to merge
+
+snake.master <- rbind(snakes.sur, snakes.nonsur) #making master dataframe with all snakes
+
+
+snake.master$Start_Date <- as.Date(snake.master$Start_Date, format = "%m%d%y") #fixing the date to stay in date format after binding (not sure if this is needed???)
+
+snake.master$Species <- str_replace_all(snake.master$Species, " ", "_") #making sure all snakes have underscored between genus and species
+
+unique(snake.master$Species) #make sure there are no duplicates (thank god there aren't)
+
+# make a genus column
+
+snake.master <- snake.master %>%
+ separate(Species, c("Genus", "Species"))
+# Separates genus and species, in cases where the species is unknown, populates the species column with NA (warning message)
+
+#making new master csv, ensuring that extra row names are not added by R, this is why we can now comment out this chunk (UNSURE)
+
+write.csv(snake.master, "snake.master.csv", row.names = FALSE) #now we have our new csv
+
+
+```
+
+
+## Starting to Look at Sample Effort (Time & Distance)
+
+```{r survey samp effort}
+
+#sursnakes <- snake.master %>%
+  #filter(Type_of_Encounter == "Survey") #piping with dplyr, make new dataframe with only surveyed snakes since those are only obs. with effort associated (not sure if this is needed since effort hours is now its own column)
+
+
+#Now we want to put in an environment sheet because it has our effort hours, and we want to convert those to usable numeric values
+
+enviro$Effort <- sapply(strsplit(enviro$Searching_Time, ":"), function(x) {
+  as.numeric(x[1]) + as.numeric(x[2]) / 60
+}) #not really sure how this function works (from internet) but it makes the hours go from 2:30 to 2.50 hours, etc. 
+
+#Also want to see what the distance effort is
+
+class(enviro$Meters) #says it is a character and can't be summed, we need to convert it
+enviro$Meters <- as.numeric(enviro$Meters) #now they are numbers
+
+sum(enviro$Meters[enviro$Station == "TBS"]) # 73,864 meters at TBS
+sum(enviro$Meters[enviro$Station == "YRS"]) # 76,915 meters at YRS
+
+```
+
+
+## Small Mammal Detections
+
+```{r small mammal detection rate data}
+
+ # add the n small mammals found per survey to the snake.sur dataframe because that has the effort hours already in it
+
+# subset data - just want the n small mammmals and keep the date column to join by
+
+small.mamms.temp <- enviro %>%
+  select(Station, Date, Number_of_Small_Mammals_Spotted, Trail_Walked, Order) #creating temporary dataframe with just these parameters
+
+small.mamms.temp$Number_of_Small_Mammals_Spotted <-  as.numeric(small.mamms.temp$Number_of_Small_Mammals_Spotted) #changing the n small mammals to a number from a character (idk why it was a character)
+class(small.mamms.temp$Number_of_Small_Mammals_Spotted) #looks correct now
+
+# isolate effort hours per survey
+effort <- enviro %>%
+  select(Date, Meters, Searching_Time, Effort) #put both meters and time to see how they impact rates of detection
+
+# join effort to small mamms
+small.mamms.temp <- left_join(small.mamms.temp, effort)
+
+# get rid of nas (don't think there are any)
+small.mamms.temp <- small.mamms.temp %>%
+  na.omit()
+
+# clean 
+rm(effort)
+
+
+# get rate of n mammals per hour
+small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/small.mamms.temp$Effort
+
+# make a boxplot!
+
+smammals.plot <- ggplot(data = small.mamms.temp, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
+  theme(legend.title=element_blank(), 
+        text = element_text(family = "Tahoma", size = 16), 
+        legend.text = element_text(size = 14)) + ylab("N Small Mammals Detected Per Hour") + ggtitle("Small Mammal Detection Rates by Station") 
+
+
+smammals.plot #view the plot
+
+
+# save plot to computer files
+ggsave(smammals.plot, file="small_mammal_plot.png", width = 6, 
+       height = 4)
+# can add dimension specifications with width = x and height = x
+
+# another way to plot that makes judging significance easier NEEDS EXPLAINING
+smams.mean.se <- small.mamms.temp %>%
+  group_by(Station) %>%
+  summarise(mean = mean(smammals.hr),
+            sd = sd(smammals.hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+
+smamm.sig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = small.mamms.temp, aes( x = Station, y = smammals.hr), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Small Mammals Detected Per Hour") + ggtitle("Small Mammal Detections") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 10), text = element_text(family = "Tahoma", size = 16)) 
+
+smamm.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
+
+#rm(small.mamms.temp, smammals.plot, smams.mean.se, smamm.sig)
+
+```
+
+
+## Small Mammal Data Distribution Analysis
+
+```{r small mammal data distribution}
+hist(small.mamms.temp$smammals.hr, breaks = 15)
+mean(small.mamms.temp$smammals.hr)
+
+# doesn't look terrible 'normal' or 'parametric' (grouped around the mean value)
+
+# Mann Whitney U test is good for this
+
+smam.test <- wilcox.test(smammals.hr ~ Station, data = small.mamms.temp, exact = FALSE)
+
+smam.test #shows significance between the two stations, NEED TO UNDERSTAND WHAT ^ DOES
+
+glm <- glmmTMB(smammals.hr ~ Station + (1|Order), data = small.mamms.temp, family = gaussian)
+
+summary(glm) #seem to be 2.08 more mammals per hour at TBS than YRS
+
+Anova(glm) #shows significant
+
+# validate
+sim <- simulateResiduals(fittedModel = glm, plot = T) #NO CLUE WHAT ANY OF THIS MEANS
+
+# dispersion and zero-inflation tests
+testDispersion(glm, plot = F)
+testZeroInflation(glm, plot = F)
+
+# clean
+rm(sim, glm)
+
+
+```
+
+## Chi Square Test of Snake Communities 
+
+```{r chi square snake comparisons}
+
+#Let's start simple with a Chi-Square Test
+
+#Just surverys for now, first we need to remove instances of zero snake nights
+
+# isolate surveys where no snakes were found (n = 6 Season 1, n = 8 Season 2)
+surveys.no.snakes <- snakes.sur %>%
+  filter(is.na(Snake_ID))
+
+# remove those instances from snakes.sur now
+snakes.sur.nozeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+Tsurno <- length(snakes.sur.nozeros$Date[snakes.sur.nozeros$Diet_Type == "no_mammals" & 
+                                       snakes.sur.nozeros$Station == "TBS"]) 
+Tsurmix <- length(snakes.sur.nozeros$Date[snakes.sur.nozeros$Diet_Type == "mixed" & 
+                                       snakes.sur.nozeros$Station == "TBS"])
+Tsurmam <- length(snakes.sur.nozeros$Date[snakes.sur.nozeros$Diet_Type == "mostly_mammals" &                                        snakes.sur.nozeros$Station == "TBS"])
+
+Tsurno #42 non-mammal eaters TBS
+Tsurmix #6 mixed eaters TBS
+Tsurmam #3 mammal eaters TBS
+
+Ysurno <- length(snakes.sur.nozeros$Date[snakes.sur.nozeros$Diet_Type == "no_mammals" & 
+                                       snakes.sur.nozeros$Station == "YRS"])
+Ysurmix <- length(snakes.sur.nozeros$Date[snakes.sur.nozeros$Diet_Type == "mixed" & 
+                                       snakes.sur.nozeros$Station == "YRS"])
+Ysurmam <- length(snakes.sur.nozeros$Date[snakes.sur.nozeros$Diet_Type == "mostly_mammals" & 
+                                       snakes.sur.nozeros$Station == "YRS"])
+
+Ysurno #31 non-mammal eaters YRS
+Ysurmix #9 mixed eaters YRS
+Ysurmam #9 mammal eaters YRS
+
+
+sur.mat <- matrix(c(Tsurno, Tsurmix, Tsurmam, 
+         Ysurno, Ysurmix, Ysurmam), nrow = 3, ncol = 2) #making a matrix with diet guild data
+
+rm(Tsurno)
+rm(Tsurmix)
+rm(Tsurmam)
+rm(Ysurno)
+rm(Ysurmix)
+rm(Ysurmam) #cleaning up the environment
+
+chisq.test(sur.mat) # X-squared = 5.6482, df = 2, p-value = 0.08456, so not sigificant differences between communities based on just surveys
+
+
+# Maybe for the master dataset? (Need to figure out how to remove zeros (from surveys) and unknown duet types)
+
+# isolate surveys where no snakes were found (n = 6 Season 1, n = 8 Season 2)
+surveys.no.snakes <- snakes.sur %>%
+  filter(is.na(Snake_ID))
+
+# remove instances of 0-snake nights for surveys from master dataframe
+master.nozeros <- snake.master %>%
+  filter(!is.na(Snake_ID))
+
+master.nozeros$Diet_Type[is.na(master.nozeros$Diet_Type)] <- "unknown" #now replaces all instances where the snake couldn't be ID'd with an 'unknown' diet instead of just blank 
+
+#time to get counts again...
+
+Tmastno <- length(master.nozeros$Date[master.nozeros$Diet_Type == "no_mammals" & 
+                                       master.nozeros$Station == "TBS"]) 
+Tmastmix <- length(master.nozeros$Date[master.nozeros$Diet_Type == "mixed" & 
+                                       master.nozeros$Station == "TBS"])
+Tmastmam <- length(master.nozeros$Date[master.nozeros$Diet_Type == "mostly_mammals" &                                          master.nozeros$Station == "TBS"])
+Tmastun <- length(master.nozeros$Date[master.nozeros$Diet_Type == "unknown" &                                                  master.nozeros$Station == "TBS"]) #add unknown category
+
+Tmastno #76 non-mammal eaters TBS
+Tmastmix #13 mixed eaters TBS
+Tmastmam #9 mammal eaters TBS
+Tmastun #4 unknowns TBS
+
+Ymastno <- length(master.nozeros$Date[master.nozeros$Diet_Type == "no_mammals" & 
+                                       master.nozeros$Station == "YRS"]) 
+Ymastmix <- length(master.nozeros$Date[master.nozeros$Diet_Type == "mixed" & 
+                                       master.nozeros$Station == "YRS"])
+Ymastmam <- length(master.nozeros$Date[master.nozeros$Diet_Type == "mostly_mammals" &                                          master.nozeros$Station == "YRS"])
+Ymastun <- length(master.nozeros$Date[master.nozeros$Diet_Type == "unknown" &                                                  master.nozeros$Station == "YRS"]) #add unknown category
+
+Ymastno #61 non-mammal eaters YRS
+Ymastmix #21 mixed eaters YRS
+Ymastmam #19 mammal eaters YRS
+Ymastun #2 unknowns YRS
+
+
+master.mat <- matrix(c(Tmastno, Tmastmix, Tmastmam, Tmastun,
+         Ymastno, Ymastmix, Ymastmam, Ymastun), nrow = 4, ncol = 2) #making another matrix
+master.mat #viewing matrix to make sure dimensions are good
+
+
+
+chisq.test(master.mat) #X-squared = 7.8633, df = 3, p-value = 0.05128, looks a little better
+
+#One more without the 'unknown' category
+
+master.mat2 <- matrix(c(Tmastno, Tmastmix, Tmastmam,
+         Ymastno, Ymastmix, Ymastmam), nrow = 3, ncol = 2) #now just excluding unknown observations
+
+chisq.test(master.mat2) #X-squared = 7.1772, df = 2, p-value = 0.02 COULD BE SIGNIFICANT
+
+rm(Tmastno)
+rm(Tmastmix)
+rm(Tmastmam)
+rm(Tmastun)
+rm(Ymastno)
+rm(Ymastmix)
+rm(Ymastmam)
+rm(Ymastun) #cleaning up the environment 
+
+rm(master.nozeros)
+rm(snakes.sur.nozeros)
+rm(surveys.no.snakes)
+rm(master.mat)
+rm(master.mat2)
+rm(sur.mat) #these can be commented out if we wanted to keep them
+
+```
+
+
+
+## Snake Detection Rates
+
+```{r snake detection differences between stations}
+
+
+
+# subset data - just want the n small mammmals and keep the date column to join by
+
+snakes.temp <- snakes.sur %>%
+  select(Station, Date, Snake_ID, Species, Diet_Type) #creating temporary dataframe with just these parameters
+
+# isolate effort hours per survey
+effort <- enviro %>%
+  select(Date, Meters, Searching_Time, Effort) #put both meters and time to see how they impact rates of detection
+
+
+# join effort to snakes
+snakes.temp <- left_join(snakes.temp, effort)
+
+
+# get rid of nas ACTUALLY WE WANT ZEROS HERE
+  
+snakes.temp <- snakes.temp %>%
+  na.omit()
+
+snakes.temp.mam <- left_join(snakes.temp[snakes.temp$Diet_Type == "mostly_mammals" | snakes.temp$Diet_Type == "mixed", ], effort) #also make a sheet for snakes with mammal-eating diets
+
+snakes.temp.mam <- snakes.temp.mam %>%
+  na.omit()
+
+snakes.temp.nomam <- left_join(snakes.temp[snakes.temp$Diet_Type == "no_mammals", ], effort) #also make a sheet for snakes with mammal-eating diets
+
+snakes.temp.nomam <- snakes.temp.nomam %>%
+  na.omit()
+
+# clean 
+rm(effort)
+
+
+# Group by survey (e.g., Station + Date or SK## if that's the ID) NEED HELP UNDERSTANDING, but this needs to be done since the data does not have a column for counts per survey and only has a snake per row, even though there were some surveys with multiple snakes
+snakes.hr <- snakes.temp %>%
+  group_by(Date, Station) %>%  
+  summarise(
+    n_snakes = n(),                      # number of observations
+    search_time = first(Effort),  # assuming same time per survey
+    snakes_per_hour = n_snakes / Effort
+  ) #this makes a number of snakes/hour/survey, eg. .64531 snakes per hour on june 11
+print(snakes.hr)
+
+# Now let's get more specific: mixed and mostly mammal eaters grouped here to see if YRS has higher detections
+snakes.hr.mam <- snakes.temp.mam %>%
+  group_by(Date, Station) %>%  
+  summarise(
+    n_snakes = n(),                      # number of observations
+    search_time = first(Effort),  # assuming same time per survey
+    snakes_per_hour = n_snakes / Effort
+  ) #now making a sheet of just mammal eaters
+print(snakes.hr.mam) #get a sheet ready with mixed + mostly mammal eaters
+
+# Seeing if TBS has higher detections of non-mammal eaters
+snakes.hr.nomam <- snakes.temp.nomam %>%
+  group_by(Date, Station) %>%  
+  summarise(
+    n_snakes = n(),                      # number of observations
+    search_time = first(Effort),  # assuming same time per survey
+    snakes_per_hour = n_snakes / Effort
+  ) 
+print(snakes.hr.nomam)
+
+snake.plot <- ggplot(data = snakes.hr, aes(x = Station, y = snakes_per_hour, fill = Station)) + geom_boxplot() + theme_bw() + scale_fill_manual(values = c("cyan", "red"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
+  theme(legend.title=element_blank(), 
+        text = element_text(family = "Tahoma", size = 16), 
+        legend.text = element_text(size = 14)) + ylab("N Snakes Detected Per Hour") + ggtitle("Snake Detection Rates by Station") #Just overall snake rates
+
+snake.plot #view the plot, seems insignificant
+
+
+# Making a plot for mammal eaters
+snake.plot.mam <- ggplot(data = snakes.hr.mam, aes(x = Station, y = snakes_per_hour, fill = Station)) + geom_boxplot() + theme_bw() + scale_fill_manual(values = c("skyblue", "orange"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
+  theme(legend.title=element_blank(), 
+        text = element_text(family = "Tahoma", size = 16), 
+        legend.text = element_text(size = 14)) + ylab("N Snakes of Mammal-eating Guild Detected Per Hour") + ggtitle("Mammal-eating Snake Detection Rates by Station") #just mammal eaters
+
+snake.plot.mam #maybe there's a difference here? 
+
+
+# Finally a plot for non-mammal eaters
+snake.plot.nomam <- ggplot(data = snakes.hr.nomam, aes(x = Station, y = snakes_per_hour, fill = Station)) + geom_boxplot() + theme_bw() + scale_fill_manual(values = c("darkgreen", "yellow"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
+  theme(legend.title=element_blank(), 
+        text = element_text(family = "Tahoma", size = 16), 
+        legend.text = element_text(size = 14)) + ylab("N Snakes of Nonmammal-eating Guild Detected Per Hour") + ggtitle("Nonmammal-eating Snake Detection Rates by Station") 
+
+snake.plot.nomam #maybe there's a difference here? Interestingly enough it seems like there's a higher detection rate of non-mammal eater at YRS
+
+
+#Significance? probably not but lets check
+
+snakes.mean.se <- snakes.hr %>%
+  group_by(Station) %>%
+  summarise(mean = mean(snakes_per_hour),
+            sd = sd(snakes_per_hour),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake.sig <- ggplot(snakes.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +  
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = snakes.hr, aes( x = Station, y = snakes_per_hour), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+  scale_fill_manual(values = c("cyan", "red")) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Snakes Detected Per Hour") + ggtitle("Snake Detections") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 10)) 
+
+snake.sig #view plot, also doesn't seem significant
+
+
+
+snakes.mammean.se <- snakes.hr.mam %>%
+  group_by(Station) %>%
+  summarise(mean = mean(snakes_per_hour),
+            sd = sd(snakes_per_hour),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake.sig2 <- ggplot(snakes.mammean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +  
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = snakes.hr, aes( x = Station, y = snakes_per_hour), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+  scale_fill_manual(values = c("cyan", "red")) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Snakes Detected Per Hour") + ggtitle("Snake Detections") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 10)) 
+
+snake.sig2 #COULD BE SIGNIFICANT
+
+
+#rm(snakes.temp, snake.plot, snakes.hr, snakes.mean.se, snake.sig)
+
+```
+
+
+```{r }
+unique(master.nozeros$Common_Name)
+view(master.nozeros$Genus)
+view(master.nozeros$Species)
+length(master.nozeros$Common_Name)
+
+```
+
+## Making a Species Accumulation Curve
+
+```{r species accumulation curve}
+
+#need to do the 'pivot' where we make the matrix readable
+species_matrix <- snakes.sur.nozeros %>%
+  filter(!is.na(Species)) %>%  # Remove NAs 
+  group_by(Date, Species) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = Species, values_from = count, values_fill = 0) %>%
+  column_to_rownames("Date") 
+
+# Replace NAs just in case 
+species_matrix[is.na(species_matrix)] <- 0
+
+# Species accumulation using exact method (the order matters)
+accum_curve <- specaccum(species_matrix, method = "exact")
+
+# Plot it
+plot(accum_curve,
+     main = "Species Accumulation Curve for Snake Surveys",
+     xlab = "Number of Surveys",
+     ylab = "Cumulative Species Richness",
+     col = "darkgreen",
+     lwd = 3,
+     ci.type = "poly",
+     ci.col = "lightgreen",
+     ci.lty = 0)   # Shows general accumulation between all data and stations
+
+
+# Split data by Station
+station_list <- split(snakes.sur.nozeros, snakes.sur.nozeros$Station)
+
+# Function to build presence-absence matrix by Date × Species
+build_matrix <- function(station_df) {
+  station_df %>%
+    group_by(Date, Species) %>%
+    summarise(count = n(), .groups = "drop") %>%
+    tidyr::pivot_wider(names_from = Species, values_from = count, values_fill = 0) %>%
+    tibble::column_to_rownames("Date")
+}
+
+# Create matrix for each station
+station_matrices <- lapply(station_list, build_matrix)
+
+# Compute species accumulation curves
+accum_curves <- lapply(station_matrices, function(mat) {
+  specaccum(mat, method = "exact")
+})
+
+# Set colors
+colors <- c("blue", "red")
+station_names <- names(accum_curves)
+
+# Plot the first curve 
+plot(accum_curves[[1]], 
+     main = "Species Accumulation by Station", 
+     xlab = "Number of Survey Dates", 
+     ylab = "Species Richness", 
+     col = colors[1], 
+     lwd = 3,
+     ci.type = "poly",
+     ci.col = adjustcolor(colors[1], alpha.f = 0.3),
+     ci.lty = 0)
+
+# Add the second curve 
+plot(accum_curves[[2]], 
+     add = TRUE,  # THIS is okay now because the first plot is made
+     col = colors[2], 
+     lwd = 3,
+     ci.type = "poly",
+     ci.col = adjustcolor(colors[2], alpha.f = 0.3),
+     ci.lty = 0)
+
+# Add a legend 
+legend("bottomright", legend = station_names, col = colors[1:length(accum_curves)], lwd = 3)
+
+
+#Seems like there's no difference (CODE FROM DYLAN YALE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

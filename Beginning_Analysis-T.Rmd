@@ -133,8 +133,30 @@ Data preparation: Join snake data collected during standard surveys with the opp
 enviro <- read.csv("Environment_Sheet.csv", na.strings = c("", "NA")) #replacing all blank spaces with NAs
 
 snake.master <- read.csv("snake.master.csv")
-```
 
+``` 
+
+```{r field season 2 data}
+snakes2 <- read.csv("Field Season 2/Field_Season_2_Datasheets.csv")
+snakes2 <- snakes2[snakes2$Gross_ID == "Snake", ]
+
+n_surveys <- unique(snakes2$Date)
+n_surveys
+length(n_surveys)
+
+snake_summary <- snakes2 %>%
+  group_by(Date) %>%
+  summarise(n_snakes = n(),
+            mean_temp = mean(Temperature_at_Time_of_Detection, na.rm = TRUE))  # or pick first(), if temp is unique per date
+
+# Plot: number of snakes vs. temperature
+ggplot(snake_summary, aes(x = mean_temp, y = n_snakes)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Temperature (°F)", y = "Number of Snakes", 
+       title = "Snake Count per Date vs. Temperature") +
+  theme_minimal()
+```
 
 ```{r environment data cleaning}
 
@@ -230,15 +252,15 @@ small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted
 # make a boxplot!
 
 smammals.plot <- ggplot(data = small.mamms.temp, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() +
-<<<<<<< HEAD
+
   scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
   theme(legend.title=element_blank(), 
         text = element_text(family = "Tahoma", size = 16), 
         legend.text = element_text(size = 14)) + ylab("N Small Mammals Per Hour") + ggtitle("Small Mammal Detection Rates by Station")
-=======
+
   scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("") +
   theme(legend.title=element_blank()) + ylab("Small mammals detected per hour") + ggtitle("Small mammal abundance in hunted vs unhunted forest")
->>>>>>> 940e393c506979b2e50b55b0ac9219fb81600cc2
+
 
 smammals.plot
 
@@ -774,6 +796,8 @@ boxplot(snk.sur.mat$total.hr[snk.sur.mat$Station == "TBS"],
 
 
 ```
+
+
 
 
 

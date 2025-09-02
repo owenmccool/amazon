@@ -151,20 +151,3 @@ truncN <- 9 * 10
 truncp <- truncn/truncN
 truncp # .322
 
-
-
-# R Workshop #
-
-
-
-
-
-
-
-
-
-
-
-
-
-

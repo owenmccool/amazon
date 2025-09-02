@@ -158,8 +158,6 @@ covs <- snake.dist.df %>%
   dplyr::select(Station, survey, Date, Effort_Hrs) %>%
   distinct()
 
-covs
-
 # we need the survey lengths.... but, if we did approximately 0.5km/hr, it would be
 covs$length_est_m <- as.numeric(covs$Effort_Hrs*0.5*1000)
 
@@ -253,8 +251,6 @@ surveys.master <- surveys.master %>%
 # clean 
 rm(temp)
 ```
-
-
 
 Owen gathering overview results
 
