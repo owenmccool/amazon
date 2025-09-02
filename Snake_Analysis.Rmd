@@ -305,7 +305,7 @@ snake.master <- snake.master %>%
 
 #making new master csv, ensuring that extra row names are not added by R, this is why we can now comment out this chunk (UNSURE)
 
-write.csv(snake.master, "snake.master.csv", row.names = FALSE) #now we have our new csv
+#write.csv(snake.master, "snake.master.csv", row.names = FALSE) #now we have our new csv
 
 
 ```
@@ -402,6 +402,7 @@ smamm.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
 #rm(small.mamms.temp, smammals.plot, smams.mean.se, smamm.sig)
 
+
 ```
 
 
@@ -409,24 +410,17 @@ smamm.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
 ```{r small mammal data distribution}
 hist(small.mamms.temp$smammals.hr, breaks = 15)
-mean(small.mamms.temp$smammals.hr)
 
-# doesn't look terrible 'normal' or 'parametric' (grouped around the mean value)
-
-# Mann Whitney U test is good for this
-
-smam.test <- wilcox.test(smammals.hr ~ Station, data = small.mamms.temp, exact = FALSE)
-
-smam.test #shows significance between the two stations, NEED TO UNDERSTAND WHAT ^ DOES
-
-glm <- glmmTMB(smammals.hr ~ Station + (1|Order), data = small.mamms.temp, family = gaussian)
+glm <- glmmTMB(Number_of_Small_Mammals_Spotted ~ Station + offset(log(Effort)), data = small.mamms.temp, family = poisson)
 
 summary(glm) #seem to be 2.08 more mammals per hour at TBS than YRS
 
 Anova(glm) #shows significant
 
+unique(small.mamms.temp$Order)
+
 # validate
-sim <- simulateResiduals(fittedModel = glm, plot = T) #NO CLUE WHAT ANY OF THIS MEANS
+sim <- simulateResiduals(fittedModel = glm, plot = T) # 
 
 # dispersion and zero-inflation tests
 testDispersion(glm, plot = F)
@@ -435,6 +429,18 @@ testZeroInflation(glm, plot = F)
 # clean
 rm(sim, glm)
 
+
+# Testing for differences in small mammals 
+
+# **INVESTIGATE ADDING RANDOM EFFECT, RUNNING AS MAMMAL DETECTION RATES, REMOVING OFFSET TERM
+
+glm2 <- glmmTMB(smammals.hr ~ Station + (1|Trail_Walked), data = small.mamms.temp, family = tweedie(link = "log"))
+?glmmTMB
+sim <- simulateResiduals(fittedModel = glm2, plot = T)
+summary(glm2)
+
+testDispersion(glm2, plot = F)
+testZeroInflation(glm2, plot = F) # Should include boxplot, this analysis could be complete
 
 ```
 
