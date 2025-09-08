@@ -443,6 +443,65 @@ testDispersion(glm2, plot = F)
 testZeroInflation(glm2, plot = F) # Should include boxplot, this analysis could be complete
 
 ```
+# Making Species Occurrence Matrix
+
+```{r species occurrence mat}
+
+# first, I want to remove the surveys during which we did not find any snakes
+
+surveys.master <- snake.sur %>%
+  distinct(Start_Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Surveyors, Weather) #look across these columns, and where all the values across a row are the same( eg. date, station, time, etc.) to avoid duplicates: one copy of each survey
+
+# isolate surveys where no snakes were found (n = 6)
+surveys.no.snakes <- snake.sur %>%
+  filter(is.na(Snake_ID))
+
+# remove those instances from snake.sur now
+snake.sur <- snake.sur %>%
+  filter(!is.na(Snake_ID))
+
+temp <- enviro %>%
+select(Date, Effort) # made temporary df with just date and effort
+
+temp <- temp %>%
+  rename(Start_Date = Date) # needed tio rename Date to Start_Date to match with column in surveys df, as some surveys ended after midnight
+
+snakes.sur <- left_join(snakes.sur, temp) #joined to add effort to snakes.sur
+snakes.sur
+rm(temp)
+
+# now, use dplyr (tidyverse) functions to aggregate the data
+temp <- snakes.sur %>%
+  group_by(Start_Date, Station, Species, Effort) %>% tally()
+
+temp <- temp %>%
+  na.omit()
+
+# make an extra column that has the station ID and trail walked and date, separated by //
+
+temp$st.date.effort <- paste(temp$Station, temp$Start_Date, temp$Effort, sep = "//")
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+snk.sur.mat <- temp %>% 
+  pivot_wider(names_from = Species, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.date.effort")
+
+rm(temp)
+
+jaccard_dissimilarity<- as.matrix(vegdist(snk.sur.mat[, 4:26], method = "jaccard", binary = TRUE)) #dissimilarity matrix, 0 = complete similarity and 1 is complete dissimlarity?
+
+horn.mor <- as.matrix(vegdist(snk.sur.mat[, 4:26], method = "horn"))
+
+
+
+
+```
+
+
+
 
 ## Chi Square Test of Snake Communities 
 
@@ -450,7 +509,7 @@ testZeroInflation(glm2, plot = F) # Should include boxplot, this analysis could 
 
 #Let's start simple with a Chi-Square Test
 
-#Just surverys for now, first we need to remove instances of zero snake nights
+#Just surveys for now, first we need to remove instances of zero snake nights
 
 # isolate surveys where no snakes were found (n = 6 Season 1, n = 8 Season 2)
 surveys.no.snakes <- snakes.sur %>%
