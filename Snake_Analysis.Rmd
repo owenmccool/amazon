@@ -196,7 +196,6 @@ rm(enviro2)
 
 ```{r more advanced data cleaning for species and diet guilds}
 
-
 # Standardize species names in both datasets by making function to clean them
 clean_categories <- function(category) {
   category <- trimws(category)             # Remove leading/trailing whitespace
@@ -449,22 +448,29 @@ testZeroInflation(glm2, plot = F) # Should include boxplot, this analysis could 
 
 # first, I want to remove the surveys during which we did not find any snakes
 
-surveys.master <- snake.sur %>%
-  distinct(Start_Date, Date_Start_Time, Date_End_Time, Effort_Hrs, Station, Surveyors, Weather) #look across these columns, and where all the values across a row are the same( eg. date, station, time, etc.) to avoid duplicates: one copy of each survey
+#surveys.master <- snakes.sur %>%
+  #distinct(Start_Date, Effort_Hrs, Station, Surveyors, Weather) #look across these columns, and where all the values across a row are the same( eg. date, station, time, etc.) to avoid duplicates: one copy of each survey
 
 # isolate surveys where no snakes were found (n = 6)
-surveys.no.snakes <- snake.sur %>%
-  filter(is.na(Snake_ID))
+#surveys.no.snakes <- snake.sur %>%
+  #filter(is.na(Snake_ID))
 
 # remove those instances from snake.sur now
-snake.sur <- snake.sur %>%
-  filter(!is.na(Snake_ID))
+#snake.sur <- snake.sur %>%
+ # filter(!is.na(Snake_ID))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Species = ifelse(Species == "Helicops_angulatus_", 
+                          "Helicops_angulatus", Species)) # TEMPORARY FIX FOR HELICOPS ANGULATRUS
+
+snakes.sur <- snakes.sur %>%
+  separate(Species, c("Genus", "Species"), sep="_")
 
 temp <- enviro %>%
 select(Date, Effort) # made temporary df with just date and effort
 
-temp <- temp %>%
-  rename(Start_Date = Date) # needed tio rename Date to Start_Date to match with column in surveys df, as some surveys ended after midnight
+#temp <- temp %>%
+  #rename(Start_Date = Date) # needed tio rename Date to Start_Date to match with column in surveys df, as some surveys ended after midnight
 
 snakes.sur <- left_join(snakes.sur, temp) #joined to add effort to snakes.sur
 snakes.sur
@@ -472,7 +478,7 @@ rm(temp)
 
 # now, use dplyr (tidyverse) functions to aggregate the data
 temp <- snakes.sur %>%
-  group_by(Start_Date, Station, Species, Effort) %>% tally()
+  group_by(Start_Date, Station, Genus, Effort) %>% tally()
 
 temp <- temp %>%
   na.omit()
@@ -484,23 +490,57 @@ temp$st.date.effort <- paste(temp$Station, temp$Start_Date, temp$Effort, sep = "
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
 snk.sur.mat <- temp %>% 
-  pivot_wider(names_from = Species, 
+  pivot_wider(names_from = Genus, #takes species column values and pivots it 'wider' (ow each species its own column)
               values_from = n, 
               values_fill = 0) %>%
-  column_to_rownames(var = "st.date.effort")
-
+  column_to_rownames(var = "st.date.effort") #put messy // column and keep it with each snake record
+# rows should be number of surveys where more than zero snakes detected 
 rm(temp)
-
-jaccard_dissimilarity<- as.matrix(vegdist(snk.sur.mat[, 4:26], method = "jaccard", binary = TRUE)) #dissimilarity matrix, 0 = complete similarity and 1 is complete dissimlarity?
-
-horn.mor <- as.matrix(vegdist(snk.sur.mat[, 4:26], method = "horn"))
-
-
 
 
 ```
 
 
+# NMDS
+
+Look at variation in community composition via 2 diff indices: Jaccard (presence/absence) and horn-morisita (influenced more by relative abundances of diff species)
+
+I recommend doing this as the finest taxonomic resolution possible at first and then if we are getting stress values > 0.2, go up to genus level, and then up to either family or dietary guild.
+
+## Standardized samp effort species NMDS
+
+I am unsure how variation in sampling effort will affect this analysis. As a conservative approach, I remove all cameras that were not out in the standardized deployment schemes on and off trail with the set min distance apart and roughly the same amount of time in the field.
+
+Found a helpful resource on nmds and similar analyses, this is great: https://uw.pressbooks.pub/appliedmultivariatestatistics/chapter/nmds/
+
+
+### Jaccard 
+
+Run and plot a jaccard based nmds with equal samp effort
+
+```{r stnd samp effort jaccard nmds}
+
+#jaccard just uses presence/absence, doesn't look at relative abundance
+
+# make dissimilarity matrix - jaccard (presence/absence)
+diss.mat.jacc <- vegdist(snk.sur.mat[, 4:20], method = "jaccard")
+
+jacc.MDS <- metaMDS(diss.mat.jacc) #performs NMDS using v egan package, scaling multiple dimensions into two (pairwise comparisons between each unique survey night)
+
+stressplot(jacc.MDS, autotransform = FALSE, weakties = TRUE, trymax = 100, maxit = 300, try = 40, k = 2)
+
+jacc.nmds.pts <- data.frame(jacc.MDS$points)
+
+jacc.nmds.pts <- jacc.nmds.pts %>%
+  rownames_to_column(var = "DeploymentID")
+
+jacc.nmds.pts <- left_join(jacc.nmds.pts, ct.temp)
+
+jacc.p <- ggplot(jacc.nmds.pts, aes(x = MDS1, y = MDS2, fill = Station)) +
+  geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (Jaccard Index)") + theme(legend.title = element_blank()) 
+
+jacc.p  
+```
 
 
 ## Chi Square Test of Snake Communities 
