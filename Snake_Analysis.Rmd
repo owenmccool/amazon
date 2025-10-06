@@ -570,7 +570,7 @@ jacc.p
 
 ```
 
-## Horn-Morisitta
+## Horn-Morisitta: Family
 
 ```{r stnd samp effort horn-morisitta nmds}
 
@@ -580,9 +580,11 @@ jacc.p
 # make dissimilarity matrix - horn (presence/absence)
 diss.mat.horn <- vegdist(snk.sur.mat[, 4:7], method = "horn")
 
-horn.MDS <- metaMDS(diss.mat.horn) #performs NMDS using v egan package, scaling multiple dimensions into two (pairwise comparisons between each unique survey night)
+horn.MDS <- metaMDS(diss.mat.horn, autotransform = FALSE, weakties = TRUE, trymax = 100, maxit = 300, try = 40, k = 2) #performs NMDS using v egan package, scaling multiple dimensions into two (pairwise comparisons between each unique survey night)
 
-stressplot(horn.MDS, autotransform = FALSE, weakties = TRUE, trymax = 100, maxit = 300, try = 40, k = 2)
+horn.MDS$stress
+
+stressplot(horn.MDS)
 
 horn.nmds.pts <- data.frame(horn.MDS$points)
 
@@ -595,11 +597,118 @@ horn.nmds.pts <- horn.nmds.pts %>%
 horn.p <- ggplot(horn.nmds.pts, aes(x = MDS1, y = MDS2, fill = Station)) +
   geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (horn Index)") + theme(legend.title = element_blank()) 
 
-horn.p  
+horn.p
+# Maybe a little more different? With metaMDS() output, seeem to be lower stress values here than with jaccard
+```
+## Horn-Morisitta: Species
+
+```{r stnd samp effort horn-morisitta nmds}
+
+temp3 <- snakes.sur %>%
+  group_by(Start_Date, Station, Species, Effort) %>% tally()
+
+temp3 <- temp3 %>%
+  na.omit()
+
+# make an extra column that has the station ID and trail walked and date, separated by //
+
+temp3$st.date.effort <- paste(temp3$Station, temp3$Start_Date, temp3$Effort, sep = "//")
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+snk.sur.mat <- temp3 %>% 
+  pivot_wider(names_from = Species, #takes species column values and pivots it 'wider' (ow each species its own column)
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.date.effort") #put messy // column and keep it with each snake record
+# rows should be number of surveys where more than zero snakes detected 
+rm(temp3)
+
+######## Right here, we were trying to see if Horn-Morisitta actually had any impacts at the species level instead of the family level, so the above code is written based off the MAKING SPECIES OCCURRENCE MATRIX chunk
+
+
+#horn just uses an abundance-based similarity measure, gives more weight to dominant species and less sensitive to rare ones
+# “Do hunted vs. unhunted sites differ in terms of the relative abundance patterns of snake families?”
+
+# make dissimilarity matrix - horn (presence/absence)
+diss.mat.horn <- vegdist(snk.sur.mat[, 4:26], method = "horn")
+
+horn.MDS <- metaMDS(diss.mat.horn, trymax = 100, k = 2) #performs NMDS using vegan package, scaling multiple dimensions into two (pairwise comparisons between each unique survey night)
+
+horn.MDS$stress
+
+stressplot(horn.MDS)
+
+horn.nmds.pts <- data.frame(horn.MDS$points)
+
+horn.nmds.pts <- horn.nmds.pts %>%
+  rownames_to_column(var = "Survey_ID")
+
+horn.nmds.pts <- horn.nmds.pts %>%
+  separate(Survey_ID, into = c("Station", "Date", "Effort_Hours", sep="//"))
+
+horn.p <- ggplot(horn.nmds.pts, aes(x = MDS1, y = MDS2, fill = Station)) +
+  geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (horn Index)") + theme(legend.title = element_blank()) 
+
+horn.p
+# Maybe a little more different? With metaMDS() output, seeem to be lower stress values here than with jaccard
+
 
 ```
 
 
+
+
+
+
+## Diversity Metrics
+
+```{r diversity & hill numbers}
+
+# Diversity
+
+# need data in a new species x site matrix
+
+temp <- snakes.sur %>%
+  group_by(Station, Species) %>% tally()
+
+temp <- temp %>%
+  na.omit()
+
+# Need to modify the matrix so we have an n column, etc.
+
+
+# get the new format, species as row names, station as columns
+div.mat <- temp %>% 
+  pivot_wider(names_from = Station, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "Species")
+
+# now we use div.mat to get the diversity and 95% CIs
+# new function uses iNEXT package (confusingly also the name of the function)
+species.diversity = iNEXT(div.mat, q = c(0,1,2), datatype = "abundance", nboot = 200) #bootstrapping to estimate three different diversity metrics: one weighs rare species more heavily 
+
+# extract values we need
+species.diversity <- species.diversity[["iNextEst"]][["coverage_based"]]
+
+div.vals <- species.diversity %>% 
+  filter(Assemblage == "TBS" & m == 51 | Assemblage == "YRS" & m == 50)
+
+# plot diversity
+diversity.plot <- ggplot(data = div.vals, aes(x = Assemblage, y = qD, fill = as.factor(Order.q), shape = as.factor(Order.q))) + theme_light() + geom_pointrange(aes(ymin = qD.LCL, ymax = qD.UCL), position = position_dodge2(width = 0.1), color = "black", size = 0.5) + xlab(NULL) + ylab("Effective number of species") + scale_x_discrete(labels = c("Unhunted", "Hunted")) + scale_fill_manual(values = c("black", "gray", "darkblue"), labels = c("q = 0\n(richness)", "q = 1\n(exp. Shannon)", "q = 2\n(inv. Simpson)")) + coord_fixed(ratio = 0.1) + scale_shape_manual(values = c(21, 22, 23)) +
+  theme(axis.title.y = element_text(size = 11, colour = "black")) +
+  theme(axis.title.x = element_text(size = 11, colour = "black")) +
+  theme(axis.text = element_text(size = 11, colour = "black")) +
+  theme(strip.text.x = element_text(size = 11, colour = "black")) + 
+  theme(legend.title = element_blank()) + theme(legend.text = element_text(size = 10)) + theme(legend.position = "bottom") +
+  guides(fill = guide_legend(override.aes = list(shape = c(21, 22, 23)))) + guides(shape = "none")
+
+diversity.plot
+
+# look at anne chow papers in references on tutorial 
+
+```
 
 
 ## Chi Square Test of Snake Communities 
