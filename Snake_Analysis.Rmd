@@ -461,7 +461,7 @@ testZeroInflation(glm2, plot = F) # Should include boxplot, this analysis could 
 
 snakes.sur <- snakes.sur %>%
   mutate(Species = ifelse(Species == "Helicops_angulatus_", 
-                          "Helicops_angulatus", Species)) # TEMPORARY FIX FOR HELICOPS ANGULATRUS
+                          "Helicops_angulatus", Species)) # TEMPORARY FIX FOR HELICOPS ANGULARUS FIX LATER 
 
 snakes.sur <- snakes.sur %>%
   separate(Species, c("Genus", "Species"), sep="_")
@@ -483,6 +483,8 @@ temp <- snakes.sur %>%
 temp <- temp %>%
   na.omit()
 
+
+
 # make an extra column that has the station ID and trail walked and date, separated by //
 
 temp$st.date.effort <- paste(temp$Station, temp$Start_Date, temp$Effort, sep = "//")
@@ -497,6 +499,30 @@ snk.sur.mat <- temp %>%
 # rows should be number of surveys where more than zero snakes detected 
 rm(temp)
 
+
+# Making Family-based matrix instead of genus/species
+
+# now, use dplyr (tidyverse) functions to aggregate the data
+temp2 <- snakes.sur %>%
+  group_by(Start_Date, Station, Family, Effort) %>% tally()
+
+temp2 <- temp2 %>%
+  na.omit()
+
+# make an extra column that has the station ID and trail walked and date, separated by //
+
+temp2$st.date.effort <- paste(temp2$Station, temp2$Start_Date, temp2$Effort, sep = "//")
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+snk.sur.mat <- temp2 %>% 
+  pivot_wider(names_from = Family, #takes species column values and pivots it 'wider' (ow each species its own column)
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.date.effort") #put messy // column and keep it with each snake record
+# rows should be number of surveys where more than zero snakes detected 
+rm(temp2)
+rm() #WEIRD FROG FAMILY
 
 ```
 
@@ -523,7 +549,7 @@ Run and plot a jaccard based nmds with equal samp effort
 #jaccard just uses presence/absence, doesn't look at relative abundance
 
 # make dissimilarity matrix - jaccard (presence/absence)
-diss.mat.jacc <- vegdist(snk.sur.mat[, 4:20], method = "jaccard")
+diss.mat.jacc <- vegdist(snk.sur.mat[, 4:7], method = "jaccard")
 
 jacc.MDS <- metaMDS(diss.mat.jacc) #performs NMDS using v egan package, scaling multiple dimensions into two (pairwise comparisons between each unique survey night)
 
@@ -532,15 +558,48 @@ stressplot(jacc.MDS, autotransform = FALSE, weakties = TRUE, trymax = 100, maxit
 jacc.nmds.pts <- data.frame(jacc.MDS$points)
 
 jacc.nmds.pts <- jacc.nmds.pts %>%
-  rownames_to_column(var = "DeploymentID")
+  rownames_to_column(var = "Survey_ID")
 
-jacc.nmds.pts <- left_join(jacc.nmds.pts, ct.temp)
+jacc.nmds.pts2 <- jacc.nmds.pts %>%
+  separate(Survey_ID, into = c("Station", "Date", "Effort_Hours", sep="//"))
 
-jacc.p <- ggplot(jacc.nmds.pts, aes(x = MDS1, y = MDS2, fill = Station)) +
+jacc.p <- ggplot(jacc.nmds.pts2, aes(x = MDS1, y = MDS2, fill = Station)) +
   geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (Jaccard Index)") + theme(legend.title = element_blank()) 
 
 jacc.p  
+
 ```
+
+## Horn-Morisitta
+
+```{r stnd samp effort horn-morisitta nmds}
+
+#horn just uses an abundance-based similarity measure, gives more weight to dominant species and less sensitive to rare ones
+# “Do hunted vs. unhunted sites differ in terms of the relative abundance patterns of snake families?”
+
+# make dissimilarity matrix - horn (presence/absence)
+diss.mat.horn <- vegdist(snk.sur.mat[, 4:7], method = "horn")
+
+horn.MDS <- metaMDS(diss.mat.horn) #performs NMDS using v egan package, scaling multiple dimensions into two (pairwise comparisons between each unique survey night)
+
+stressplot(horn.MDS, autotransform = FALSE, weakties = TRUE, trymax = 100, maxit = 300, try = 40, k = 2)
+
+horn.nmds.pts <- data.frame(horn.MDS$points)
+
+horn.nmds.pts <- horn.nmds.pts %>%
+  rownames_to_column(var = "Survey_ID")
+
+horn.nmds.pts <- horn.nmds.pts %>%
+  separate(Survey_ID, into = c("Station", "Date", "Effort_Hours", sep="//"))
+
+horn.p <- ggplot(horn.nmds.pts, aes(x = MDS1, y = MDS2, fill = Station)) +
+  geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (horn Index)") + theme(legend.title = element_blank()) 
+
+horn.p  
+
+```
+
+
 
 
 ## Chi Square Test of Snake Communities 
