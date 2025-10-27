@@ -693,7 +693,10 @@ species.diversity = iNEXT(div.mat, q = c(0,1,2), datatype = "abundance", nboot =
 species.diversity <- species.diversity[["iNextEst"]][["coverage_based"]]
 
 div.vals <- species.diversity %>% 
-  filter(Assemblage == "TBS" & m == 51 | Assemblage == "YRS" & m == 50)
+  filter(Assemblage == "TBS" & m == 102 | Assemblage == "YRS" & m == 100) #OG was tbs 51, yrs 50
+
+test.div.vals <- species.diversity %>% 
+  filter(m == 100) #OG was tbs 51, yrs 50
 
 # plot diversity
 diversity.plot <- ggplot(data = div.vals, aes(x = Assemblage, y = qD, fill = as.factor(Order.q), shape = as.factor(Order.q))) + theme_light() + geom_pointrange(aes(ymin = qD.LCL, ymax = qD.UCL), position = position_dodge2(width = 0.1), color = "black", size = 0.5) + xlab(NULL) + ylab("Effective number of species") + scale_x_discrete(labels = c("Unhunted", "Hunted")) + scale_fill_manual(values = c("black", "gray", "darkblue"), labels = c("q = 0\n(richness)", "q = 1\n(exp. Shannon)", "q = 2\n(inv. Simpson)")) + coord_fixed(ratio = 0.1) + scale_shape_manual(values = c(21, 22, 23)) +
