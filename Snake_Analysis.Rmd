@@ -709,7 +709,7 @@ diversity.plot <- ggplot(data = div.vals, aes(x = Assemblage, y = qD, fill = as.
 
 diversity.plot
 
-# look at anne chow papers in references on tutorial, need rarefacton curve for q 0,1,2 in paper supplementary materials 
+# look at anne chow papers in references on tutorial, need rarefaction curve for q 0,1,2 in paper supplementary materials 
 
 ```
 
