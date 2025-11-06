@@ -50,6 +50,7 @@ Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors
 Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert webpage Reptiles of Ecuador. 
 
 
+
 # Load and prep data
 
 ```{r read in cleaned and prepped data}
