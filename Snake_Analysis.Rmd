@@ -713,6 +713,36 @@ diversity.plot
 
 ```
 
+## Distance Sampling 
+
+```{r distance sampling}
+
+segments <- read.csv("Segment_Distances.csv")
+segments
+
+unique(segments$SEGMENT)
+
+# some segments that snakes weren't found on
+
+differences1 <- setdiff(snakes.sur$Location, segments$SEGMENT)
+differences2 <- setdiff(segments$SEGMENT, snakes.sur$Location)
+differences1
+differences2 <- data.frame(differences2)
+
+snakes.sur2 <- colnames(snakes.sur)[] #change column name to be SEGMENT
+
+snakes.sur2 <- left_join(segments, snakes.sur) #the rest of rows will be NA
+  
+
+
+```
+
+
+
+
+
+
+
 
 ## Chi Square Test of Snake Communities 
 
