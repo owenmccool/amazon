@@ -404,16 +404,21 @@ smamm.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 ```
 
 
-## Small Mammal Data Distribution Analysis
+## Small Mammal Model
 
-```{r small mammal data distribution}
+```{r small mammal data model}
+
+mean <- mean(small.mamms.temp$smammals.hr)
+
 hist(small.mamms.temp$smammals.hr, breaks = 15)
+hist(small.mamms.temp$Number_of_Small_Mammals_Spotted, breaks = 10)
 
-glm <- glmmTMB(Number_of_Small_Mammals_Spotted ~ Station + offset(log(Effort)), data = small.mamms.temp, family = poisson)
+glm <- glmmTMB(Number_of_Small_Mammals_Spotted ~ Station + offset(log(Effort)), data = small.mamms.temp, family = poisson) # offset: term that you suspect will have a positive effect on response variable: which is # mammals we expect to see. Offset accounts for variation in effort that might have existed
+
 
 summary(glm) #seem to be 2.08 more mammals per hour at TBS than YRS
 
-Anova(glm) #shows significant
+Anova(glm)
 
 unique(small.mamms.temp$Order)
 
@@ -430,7 +435,7 @@ rm(sim, glm)
 
 # Testing for differences in small mammals 
 
-# **INVESTIGATE ADDING RANDOM EFFECT, RUNNING AS MAMMAL DETECTION RATES, REMOVING OFFSET TERM
+# **INVESTIGATE ADDING RANDOM EFFECT, RUNNING AS MAMMAL DETECTION RATES, REMOVING OFFSET TERM, controls for resampling in same sites
 
 glm2 <- glmmTMB(smammals.hr ~ Station + (1|Trail_Walked), data = small.mamms.temp, family = tweedie(link = "log"))
 ?glmmTMB
@@ -563,7 +568,7 @@ unique(snake.master$Genus_Species)
 
 # circling back here - I ran through this with Date as the sampling unit and we have insufficient data. We could group by every 3 days or week
 
-# for now, just do by week
+# for now, just do by week: gives better data than 1s and 0s, relatively arbitrary
 snake.master$week_num <- strftime(snake.master$Date, format = "%V")
 # also need to double check this did what we want. Cursory look seems good.
 
@@ -832,6 +837,32 @@ diversity.plot
 
 ```
 
+<<<<<<< HEAD
+## Distance Sampling 
+
+```{r distance sampling}
+
+segments <- read.csv("Segment_Distances.csv")
+segments
+
+unique(segments$SEGMENT)
+
+# some segments that snakes weren't found on
+
+differences1 <- setdiff(snakes.sur$Location, segments$SEGMENT)
+differences2 <- setdiff(segments$SEGMENT, snakes.sur$Location)
+differences1
+differences2 <- data.frame(differences2)
+
+snakes.sur2 <- colnames(snakes.sur)[] #change column name to be SEGMENT
+
+snakes.sur2 <- left_join(segments, snakes.sur) #the rest of rows will be NA
+  
+
+
+```
+
+
 # Encounter rates
 
 Step 1: segments with lengths need to be joined to snake survey data frame
@@ -846,28 +877,45 @@ snakes.sur.seg <- left_join(segs, snakes.sur)
 
 snakes.sur.seg.list <- snakes.sur.seg %>%
   group_by(Start_Date, Station, Diet_Type, SEGMENT, DISTANCE_M) %>% tally()
+
+snakes.sur.seg.list <- snakes.sur.seg.list %>%
+  na.omit()
+sum(snakes.sur.seg.list$n)
+
 ```
 
 Step 2: get n encounters per 500m at species and dietary level
 
 ```{r enc rate calc}
 
-snakes.sur.seg.list$encount_500m <- ((snakes.sur.seg.list$n)/(snakes.sur.seg.list$DISTANCE_M))*500
+snakes.sur.seg.list$encount_250m <- ((snakes.sur.seg.list$n)/(snakes.sur.seg.list$DISTANCE_M))*250
 
 ```
 
-Step 3: boxplot
+Step 3: boxplots & sig plots
 
 ```{r plot enc rates per diet type}
 
-p1 <- ggplot(data = snakes.sur.seg.list, aes(x = Station, y = encount_500m, fill = Diet_Type)) + geom_boxplot() + theme_bw() + ylab("encounter rate (500m)")
+p1 <- ggplot(data = snakes.sur.seg.list, aes(x = Station, y = encount_250m, fill = Diet_Type)) + geom_boxplot() + theme_bw() + ylab("encounter rate (250m)")
 
 p1
+
+snakes.sur.seg.list.se <- snakes.sur.seg.list %>%
+  group_by(Station, Diet_Type) %>%
+  summarise(mean = mean(encount_500m),
+            sd = sd(encount_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+
+snk.sig <- ggplot(snakes.sur.seg.list.se, aes(x=Diet_Type, y=mean, fill = Station, group = Station)) + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = snakes.sur.seg.list, aes( x = Diet_Type, y = encount_500m, group = Station), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "red")) +
+  theme(legend.title=element_blank()) + ylab("Snakes as Function of Dist") + ggtitle("Snake Detections") + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 10), text = element_text(family = "Tahoma", size = 16)) 
+
+snk.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
+
 ```
-
-
-
-
 
 
 ## Chi Square Test of Snake Communities 
