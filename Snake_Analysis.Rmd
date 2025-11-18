@@ -309,7 +309,6 @@ snake.master <- snake.master %>%
 
 ```
 
-
 ## Starting to Look at Sample Effort (Time & Distance)
 
 ```{r survey samp effort}
@@ -405,16 +404,21 @@ smamm.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 ```
 
 
-## Small Mammal Data Distribution Analysis
+## Small Mammal Model
 
-```{r small mammal data distribution}
+```{r small mammal data model}
+
+mean <- mean(small.mamms.temp$smammals.hr)
+
 hist(small.mamms.temp$smammals.hr, breaks = 15)
+hist(small.mamms.temp$Number_of_Small_Mammals_Spotted, breaks = 10)
 
-glm <- glmmTMB(Number_of_Small_Mammals_Spotted ~ Station + offset(log(Effort)), data = small.mamms.temp, family = poisson)
+glm <- glmmTMB(Number_of_Small_Mammals_Spotted ~ Station + offset(log(Effort)), data = small.mamms.temp, family = poisson) # offset: term that you suspect will have a positive effect on response variable: which is # mammals we expect to see. Offset accounts for variation in effort that might have existed
+
 
 summary(glm) #seem to be 2.08 more mammals per hour at TBS than YRS
 
-Anova(glm) #shows significant
+Anova(glm)
 
 unique(small.mamms.temp$Order)
 
@@ -431,7 +435,7 @@ rm(sim, glm)
 
 # Testing for differences in small mammals 
 
-# **INVESTIGATE ADDING RANDOM EFFECT, RUNNING AS MAMMAL DETECTION RATES, REMOVING OFFSET TERM
+# **INVESTIGATE ADDING RANDOM EFFECT, RUNNING AS MAMMAL DETECTION RATES, REMOVING OFFSET TERM, controls for resampling in same sites
 
 glm2 <- glmmTMB(smammals.hr ~ Station + (1|Trail_Walked), data = small.mamms.temp, family = tweedie(link = "log"))
 ?glmmTMB
@@ -443,6 +447,8 @@ testZeroInflation(glm2, plot = F) # Should include boxplot, this analysis could 
 
 ```
 # Making Species Occurrence Matrix
+
+## Survey records only
 
 ```{r species occurrence mat}
 
@@ -527,11 +533,127 @@ rm() #WEIRD FROG FAMILY
 ```
 
 
+## All records
+
+This includes every snake record from the 2 field seasons that we have (so does not guarantee equal sampling effort, but it is likely comparable).
+
+```{r occ mat surv and opp and third party}
+# I think we still need to fix this typo, I'm re-running the temp fix on the master dataset for now tho bc I'm feeling lazy
+
+snake.master <- snake.master %>%
+  mutate(Species = ifelse(Species == "Helicops_angulatus_", 
+                          "Helicops_angulatus", Species))
+
+# first, when genus is unknown, replace species NA with "spp"
+snake.master <- snake.master %>%
+  mutate(Species = ifelse(Genus == "Unknown", "spp", Species))
+
+# if snake ID is NA, remove it (surveys where nothing was found)
+
+# side note, make Notes that are blank NA for easier coding
+snake.master$Notes[snake.master$Notes == ""] <- NA
+
+snake.master <- snake.master %>%
+  filter(!(is.na(Snake_ID)))
+
+# for this analysis, we will not be able to use the "unknown" genus records unless we do whole thing at family level
+
+snake.master <- snake.master %>%
+  filter(Genus != "Unknown")
+
+# create single genus_species column
+snake.master$Genus_Species <- paste(snake.master$Genus, snake.master$Species, sep="_")
+
+unique(snake.master$Genus_Species)
+
+# circling back here - I ran through this with Date as the sampling unit and we have insufficient data. We could group by every 3 days or week
+
+# for now, just do by week: gives better data than 1s and 0s, relatively arbitrary
+snake.master$week_num <- strftime(snake.master$Date, format = "%V")
+# also need to double check this did what we want. Cursory look seems good.
+
+# now, use dplyr (tidyverse) functions to aggregate the data
+matrix.step.one <- snake.master %>%
+  group_by(week_num, Station, Genus_Species) %>% tally()
+
+# for looking at a species level dissimilarity analysis, we also should remove the unknown species (there is just one that I can see at this point)
+matrix.step.one <- matrix.step.one %>%
+  filter(Genus_Species != "Atractus_spp")
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+matrix.step.one$week.Station <- paste(matrix.step.one$week_num, matrix.step.one$Station, sep = "_")
+
+snake.all.record.mat <- matrix.step.one %>% 
+  pivot_wider(names_from = Genus_Species, #takes species column values and pivots it 'wider'
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "week.Station")
+
+```
 # NMDS
 
 Look at variation in community composition via 2 diff indices: Jaccard (presence/absence) and horn-morisita (influenced more by relative abundances of diff species)
 
 I recommend doing this as the finest taxonomic resolution possible at first and then if we are getting stress values > 0.2, go up to genus level, and then up to either family or dietary guild.
+
+## Non-standardizes samp effort (all records) NMDS
+
+### Jaccard NMDS
+
+```{r all records jaccard nmds}
+
+#jaccard just uses presence/absence, doesn't look at relative abundance
+
+# make dissimilarity matrix - jaccard (presence/absence)
+diss.mat.jacc.all <- vegdist(snake.all.record.mat[,3:41], method = "jaccard")
+
+jacc.MDS.all <- metaMDS(diss.mat.jacc.all) #performs NMDS using v egan package, scaling multiple dimensions into two (pairwise comparisons between each unique survey night)
+
+stressplot(jacc.MDS.all, autotransform = FALSE, weakties = TRUE, trymax = 100, maxit = 300, try = 40, k = 2)
+
+jacc.nmds.pts.all <- data.frame(jacc.MDS.all$points)
+
+jacc.nmds.pts.all <- jacc.nmds.pts.all %>%
+  rownames_to_column(var = "week.Station")
+
+jacc.nmds.pts2.all <- jacc.nmds.pts.all %>%
+  separate(week.Station, into = c("week", "Station"))
+
+jacc.p <- ggplot(jacc.nmds.pts2.all, aes(x = MDS1, y = MDS2, fill = Station)) +
+  geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (Jaccard Index)") + theme(legend.title = element_blank()) 
+
+jacc.p  
+
+```
+
+### Horn Morisita
+
+```{r all records hornm nmds}
+
+#hornm just uses presence/absence, doesn't look at relative abundance
+
+# make dissimilarity matrix - hornm (presence/absence)
+diss.mat.horn.all <- vegdist(snake.all.record.mat[,3:41], method = "horn")
+
+horn.MDS.all <- metaMDS(diss.mat.horn.all) #performs NMDS using v egan package, scaling multiple dimensions into two (pairwise comparisons between each unique survey night)
+
+stressplot(horn.MDS.all, autotransform = FALSE, weakties = TRUE, trymax = 100, maxit = 300, try = 40, k = 2)
+
+horn.nmds.pts.all <- data.frame(horn.MDS.all$points)
+
+horn.nmds.pts.all <- horn.nmds.pts.all %>%
+  rownames_to_column(var = "week.Station")
+
+horn.nmds.pts2.all <- horn.nmds.pts.all %>%
+  separate(week.Station, into = c("week", "Station"))
+
+horn.p <- ggplot(horn.nmds.pts2.all, aes(x = MDS1, y = MDS2, fill = Station)) +
+  geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (hornm Index)") + theme(legend.title = element_blank()) 
+
+horn.p  
+
+```
 
 ## Standardized samp effort species NMDS
 
@@ -600,6 +722,7 @@ horn.p <- ggplot(horn.nmds.pts, aes(x = MDS1, y = MDS2, fill = Station)) +
 horn.p
 # Maybe a little more different? With metaMDS() output, seeem to be lower stress values here than with jaccard
 ```
+
 ## Horn-Morisitta: Species
 
 ```{r stnd samp effort horn-morisitta nmds}
@@ -713,6 +836,7 @@ diversity.plot
 
 ```
 
+<<<<<<< HEAD
 ## Distance Sampling 
 
 ```{r distance sampling}
@@ -738,10 +862,59 @@ snakes.sur2 <- left_join(segments, snakes.sur) #the rest of rows will be NA
 ```
 
 
+# Encounter rates
+
+Step 1: segments with lengths need to be joined to snake survey data frame
+
+```{r read in seg}
+segs <- read.csv("Segment_Distances.csv")
+
+snakes.sur <- snakes.sur %>%
+  rename(SEGMENT = Location)
+
+snakes.sur.seg <- left_join(segs, snakes.sur)
+
+snakes.sur.seg.list <- snakes.sur.seg %>%
+  group_by(Start_Date, Station, Diet_Type, SEGMENT, DISTANCE_M) %>% tally()
+
+snakes.sur.seg.list <- snakes.sur.seg.list %>%
+  na.omit()
+sum(snakes.sur.seg.list$n)
+
+```
+
+Step 2: get n encounters per 500m at species and dietary level
+
+```{r enc rate calc}
+
+snakes.sur.seg.list$encount_250m <- ((snakes.sur.seg.list$n)/(snakes.sur.seg.list$DISTANCE_M))*250
+
+```
+
+Step 3: boxplots & sig plots
+
+```{r plot enc rates per diet type}
+
+p1 <- ggplot(data = snakes.sur.seg.list, aes(x = Station, y = encount_250m, fill = Diet_Type)) + geom_boxplot() + theme_bw() + ylab("encounter rate (250m)")
+
+p1
+
+snakes.sur.seg.list.se <- snakes.sur.seg.list %>%
+  group_by(Station, Diet_Type) %>%
+  summarise(mean = mean(encount_500m),
+            sd = sd(encount_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
 
 
+snk.sig <- ggplot(snakes.sur.seg.list.se, aes(x=Diet_Type, y=mean, fill = Station, group = Station)) + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = snakes.sur.seg.list, aes( x = Diet_Type, y = encount_500m, group = Station), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+  scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "red")) +
+  theme(legend.title=element_blank()) + ylab("Snakes as Function of Dist") + ggtitle("Snake Detections") + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 10), text = element_text(family = "Tahoma", size = 16)) 
 
+snk.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
+```
 
 
 ## Chi Square Test of Snake Communities 
@@ -872,8 +1045,6 @@ rm(sur.mat) #these can be commented out if we wanted to keep them
 ## Snake Detection Rates
 
 ```{r snake detection differences between stations}
-
-
 
 # subset data - just want the n small mammmals and keep the date column to join by
 
