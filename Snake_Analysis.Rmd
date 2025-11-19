@@ -881,6 +881,9 @@ snakes.sur.seg.list <- snakes.sur.seg %>%
 snakes.sur.seg.list <- snakes.sur.seg.list %>%
   na.omit()
 sum(snakes.sur.seg.list$n)
+length(snakes.sur.seg[snakes.sur.seg$Station == "TBS" & snakes.sur.seg$Diet_Type == "mostly_mammals"])
+
+
 
 ```
 
@@ -1171,6 +1174,21 @@ snake.sig2 #COULD BE SIGNIFICANT
 
 #rm(snakes.temp, snake.plot, snakes.hr, snakes.mean.se, snake.sig)
 
+# Create a 2 × 3 contingency table
+diet_matrix <- matrix(
+  c(3, 6, 42,   # Station A (TBS)
+    9, 9, 32),  # Station B (YRS)
+  nrow = 2,
+  byrow = TRUE
+)
+
+# Label rows and columns
+rownames(diet_matrix) <- c("TBS", "YRS")
+colnames(diet_matrix) <- c("Mostly_mammals", "Mixed", "No_mammals")
+
+diet_matrix
+fisher.test(diet_matrix)
+chisq.test(diet_matrix)
 ```
 
 
