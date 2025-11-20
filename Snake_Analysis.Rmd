@@ -663,7 +663,7 @@ horn.nmds.pts2.all <- horn.nmds.pts.all %>%
   separate(week.Station, into = c("week", "Station"))
 
 horn.p <- ggplot(horn.nmds.pts2.all, aes(x = MDS1, y = MDS2, fill = Station)) +
-  geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (hornm Index)") + theme(legend.title = element_blank()) 
+  geom_point(size = 3, pch = 21, color = "black", position = position_jitter()) + scale_fill_manual(labels = c("Unhunted", "Hunted"), values = c("gray", "coral1")) + theme_classic() + ggtitle("Community dissimilarity based on species presence/absence (Horn Index)") + theme(legend.title = element_blank()) 
 
 horn.p  
 
@@ -923,9 +923,9 @@ snakes.sur.seg.list.se <- snakes.sur.seg.list %>%
 
 
 snk.sig <- ggplot(snakes.sur.seg.list.se, aes(x=Diet_Type, y=mean, fill = Station, group = Station)) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = snakes.sur.seg.list, aes( x = Diet_Type, y = encount_250m, group = Station), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
-  scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "red")) +
-  theme(legend.title=element_blank()) + ylab("Snakes as Function of Dist") + ggtitle("Snake Detections") + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 10), text = element_text(family = "Tahoma", size = 16)) 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2, position = position_dodge(width = .4)) + geom_point(aes(fill = Station), pch = 21, size = 3.5, position = position_dodge(width = .4)) + geom_jitter(data = snakes.sur.seg.list, aes( x = Diet_Type, y = encount_250m, group = Station), width = 0.15, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
+  scale_fill_manual(values = c("skyblue", "coral2", "red")) +
+  theme(legend.title=element_blank(), legend.position = "right") + scale_fill_manual(values = c("TBS" = "skyblue", "YRS" = "coral2"), labels = c("TBS" = "Unhunted", "YRS" = "Hunted")) + ylab("N Snakes per 250m") + xlab("Diet Type") + ggtitle("Snake Detections") + theme(axis.text = element_text(color = "black", size = 10), text = element_text(family = "Tahoma", size = 16)) 
 
 snk.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
