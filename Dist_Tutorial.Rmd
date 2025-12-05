@@ -1,0 +1,77 @@
+---
+title: "Dist_Tutorial"
+author: "Owen McCool"
+date: "2025-12-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Distance Sampling Overview
+
+https://cran.r-project.org/web/packages/unmarked/vignettes/distsamp.html
+
+
+## Package read-in
+
+```{r packages}
+
+library(dplyr)
+library(ggplot2)
+
+```
+
+
+# Cleaning Data 
+
+```{r data manipulation}
+
+snakes.sur <- read.csv("snake.master.csv")
+snakes.sur
+
+snakes.sur <- snakes.sur %>%
+  filter(Type_of_Encounter == "Survey") #only want surveyed snakes
+snakes.sur
+
+# want one row for each individual detected and columns for the distances and segment (transect) names
+snakes.sur$Segment <- paste(snakes.sur$Station, snakes.sur$Location, sep = "_")
+snakes.sur$Genus_Species <- paste(snakes.sur$Genus, snakes.sur$Species, sep = "_")
+
+
+segments <- read.csv("Segment_Distances.csv") #Adding segments 
+segments
+
+unique(segments$SEGMENT)
+
+# some segments that snakes weren't found on
+
+differences1 <- setdiff(snakes.sur$Location, segments$SEGMENT)
+differences2 <- setdiff(segments$SEGMENT, snakes.sur$Location)
+differences1
+differences2 <- data.frame(differences2)
+
+snakes.sur <- snakes.sur %>%
+  rename(SEGMENT = Location)
+ 
+snakes.sur <- left_join(segments, snakes.sur) #shows segmenbts that also have no snakes
+
+dist.df <- snakes.sur %>%
+  select(Genus_Species, Segment, Distance_From_Trail_m) #DO NA OMIT, SEE IF TUTORIAL 1st LINE WILL WORK
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
