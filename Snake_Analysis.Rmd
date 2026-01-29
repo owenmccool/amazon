@@ -73,6 +73,8 @@ snake.nonsur2 <- read.csv("Field Season 2/Season_2_nonsursnakes.csv", na.strings
 enviro1 <- read.csv("Field Season 1/Environment_Sheet.csv", na.strings = c("", "NA"))
 enviro2 <- read.csv("Field Season 2/enviro_2.csv", na.strings = c("", "NA"))
 
+#### ANY DATA FOR TEMP/HUM IS BAD ON AND AFTER JULY 11 2025
+
 ```
 
 
@@ -492,7 +494,7 @@ snakes.sur <- snakes.sur %>%
   separate(Species, c("Genus", "Species"), sep="_")
 
 temp <- enviro %>%
-select(Date, Effort) # made temporary df with just date and effort
+select(Date, Meters) # made temporary df with just date and effort
 
 #temp <- temp %>%
   #rename(Start_Date = Date) # needed tio rename Date to Start_Date to match with column in surveys df, as some surveys ended after midnight
@@ -503,7 +505,7 @@ rm(temp)
 
 # now, use dplyr (tidyverse) functions to aggregate the data
 temp <- snakes.sur %>%
-  group_by(Start_Date, Station, Genus, Effort) %>% tally()
+  group_by(Start_Date, Station, Genus, Meters) %>% tally()
 
 temp <- temp %>%
   na.omit()
@@ -512,7 +514,7 @@ temp <- temp %>%
 
 # make an extra column that has the station ID and trail walked and date, separated by //
 
-temp$st.date.effort <- paste(temp$Station, temp$Start_Date, temp$Effort, sep = "//")
+temp$st.date.meters <- paste(temp$Station, temp$Start_Date, temp$Meters, sep = "//")
 
 # now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
 
@@ -520,35 +522,66 @@ snk.sur.mat <- temp %>%
   pivot_wider(names_from = Genus, #takes species column values and pivots it 'wider' (ow each species its own column)
               values_from = n, 
               values_fill = 0) %>%
-  column_to_rownames(var = "st.date.effort") #put messy // column and keep it with each snake record
+  column_to_rownames(var = "st.date.meters") #put messy // column and keep it with each snake record
+# rows should be number of surveys where more than zero snakes detected 
+rm(temp)
+
+temp <- enviro %>%
+select(Date, Station, Meters) #bring the zeros back
+
+snk.sur.mat2 <- left_join(temp, snk.sur.mat)
+snk.sur.mat2 <- snk.sur.mat2[,-4] #remove 'Start Date' column
+
+length(unique((snk.sur.mat2$Date))) #Making sure all survey nights are included
+
+snk.sur.mat2[is.na(snk.sur.mat2)] <- 0 #populate NAs with zeros
+
+snk.sur.mat <- snk.sur.mat2 #back to original dataframe
+
+
+
+
+#### REPEATING ALL STEPS ABOVE NOW FOR FAMILY
+# Gathering rates
+
+edgelist <- snakes.sur %>%
+  group_by(Start_Date, Station, Family, Meters) %>% tally() #Edge list
+
+edgelist <- edgelist %>%
+  na.omit()
+
+temp <- enviro %>%
+select(Date, Station, Meters)
+
+edgelist <- left_join(temp, edgelist)
+edgelist <- edgelist[,-4] #remove Start Date column
+
+edgelist$N_per_500 <- (edgelist$n/edgelist$Meters)*500 
+
+
+# make an extra column that has the station ID and trail walked and date, separated by //
+
+temp$st.date.meters <- paste(temp$Station, temp$Start_Date, temp$Meters, sep = "//")
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+Fam_snk.sur.mat <- temp %>% 
+  pivot_wider(names_from = Family, #takes species column values and pivots it 'wider' (ow each species its own column)
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.date.meters") #put messy // column and keep it with each snake record
 # rows should be number of surveys where more than zero snakes detected 
 rm(temp)
 
 
-# Making Family-based matrix instead of genus/species
+Fam_snk.sur.mat <- left_join(temp, Fam_snk.sur.mat)
+Fam_snk.sur.mat <- Fam_snk.sur.mat[,-4] #remove 'Start Date' column
 
-# now, use dplyr (tidyverse) functions to aggregate the data
-temp2 <- snakes.sur %>%
-  group_by(Start_Date, Station, Family, Effort) %>% tally()
+length(unique((Fam_snk.sur.mat$Date))) #Making sure all survey nights are included
 
-temp2 <- temp2 %>%
-  na.omit()
+Fam_snk.sur.mat[is.na(Fam_snk.sur.mat)] <- 0 #populate NAs with zeros
 
-# make an extra column that has the station ID and trail walked and date, separated by //
-
-temp2$st.date.effort <- paste(temp2$Station, temp2$Start_Date, temp2$Effort, sep = "//")
-
-# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
-
-snk.sur.mat <- temp2 %>% 
-  pivot_wider(names_from = Family, #takes species column values and pivots it 'wider' (ow each species its own column)
-              values_from = n, 
-              values_fill = 0) %>%
-  column_to_rownames(var = "st.date.effort") #put messy // column and keep it with each snake record
-# rows should be number of surveys where more than zero snakes detected 
-rm(temp2)
-rm() #WEIRD FROG FAMILY
-
+edgelist2 <- pivot_longer() #NEED TO CREATE A FAMILY, NAMES2, MAKE FAMILY COLUMN, IT WILL POPULATE EVERY CELL WITH THE DETECTION NUMBERS FROM FAM DATAFRAMER df <- df %>% pivot_longer
 ```
 
 
