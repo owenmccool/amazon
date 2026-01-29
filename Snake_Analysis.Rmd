@@ -366,6 +366,10 @@ rm(effort)
 # get rate of n mammals per hour
 small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/small.mamms.temp$Effort
 
+# Raw mammal counts
+
+sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station == "YRS"])
+
 # make a boxplot!
 
 smammals.plot <- ggplot(data = small.mamms.temp, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
@@ -479,9 +483,10 @@ testZeroInflation(glm2, plot = F) # Should include boxplot, this analysis could 
 #snake.sur <- snake.sur %>%
  # filter(!is.na(Snake_ID))
 
+
 snakes.sur <- snakes.sur %>%
   mutate(Species = ifelse(Species == "Helicops_angulatus_", 
-                          "Helicops_angulatus", Species)) # TEMPORARY FIX FOR HELICOPS ANGULARUS FIX LATER 
+                          "Helicops_angulatus", Species)) # TEMPORARY FIX FOR HELICOPS ANGULATUS FIX LATER 
 
 snakes.sur <- snakes.sur %>%
   separate(Species, c("Genus", "Species"), sep="_")
@@ -556,7 +561,7 @@ This includes every snake record from the 2 field seasons that we have (so does 
 
 snake.master <- snake.master %>%
   mutate(Species = ifelse(Species == "Helicops_angulatus_", 
-                          "Helicops_angulatus", Species))
+                          "Helicops_angulatus", Species)) #NEXT TEMPORARY WEIRD FIX
 
 # first, when genus is unknown, replace species NA with "spp"
 snake.master <- snake.master %>%
@@ -603,7 +608,7 @@ snake.all.record.mat <- matrix.step.one %>%
               values_from = n, 
               values_fill = 0) %>%
   column_to_rownames(var = "week.Station")
-
+nrow(snake.master)
 ```
 # NMDS
 
@@ -1187,15 +1192,15 @@ snake.sig2 #COULD BE SIGNIFICANT
 
 # Create a 2 × 3 contingency table
 diet_matrix <- matrix(
-  c(3, 6, 42,   # Station A (TBS)
-    9, 9, 32),  # Station B (YRS)
+  c(10, 42,   # Station A (TBS)
+    17, 32),  # Station B (YRS)
   nrow = 2,
   byrow = TRUE
 )
 
 # Label rows and columns
 rownames(diet_matrix) <- c("TBS", "YRS")
-colnames(diet_matrix) <- c("Mostly_mammals", "Mixed", "No_mammals")
+colnames(diet_matrix) <- c("Mammals", "No_mammals")
 
 diet_matrix
 fisher.test(diet_matrix)
