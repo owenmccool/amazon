@@ -406,7 +406,6 @@ smamm.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
 #rm(small.mamms.temp, smammals.plot, smams.mean.se, smamm.sig)
 
-
 ```
 
 
@@ -415,6 +414,7 @@ smamm.sig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 ```{r small mammal data model}
 
 mean <- mean(small.mamms.temp$smammals.hr)
+mean
 
 hist(small.mamms.temp$smammals.hr, breaks = 15)
 hist(small.mamms.temp$Number_of_Small_Mammals_Spotted, breaks = 10)
@@ -890,6 +890,33 @@ diversity.plot
 ```
 
 <<<<<<< HEAD
+
+## Guild composition comparisons
+
+```{r guild composition comparisons}
+
+guild_counts1 <- data.frame(
+  Station = c("TBS", "TBS", "TBS", "YRS", "YRS", "YRS"),
+  Guild = c("no_mammals", "mixed", "mammals",
+            "no_mammals", "mixed", "mammals"),
+  Count = c(42, 7, 3,
+            32, 8, 9),
+  Effort = c(73864, 73864, 73864,
+             76915, 76915, 76915)
+)
+
+guild_counts1
+
+glm_guild <- glmmTMB(
+  Count ~ Station * Guild + offset(log(Effort)),
+  family = poisson,
+  data = guild_counts1
+)
+
+summary(glm_guild)
+```
+
+
 ## Distance Sampling 
 
 ```{r distance sampling}
