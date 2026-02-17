@@ -62,7 +62,6 @@ snakes.master <- read.csv(file = "snake.master.csv")
 enviro <- read.csv(file = "enviro.csv")
 
 segs <- read.csv("Segment_Distances.csv")
-
 ```
 
 ```{r df prepping}
@@ -810,8 +809,19 @@ diversity.plot
 ## Guild composition comparisons
 
 ```{r guild composition comparisons}
-
+## OWENS CODE EXPERIMENTS
 guild_counts1 <- data.frame(
+  Station = c("TBS", "TBS", "TBS", "YRS", "YRS", "YRS"),
+  Guild = c("no_mammals", "mixed", "mostly_mammals",
+            "no_mammals", "mixed", "mostly_mammals"),
+  Count = c(42, 7, 3,
+            32, 8, 9),
+  Effort = c(73864, 73864, 73864,
+             76915, 76915, 76915)
+)
+guild_counts1
+
+guild_counts2 <- data.frame(
   Station = c("TBS", "TBS", "TBS", "YRS", "YRS", "YRS"),
   Guild = c("no_mammals", "mixed", "mammals",
             "no_mammals", "mixed", "mammals"),
@@ -820,8 +830,7 @@ guild_counts1 <- data.frame(
   Effort = c(73864, 73864, 73864,
              76915, 76915, 76915)
 )
-
-guild_counts1
+guild_counts2
 
 glm_guild <- glmmTMB(
   Count ~ Station * Guild + offset(log(Effort)),
