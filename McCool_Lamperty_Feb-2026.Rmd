@@ -57,12 +57,9 @@ Snakes were given a classification as to whether they were small mammal consumer
 This data was cleaned some in initial steps in 2024-2025 (see archived code). Note that temp and humidity data was removed for 4 surveys at YRS that took place after July 11, 2025, during which the team lost confidence in the data collection instrument. 
 
 ```{r data read in}
-
 snakes.master <- read.csv(file = "snake.master.csv")
 enviro <- read.csv(file = "enviro.csv")
-
 segs <- read.csv("Segment_Distances.csv")
-
 ```
 
 ```{r df prepping}
@@ -91,9 +88,9 @@ snakes.sur <- snakes.master %>%
 
 #Now we want to put in an environment sheet because it has our effort hours, and we want to convert those to usable numeric values
 
-#enviro$Effort <- sapply(strsplit(enviro$Searching_Time, ":"), function(x) {
- # as.numeric(x[1]) + as.numeric(x[2]) / 60
-#}) #not really sure how this function works (from internet) but it makes the hours go from 2:30 to 2.50 hours, etc. 
+enviro$Effort_hrs <- sapply(strsplit(enviro$Searching_Time, ":"), function(x) {
+  as.numeric(x[1]) + as.numeric(x[2]) / 60
+}) #not really sure how this function works (from internet) but it makes the hours go from 2:30 to 2.50 hours, etc. 
 
 # I SWEAR TO GOD OWEN DONT PUT CODE AND FUNCTIONS IN HERE IF YOU DONT KNOW HOW THEY WORK
 
@@ -113,7 +110,7 @@ enviro$Survey_End_Date_Time <- paste(enviro$End_Date, enviro$Survey_End_Time)
 enviro$Survey_End_Date_Time <-mdy_hm(enviro$Survey_End_Date_Time)
 
 # now use difftime to get effort in hours
-enviro$Effort_hrs <- difftime(enviro$Survey_End_Date_Time, enviro$Survey_Start_Date_Time, units = "hours")
+#enviro$Effort_hrs <- difftime(enviro$Survey_End_Date_Time, enviro$Survey_Start_Date_Time, units = "hours")
 
 # look at it for any weirdness
 unique(enviro$Effort_hrs)
@@ -147,6 +144,9 @@ snakes.sur <- snakes.sur %>%
   rename(SEGMENT = Location)
 
 snakes.sur <- left_join(segs, snakes.sur)
+
+
+# NOTE TO THERESE: THE INDIVIDUAL SEGMENTS IS IN ENVIRO.CSV SPERARATED BY COMMAS AND SPACES, IN THE ORDER THAT WE WALKED
 
 ```
 
@@ -809,26 +809,44 @@ diversity.plot
 ## Guild composition comparisons
 
 ```{r guild composition comparisons}
-
+## OWENS CODE EXPERIMENTS
 guild_counts1 <- data.frame(
   Station = c("TBS", "TBS", "TBS", "YRS", "YRS", "YRS"),
-  Guild = c("no_mammals", "mixed", "mammals",
-            "no_mammals", "mixed", "mammals"),
+  Guild = c("no_mammals", "mixed", "mostly_mammals",
+            "no_mammals", "mixed", "mostly_mammals"),
   Count = c(42, 7, 3,
             32, 8, 9),
   Effort = c(73864, 73864, 73864,
              76915, 76915, 76915)
 )
-
 guild_counts1
 
-glm_guild <- glmmTMB(
+glm_guild1 <- glmmTMB(
   Count ~ Station * Guild + offset(log(Effort)),
   family = poisson,
   data = guild_counts1
 )
 
-summary(glm_guild)
+summary(glm_guild1)
+
+guild_counts2 <- data.frame(
+  Station = c("TBS", "TBS", "YRS", "YRS"),
+  Guild = c("no_mammals", "mammals",
+            "no_mammals", "mammals"),
+  Count = c(42, 10,
+            32, 17),
+  Effort = c(73864, 73864,
+             76915, 76915)
+)
+guild_counts2
+
+glm_guild2 <- glmmTMB(
+  Count ~ Station * Guild + offset(log(Effort)),
+  family = poisson,
+  data = guild_counts2
+)
+
+summary(glm_guild2)
 ```
 
 
