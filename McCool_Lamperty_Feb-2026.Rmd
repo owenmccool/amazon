@@ -384,7 +384,6 @@ covs <- density_est_df[,c("Station", "Diet_Type", "SEGMENT", "Humidity_at_Time_o
 
 umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,8:11]), siteCovs=data.frame(covs), dist.breaks=c(0, 2, 5, 8, 12), unitsIn="m", survey="line", tlength=covs$DISTANCE_M)
 
-
 ```
 
 # Occurrence Matrices
