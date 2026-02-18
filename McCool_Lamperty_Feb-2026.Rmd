@@ -49,10 +49,9 @@ Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors
 
 Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert field book Reptiles of Ecuador. 
 
+# Read in and prep data
 
-
-
-# Read in data
+## Read in
 
 This data was cleaned some in initial steps in 2024-2025 (see archived code). Note that temp and humidity data was removed for 4 surveys at YRS that took place after July 11, 2025, during which the team lost confidence in the data collection instrument. 
 
@@ -61,6 +60,60 @@ snakes.master <- read.csv(file = "snake.master.csv")
 enviro <- read.csv(file = "enviro.csv")
 segs <- read.csv("Segment_Distances.csv")
 ```
+
+## Data prep
+
+We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments.
+
+```{r segment master list}
+
+segs_expanded <- enviro %>%
+  select(!c(6,9,11:45)) %>%
+  separate_rows(Order, sep = ",")
+
+# get ready to add the meters per segment. Need names to match
+segs <- segs %>%
+  rename(Segment = SEGMENT) %>%
+  rename(Parent_Trail = PARENT.TRAIL) %>%
+  rename(Seg_dist_m = DISTANCE_M)
+
+# and fix the names in segs_expanded to match and to be easy to understand
+segs_expanded <- segs_expanded %>%
+  rename(Segment = Order) %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
+
+# change this in enviro as well
+enviro <- enviro %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
+
+# join them together
+segments_master <- left_join(segs_expanded, segs)
+
+# there are some missing distances
+# check for typos
+unique(segs_expanded$Segment)
+
+# there's just one where there is a hyphen separating two segments that need to be in separate rows
+segs_expanded <- segs_expanded %>%
+  mutate(Segment = ifelse(Segment == "NUMA-02-CHIO-03", 
+                          "NUMA-02, CHIO-03", Segment)) %>%
+  separate_rows(Segment, sep = ",")
+
+# remove all the spaces
+segs_expanded <- segs_expanded %>%
+  mutate(Segment = trimws(Segment))
+
+# fix one case where there is just a space between two segments that need to be in separate rows
+segs_expanded <- segs_expanded %>%
+  separate_rows(Segment, sep = " ")
+
+# okay this looks more promising, try to join again
+segments_master <- left_join(segs_expanded, segs)
+
+# beautiful
+```
+
+Okay now other little things with the datasets
 
 ```{r df prepping}
 
@@ -71,6 +124,8 @@ snakes.master$Date <- as.Date(snakes.master$Date)
 
 enviro$Start_Date <- mdy(enviro$Start_Date)
 
+segments_master$Start_Date<-mdy(segments_master$Start_Date)
+segments_master$End_Date<-mdy(segments_master$End_Date)
 # modify diet type to be binary = eats mammals, does not eat mammals
 
 # mixed = "includes mammals"
@@ -88,15 +143,12 @@ snakes.sur <- snakes.master %>%
 
 #Now we want to put in an environment sheet because it has our effort hours, and we want to convert those to usable numeric values
 
+# NOTE this is the time spent actively searching, not the time difference between start and stop of survey for the night
+
 enviro$Effort_hrs <- sapply(strsplit(enviro$Searching_Time, ":"), function(x) {
   as.numeric(x[1]) + as.numeric(x[2]) / 60
 }) #not really sure how this function works (from internet) but it makes the hours go from 2:30 to 2.50 hours, etc. 
 
-# I SWEAR TO GOD OWEN DONT PUT CODE AND FUNCTIONS IN HERE IF YOU DONT KNOW HOW THEY WORK
-
-# it'll be better I think if we have effort as a diff time class at least initially
-
-# make time a time in R (you can do this lots of ways)
 # join date and time columns first
 # note I added end date columns manually in the enviro datasheet to account for the 2 surveys that went past midnight
 enviro$Survey_Start_Date_Time <- paste(enviro$Start_Date, enviro$Survey_Start_Time)
@@ -109,26 +161,20 @@ enviro$Survey_End_Date_Time <- paste(enviro$End_Date, enviro$Survey_End_Time)
 
 enviro$Survey_End_Date_Time <-mdy_hm(enviro$Survey_End_Date_Time)
 
-# now use difftime to get effort in hours
-#enviro$Effort_hrs <- difftime(enviro$Survey_End_Date_Time, enviro$Survey_Start_Date_Time, units = "hours")
-
-# look at it for any weirdness
-unique(enviro$Effort_hrs)
-
 # small mammals 
  # add the n small mammals found per survey to the snake.sur dataframe because that has the effort hours already in it
 
 # subset data - just want the n small mammmals and keep the date column to join by
 
 small.mamms.temp <- enviro %>%
-  select(Station, Start_Date, Number_of_Small_Mammals_Spotted, Trail_Walked, Order) #creating temporary dataframe with just these parameters
+  select(Station, Start_Date, Number_of_Small_Mammals_Spotted, Parent_Trail_LongName) #creating temporary dataframe with just these parameters
 
 small.mamms.temp$Number_of_Small_Mammals_Spotted <-  as.numeric(small.mamms.temp$Number_of_Small_Mammals_Spotted) #changing the n small mammals to a number from a character (idk why it was a character)
 class(small.mamms.temp$Number_of_Small_Mammals_Spotted) #looks correct now
 
 # isolate effort hours per survey
 effort <- enviro %>%
-  select(Start_Date, Meters, Effort_hrs) #put both meters and time to see how they impact rates of detection
+  select(Start_Date, Effort_hrs)
 
 # join effort to small mamms
 small.mamms.temp <- left_join(small.mamms.temp, effort)
@@ -137,17 +183,24 @@ small.mamms.temp <- left_join(small.mamms.temp, effort)
 rm(effort)
 
 # get rate of n mammals per hour
-small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/as.numeric(small.mamms.temp$Effort_hrs)
+small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/small.mamms.temp$Effort_hrs
 
-# add segment lengths
+# small mammal dataframe done
+
+# add segment lengths to snake sur df
 snakes.sur <- snakes.sur %>%
-  rename(SEGMENT = Location)
+  rename(Segment = Location)
 
-snakes.sur <- left_join(segs, snakes.sur)
+snakes.sur <- left_join(segments_master, snakes.sur)
 
+# OWEN - we should spot check this to verify that this has all the observations that it should
 
-# NOTE TO THERESE: THE INDIVIDUAL SEGMENTS IS IN ENVIRO.CSV SPERARATED BY COMMAS AND SPACES, IN THE ORDER THAT WE WALKED
+# remove some columns that are duplicated and kind of confusing now
 
+snakes.sur <- snakes.sur %>%
+  select(!c(Date, Trail_Walked))
+
+# next step is to populate the appropriate cells w/zeros
 ```
 
 # Data summaries
