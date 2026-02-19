@@ -225,7 +225,7 @@ enviro$Meters <- as.numeric(enviro$Meters) #now they are numbers
 sum(enviro$Meters[enviro$Station == "TBS"]) # 73,864 meters at TBS
 sum(enviro$Meters[enviro$Station == "YRS"]) # 76,915 meters at YRS
 
-# repeat what I did with the effort time with the distance
+# NOTE FOR OWEN: repeat what I did with the effort time with the distance
 ```
 
 ## Small mammals
@@ -237,15 +237,12 @@ sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station ==
 
 sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station == "TBS"])
 
-# as with above, get mean and sd for each station and overall
+# I think this is good to report (total numbers) but maybe also with mean and sd of n encountered per survey at each station:
 
-```
-
-## Snakes
-
-```{r summarize snake numbers}
-
-# also eventually get total number of snakes per station and total number of species, and perhaps summarize mean n per survey with sd per station
+enviro %>%
+  group_by(Station) %>%
+  summarise(mean_duration = mean(Number_of_Small_Mammals_Spotted),
+            standard_deviation = sd(Number_of_Small_Mammals_Spotted))
 
 ```
 
@@ -286,8 +283,8 @@ smams.mean.se <- small.mamms.temp %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = small.mamms.temp, aes( x = Station, y = smammals.hr), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = small.mamms.temp, aes( x = Station, y = smammals.hr), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3)+ theme_bw() +
   scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") +
   theme(legend.title=element_blank()) + ylab("Individuals/Hour") + ggtitle("Small Mammal Detections") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) 
 
@@ -366,7 +363,8 @@ und.mean.se <- understory_long %>%
 und.fig <- ggplot(und.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = understory_long, aes( x = Station, y = Understory_leaves), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
   scale_fill_manual(values = c("lightgreen","lightgreen")) + 
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Understory density") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) 
+  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Understory density") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
 und.fig
 
@@ -391,8 +389,9 @@ testZeroInflation(und.mod, plot = F)
 # could report in this format:
 Anova(und.mod)
 
-
 ```
+Note for Owen: REPEAT THE ABOVE WITH TEMPERATURE and HUMIDITY DATA
+
 
 ## Density estimates
 
@@ -405,6 +404,7 @@ First, create distance bins.
 # For starters, I want to look at n per diet type (yes mammals no mammals)
 
 # We should also look at number overall regardless of diet type
+# Note for Owen: can you look into the best way to determine bins?
 
 snakes.sur <- snakes.sur %>%
   mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 3, "0_3m", NA))
@@ -423,15 +423,14 @@ snakes.sur <- snakes.sur %>%
 zeros <- snakes.sur %>%
   filter(is.na(Snake_ID)) %>%
   select(Start_Date, Station, Diet_Type, Segment, Seg_dist_m)
-
+# get them into the format we want (tally doesn't actually matter here)
 z.tally.no.mammals <- zeros %>%
   group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
 
-# make all diet types = no mammals
-
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero non-mammal eaters were found specifically
 z.tally.no.mammals$Diet_Type <- "no_mammals"
 
-# repeat with eats mammals
+# repeat with making a df of instances when zero mammal eating snakes were found
 z.tally.yes.mammals <- zeros %>%
   group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
 
@@ -443,13 +442,16 @@ z.tally.yes.mammals$Diet_Type <- "includes_mammals"
 
 z.tallies <- rbind(z.tally.no.mammals, z.tally.yes.mammals)
 
+#clean
+rm(z.tally.yes.mammals, z.tally.no.mammals)
+
 # also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
 
 # remove the n column (meaningless)
 z.tallies <- z.tallies %>%
   select(!n)
 
-# also isolate surveys that did have snakes detected
+# also isolate surveys that DID have snakes detected
 surveys.no.zeros <- snakes.sur %>%
   filter(!is.na(Snake_ID))
 
@@ -457,7 +459,7 @@ surveys.no.zeros <- snakes.sur %>%
 survey.tally <- surveys.no.zeros %>%
   group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
 
-# pivot wider
+# pivot wider that wider
 density_est_df <- survey.tally %>% 
   pivot_wider(names_from = Distance_bin_m,
               values_from = n, 
@@ -466,6 +468,7 @@ density_est_df <- survey.tally %>%
 # now, we can add the surveys and the segments with zero detections back
 
 density_est_df <- full_join(z.tallies, density_est_df)
+
 # make NAs zeros
 density_est_df[is.na(density_est_df)] <- 0
 ```
@@ -473,20 +476,42 @@ density_est_df[is.na(density_est_df)] <- 0
 ```{r density estimation}
 
 # Package things up into an unmarkedFrame 
+
 # separate out the covariates
 covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m")]
 
 umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,6:8]), siteCovs=data.frame(covs), dist.breaks=c(0, 3, 6, 11.5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
+# NEED TO VERIFY 1 BIN DETERMINATION RULES OF THUMB
+# ALSO, DO WE NEED TO MODIFY TLENGTH BY 1000?
+
 # Fit model 1
-# detection then abundance 
-dst.m1 <- distsamp(~1 ~ Station/Diet_Type + Seg_dist_m, umf, unitsOut = "kmsq", output = "abund")
+# ~detection (1) unless we want to summarize per segment density readings.... and ~ abundance (covariates of interest)
+dst.m1 <- distsamp(~1 ~ Station, umf, unitsOut = "kmsq")
 
 summary(dst.m1)
 
+# fit model 2
+dst.m2 <- distsamp(~1 ~ Station/Diet_Type, umf, unitsOut = "kmsq")
+
+summary(dst.m2) # THIS IS THE TOP MODEL BY FAR
+
+# fit model 3 null
+dst.m3 <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
+
+summary(dst.m3)
 ```
 
-# Occurrence Matrices
+Next step is to check model fit
+
+Then the next step is to extract density estimates for each diet type at each station
+
+Then we have to decide how we want to present those results
+
+
+## Occurrence Matrices
+
+NOTE- T KIND OF SCRAMBLED THIS SECTION AS OF 2/19/2026
 
 ```{r occ mat diet}
 
