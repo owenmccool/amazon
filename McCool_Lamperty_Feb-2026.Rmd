@@ -49,10 +49,9 @@ Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors
 
 Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert field book Reptiles of Ecuador. 
 
+# Read in and prep data
 
-
-
-# Read in data
+## Read in
 
 This data was cleaned some in initial steps in 2024-2025 (see archived code). Note that temp and humidity data was removed for 4 surveys at YRS that took place after July 11, 2025, during which the team lost confidence in the data collection instrument. 
 
@@ -61,6 +60,60 @@ snakes.master <- read.csv(file = "snake.master.csv")
 enviro <- read.csv(file = "enviro.csv")
 segs <- read.csv("Segment_Distances.csv")
 ```
+
+## Data prep
+
+We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments.
+
+```{r segment master list}
+
+segs_expanded <- enviro %>%
+  select(!c(6,9,11:45)) %>%
+  separate_rows(Order, sep = ",")
+
+# get ready to add the meters per segment. Need names to match
+segs <- segs %>%
+  rename(Segment = SEGMENT) %>%
+  rename(Parent_Trail = PARENT.TRAIL) %>%
+  rename(Seg_dist_m = DISTANCE_M)
+
+# and fix the names in segs_expanded to match and to be easy to understand
+segs_expanded <- segs_expanded %>%
+  rename(Segment = Order) %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
+
+# change this in enviro as well
+enviro <- enviro %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
+
+# join them together
+segments_master <- left_join(segs_expanded, segs)
+
+# there are some missing distances
+# check for typos
+unique(segs_expanded$Segment)
+
+# there's just one where there is a hyphen separating two segments that need to be in separate rows
+segs_expanded <- segs_expanded %>%
+  mutate(Segment = ifelse(Segment == "NUMA-02-CHIO-03", 
+                          "NUMA-02, CHIO-03", Segment)) %>%
+  separate_rows(Segment, sep = ",")
+
+# remove all the spaces
+segs_expanded <- segs_expanded %>%
+  mutate(Segment = trimws(Segment))
+
+# fix one case where there is just a space between two segments that need to be in separate rows
+segs_expanded <- segs_expanded %>%
+  separate_rows(Segment, sep = " ")
+
+# okay this looks more promising, try to join again
+segments_master <- left_join(segs_expanded, segs)
+
+# beautiful
+```
+
+Okay now other little things with the datasets
 
 ```{r df prepping}
 
@@ -71,6 +124,8 @@ snakes.master$Date <- as.Date(snakes.master$Date)
 
 enviro$Start_Date <- mdy(enviro$Start_Date)
 
+segments_master$Start_Date<-mdy(segments_master$Start_Date)
+segments_master$End_Date<-mdy(segments_master$End_Date)
 # modify diet type to be binary = eats mammals, does not eat mammals
 
 # mixed = "includes mammals"
@@ -88,15 +143,12 @@ snakes.sur <- snakes.master %>%
 
 #Now we want to put in an environment sheet because it has our effort hours, and we want to convert those to usable numeric values
 
+# NOTE this is the time spent actively searching, not the time difference between start and stop of survey for the night
+
 enviro$Effort_hrs <- sapply(strsplit(enviro$Searching_Time, ":"), function(x) {
   as.numeric(x[1]) + as.numeric(x[2]) / 60
 }) #not really sure how this function works (from internet) but it makes the hours go from 2:30 to 2.50 hours, etc. 
 
-# I SWEAR TO GOD OWEN DONT PUT CODE AND FUNCTIONS IN HERE IF YOU DONT KNOW HOW THEY WORK
-
-# it'll be better I think if we have effort as a diff time class at least initially
-
-# make time a time in R (you can do this lots of ways)
 # join date and time columns first
 # note I added end date columns manually in the enviro datasheet to account for the 2 surveys that went past midnight
 enviro$Survey_Start_Date_Time <- paste(enviro$Start_Date, enviro$Survey_Start_Time)
@@ -109,26 +161,20 @@ enviro$Survey_End_Date_Time <- paste(enviro$End_Date, enviro$Survey_End_Time)
 
 enviro$Survey_End_Date_Time <-mdy_hm(enviro$Survey_End_Date_Time)
 
-# now use difftime to get effort in hours
-#enviro$Effort_hrs <- difftime(enviro$Survey_End_Date_Time, enviro$Survey_Start_Date_Time, units = "hours")
-
-# look at it for any weirdness
-unique(enviro$Effort_hrs)
-
 # small mammals 
  # add the n small mammals found per survey to the snake.sur dataframe because that has the effort hours already in it
 
 # subset data - just want the n small mammmals and keep the date column to join by
 
 small.mamms.temp <- enviro %>%
-  select(Station, Start_Date, Number_of_Small_Mammals_Spotted, Trail_Walked, Order) #creating temporary dataframe with just these parameters
+  select(Station, Start_Date, Number_of_Small_Mammals_Spotted, Parent_Trail_LongName) #creating temporary dataframe with just these parameters
 
 small.mamms.temp$Number_of_Small_Mammals_Spotted <-  as.numeric(small.mamms.temp$Number_of_Small_Mammals_Spotted) #changing the n small mammals to a number from a character (idk why it was a character)
 class(small.mamms.temp$Number_of_Small_Mammals_Spotted) #looks correct now
 
 # isolate effort hours per survey
 effort <- enviro %>%
-  select(Start_Date, Meters, Effort_hrs) #put both meters and time to see how they impact rates of detection
+  select(Start_Date, Effort_hrs)
 
 # join effort to small mamms
 small.mamms.temp <- left_join(small.mamms.temp, effort)
@@ -137,17 +183,22 @@ small.mamms.temp <- left_join(small.mamms.temp, effort)
 rm(effort)
 
 # get rate of n mammals per hour
-small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/as.numeric(small.mamms.temp$Effort_hrs)
+small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/small.mamms.temp$Effort_hrs
 
-# add segment lengths
+# small mammal dataframe done
+
+# add segment lengths to snake sur df
 snakes.sur <- snakes.sur %>%
-  rename(SEGMENT = Location)
+  rename(Segment = Location)
 
-snakes.sur <- left_join(segs, snakes.sur)
+snakes.sur <- left_join(segments_master, snakes.sur)
 
+# OWEN - we should spot check this to verify that this has all the observations that it should
 
-# NOTE TO THERESE: THE INDIVIDUAL SEGMENTS IS IN ENVIRO.CSV SPERARATED BY COMMAS AND SPACES, IN THE ORDER THAT WE WALKED
+# remove some columns that are duplicated and kind of confusing now
 
+snakes.sur <- snakes.sur %>%
+  select(!c(Date, Trail_Walked))
 ```
 
 # Data summaries
@@ -174,7 +225,7 @@ enviro$Meters <- as.numeric(enviro$Meters) #now they are numbers
 sum(enviro$Meters[enviro$Station == "TBS"]) # 73,864 meters at TBS
 sum(enviro$Meters[enviro$Station == "YRS"]) # 76,915 meters at YRS
 
-# repeat what I did with the effort time with the distance
+# NOTE FOR OWEN: repeat what I did with the effort time with the distance
 ```
 
 ## Small mammals
@@ -186,15 +237,12 @@ sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station ==
 
 sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station == "TBS"])
 
-# as with above, get mean and sd for each station and overall
+# I think this is good to report (total numbers) but maybe also with mean and sd of n encountered per survey at each station:
 
-```
-
-## Snakes
-
-```{r summarize snake numbers}
-
-# also eventually get total number of snakes per station and total number of species, and perhaps summarize mean n per survey with sd per station
+enviro %>%
+  group_by(Station) %>%
+  summarise(mean_duration = mean(Number_of_Small_Mammals_Spotted),
+            standard_deviation = sd(Number_of_Small_Mammals_Spotted))
 
 ```
 
@@ -204,7 +252,7 @@ sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station ==
 
 ### Figures
 
-#### Per hr boxplot
+#### Smamm Per hr boxplot
 
 ```{r small mammal boxplot}
 
@@ -224,7 +272,7 @@ rm(smammals.plot)
 # can add dimension specifications with width = x and height = x
 ```
 
-#### Per hr mean and se
+#### Smamm Per hr mean and se
 
 ```{r se and mean}
 # another way to plot that makes judging significance easier NEEDS EXPLAINING
@@ -235,8 +283,8 @@ smams.mean.se <- small.mamms.temp %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3) +  geom_jitter(data = small.mamms.temp, aes( x = Station, y = smammals.hr), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + theme_bw() +
+smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = small.mamms.temp, aes( x = Station, y = smammals.hr), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3)+ theme_bw() +
   scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") +
   theme(legend.title=element_blank()) + ylab("Individuals/Hour") + ggtitle("Small Mammal Detections") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) 
 
@@ -248,20 +296,47 @@ rm(smams.mean.se, smamm.fig)
 
 ```
 
+### Smamm Model
+
+```{r small mammal model}
+
+# note: nbinom2 with offset term and zero inflation term will run and seems okay, but it doesn't pass validation cleanly. Other attempts (with and without random effects) cause model convergence problems. 
+
+# Model as continuous response variable rather than raw count data
+
+smam.cont <- glmmTMB(smammals.hr ~ Station + (1|Parent_Trail_LongName), data = small.mamms.temp, family = tweedie(link = "log"))
+
+sim <- simulateResiduals(fittedModel = smam.cont, plot = T)
+
+summary(smam.cont) # great, can report this
+
+testDispersion(smam.cont, plot = F)
+testZeroInflation(smam.cont, plot = F)
+
+# could report in this format:
+Anova(smam.cont)
+
+```
+
 ## Understory
 
 Get understory data reformatted. We took these readings every 15 min and also every time an individual was found. First step will be looking at variation between stations. 
 
 ```{r reformat understory}
 understory_long <- enviro %>%
-  select(Survey_Start_Date_Time, Station, Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
+  select(Survey_Start_Date_Time, Station, Parent_Trail_LongName, Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
   pivot_longer(names_to = "Measurement",
                cols = Understory_Density_1:Understory_Density_Final,
                values_to = "Understory_leaves", names_repair = "unique")
 
+# remove NAs
+
+understory_long <- understory_long %>%
+  na.omit()
+
 ```
 
-### Figure
+### Und Figure
 
 Historgram per station
 
@@ -288,7 +363,8 @@ und.mean.se <- understory_long %>%
 und.fig <- ggplot(und.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = understory_long, aes( x = Station, y = Understory_leaves), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
   scale_fill_manual(values = c("lightgreen","lightgreen")) + 
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Understory density") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) 
+  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Understory density") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
 und.fig
 
@@ -297,97 +373,191 @@ und.fig
 rm(und.fig)
 ```
 
-### Models
+### Und Model
 
-```{r small mammal model}
+```{r understory model}
 
-# note: nbinom2 with offset term and zero inflation term will run and seems okay, but it doesn't pass validation cleanly. Other attempts (with and without random effects) cause model convergence problems. 
+und.mod <- glmmTMB(Understory_leaves ~ Station + (1|Parent_Trail_LongName), data = understory_long, family = nbinom2())
 
-# Model as continuous response variable rather than raw count data
+sim <- simulateResiduals(fittedModel = und.mod, plot = T)
 
-smam.cont <- glmmTMB(smammals.hr ~ Station + (1|Trail_Walked), data = small.mamms.temp, family = tweedie(link = "log"))
+summary(und.mod) # no difference between understory
 
-sim <- simulateResiduals(fittedModel = smam.cont, plot = T)
+testDispersion(und.mod, plot = F)
+testZeroInflation(und.mod, plot = F)
 
-summary(smam.cont) # great, can report this
-
-testDispersion(smam.cont, plot = F)
-testZeroInflation(smam.cont, plot = F)
+# could report in this format:
+Anova(und.mod)
 
 ```
+Note for Owen: REPEAT THE ABOVE WITH TEMPERATURE and HUMIDITY DATA
+
 
 ## Density estimates
 
-```{r density estimates formatting}
+Look at density estimates overall and by diet type. 
+
+First, create distance bins. 
+
+```{r make bins}
 
 # For starters, I want to look at n per diet type (yes mammals no mammals)
 
 # We should also look at number overall regardless of diet type
+# Note for Owen: can you look into the best way to determine bins?
 
-# make bins, for now, 0-2, 2-5, 6-8, 8-12 seem ok
-
-# 0 to 2 m away
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 2, "0_2m", NA))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 3, "0_3m", NA))
 
-# between 2 and 5 m away
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <=5, "2_5m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <=6, "3_6m", Distance_bin_m))
 
-# between 5 and 8 m away
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5 & Distance_From_Trail_m <=8, "5_8m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 6 & Distance_From_Trail_m <=11.5, "6_11.5m", Distance_bin_m))
 
-# between 8 and 12 m away
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 8 & Distance_From_Trail_m <= 12, "8_12m", Distance_bin_m))
+```
 
-# tally counts
-tally <- snakes.sur %>%
-  group_by(Start_Date, Station, Diet_Type, SEGMENT, Habitat_Type, Humidity_at_Time_of_Detection, DISTANCE_M, Temperature_at_Time_of_Detection,  Distance_bin_m) %>% tally()
+```{r format for unmarked}
 
-# remove NAs
-tally <- tally %>%
-  na.omit()
+# isolate surveys for which no snakes were found
+zeros <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station, Diet_Type, Segment, Seg_dist_m)
+# get them into the format we want (tally doesn't actually matter here)
+z.tally.no.mammals <- zeros %>%
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
 
-# pivot wider
-density_est_df <- tally %>% 
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero non-mammal eaters were found specifically
+z.tally.no.mammals$Diet_Type <- "no_mammals"
+
+# repeat with making a df of instances when zero mammal eating snakes were found
+z.tally.yes.mammals <- zeros %>%
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
+
+# make all diet types = no mammals
+
+z.tally.yes.mammals$Diet_Type <- "includes_mammals"
+
+# stack them together
+
+z.tallies <- rbind(z.tally.no.mammals, z.tally.yes.mammals)
+
+#clean
+rm(z.tally.yes.mammals, z.tally.no.mammals)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies <- z.tallies %>%
+  select(!n)
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
+
+# pivot wider that wider
+density_est_df <- survey.tally %>% 
   pivot_wider(names_from = Distance_bin_m,
               values_from = n, 
               values_fill = 0)
 
-Date_station <- enviro %>%
-  select(Start_Date, Station)
+# now, we can add the surveys and the segments with zero detections back
 
-# add back
-density_est_df <- left_join(Date_station, density_est_df)
+density_est_df <- full_join(z.tallies, density_est_df)
 
-# double check the above
-
-# fill in 0s
-density_est_df <- density_est_df %>%
-  mutate(`0_2m` = ifelse(is.na(`0_2m`), 0, `0_2m`))
-density_est_df <- density_est_df %>%
-  mutate(`2_5m` = ifelse(is.na(`2_5m`), 0, `2_5m`))
-density_est_df <- density_est_df %>%
-  mutate(`5_8m` = ifelse(is.na(`5_8m`), 0, `5_8m`))
-density_est_df <- density_est_df %>%
-  mutate(`8_12m` = ifelse(is.na(`8_12m`), 0, `8_12m`))
-
-# STOPPING HERE - NEED TO SEGMENTS and METERS WALKED DURING THE SURVEYS W ZERO SNAKE DETECTIONS
+# make NAs zeros
+density_est_df[is.na(density_est_df)] <- 0
 ```
 
-```{r density estimatation}
+```{r density estimation}
+
 # Package things up into an unmarkedFrame 
 
-covs <- density_est_df[,c("Station", "Diet_Type", "SEGMENT", "Humidity_at_Time_of_Detection", "Temperature_at_Time_of_Detection", "DISTANCE_M")]
+# separate out the covariates
+covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m")]
 
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,8:11]), siteCovs=data.frame(covs), dist.breaks=c(0, 2, 5, 8, 12), unitsIn="m", survey="line", tlength=covs$DISTANCE_M)
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,6:8]), siteCovs=data.frame(covs), dist.breaks=c(0, 3, 6, 11.5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
+# NEED TO VERIFY 1 BIN DETERMINATION RULES OF THUMB
+# ALSO, DO WE NEED TO MODIFY TLENGTH BY 1000?
 
+# Fit model 1
+# ~detection (1) unless we want to summarize per segment density readings.... and ~ abundance (covariates of interest)
+dst.m1 <- distsamp(~1 ~ Station, umf, unitsOut = "kmsq")
+
+summary(dst.m1)
+
+# fit model 2
+dst.m2 <- distsamp(~1 ~ Station/Diet_Type, umf, unitsOut = "kmsq")
+
+summary(dst.m2) # THIS IS THE TOP MODEL BY FAR
+
+# fit model 3 null
+dst.m3 <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
+
+summary(dst.m3)
 ```
 
-# Occurrence Matrices
+Next step is to check model fit
+
+Then the next step is to extract density estimates for each diet type at each station
+
+Then we have to decide how we want to present those results
+
+
+## Occurrence Matrices
+
+NOTE- T KIND OF SCRAMBLED THIS SECTION AS OF 2/19/2026
+
+```{r occ mat diet}
+
+# edge list - df without zeros
+snake.diet.tally <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
+
+# pivot wider
+diet.tally.wider <- snake.diet.tally %>% 
+  pivot_wider(names_from = Diet_Type,
+              values_from = n, 
+              values_fill = 0)
+
+# now, we can add the surveys and the segments with zero detections back
+
+diet_df1 <- full_join(z.tallies, diet.tally.wider)
+
+z.tallies <- z.tallies %>%
+  as.data.frame() %>%
+  select(!Diet_Type)
+
+diet_df2 <- full_join(z.tallies, diet.tally.wider)
+
+# make NAs zeros
+diet_df[is.na(diet_df)] <- 0
+
+# wait switch back
+diet_df_long <- diet_df %>%
+  pivot_longer(names_to = "Diet_Type",
+               cols = c("no_mammals", 
+                        "includes_mammals"), 
+               values_to = "Number") 
+diet_df_long$Number_1km <- (diet_df_long$Number/diet_df_long$Seg_dist_m)*1000
+
+diet.mean.se <- diet_df_long %>%
+  group_by(Station, Diet_Type) %>%
+  summarise(mean = mean(Number_1km),
+            sd = sd(Number_1km),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+quick.plot <- ggplot(diet.mean.se, aes(x=Station, y=mean, fill = Diet_Type)) + theme_bw() +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se)) + geom_point(pch = 21) + ylab("Individuals") + ggtitle("Snakes detected per diet type")
+
+quick.plot
+```
 
 ## Genera from surveys
 
@@ -430,7 +600,6 @@ snk.sur.mat_genus <- left_join(Date_Meters, snk.sur.mat_genus)
 snk.sur.mat_genus[is.na(snk.sur.mat_genus)] <- 0 #populate NAs with zeros
 
 ```
-
 
 ## Families from surveys
 
