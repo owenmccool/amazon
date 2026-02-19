@@ -199,8 +199,6 @@ snakes.sur <- left_join(segments_master, snakes.sur)
 
 snakes.sur <- snakes.sur %>%
   select(!c(Date, Trail_Walked))
-
-# next step is to populate the appropriate cells w/zeros
 ```
 
 # Data summaries
@@ -257,7 +255,7 @@ sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station ==
 
 ### Figures
 
-#### Per hr boxplot
+#### Smamm Per hr boxplot
 
 ```{r small mammal boxplot}
 
@@ -277,7 +275,7 @@ rm(smammals.plot)
 # can add dimension specifications with width = x and height = x
 ```
 
-#### Per hr mean and se
+#### Smamm Per hr mean and se
 
 ```{r se and mean}
 # another way to plot that makes judging significance easier NEEDS EXPLAINING
@@ -301,20 +299,47 @@ rm(smams.mean.se, smamm.fig)
 
 ```
 
+### Smamm Model
+
+```{r small mammal model}
+
+# note: nbinom2 with offset term and zero inflation term will run and seems okay, but it doesn't pass validation cleanly. Other attempts (with and without random effects) cause model convergence problems. 
+
+# Model as continuous response variable rather than raw count data
+
+smam.cont <- glmmTMB(smammals.hr ~ Station + (1|Parent_Trail_LongName), data = small.mamms.temp, family = tweedie(link = "log"))
+
+sim <- simulateResiduals(fittedModel = smam.cont, plot = T)
+
+summary(smam.cont) # great, can report this
+
+testDispersion(smam.cont, plot = F)
+testZeroInflation(smam.cont, plot = F)
+
+# could report in this format:
+Anova(smam.cont)
+
+```
+
 ## Understory
 
 Get understory data reformatted. We took these readings every 15 min and also every time an individual was found. First step will be looking at variation between stations. 
 
 ```{r reformat understory}
 understory_long <- enviro %>%
-  select(Survey_Start_Date_Time, Station, Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
+  select(Survey_Start_Date_Time, Station, Parent_Trail_LongName, Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
   pivot_longer(names_to = "Measurement",
                cols = Understory_Density_1:Understory_Density_Final,
                values_to = "Understory_leaves", names_repair = "unique")
 
+# remove NAs
+
+understory_long <- understory_long %>%
+  na.omit()
+
 ```
 
-### Figure
+### Und Figure
 
 Historgram per station
 
@@ -350,96 +375,164 @@ und.fig
 rm(und.fig)
 ```
 
-### Models
+### Und Model
 
-```{r small mammal model}
+```{r understory model}
 
-# note: nbinom2 with offset term and zero inflation term will run and seems okay, but it doesn't pass validation cleanly. Other attempts (with and without random effects) cause model convergence problems. 
+und.mod <- glmmTMB(Understory_leaves ~ Station + (1|Parent_Trail_LongName), data = understory_long, family = nbinom2())
 
-# Model as continuous response variable rather than raw count data
+sim <- simulateResiduals(fittedModel = und.mod, plot = T)
 
-smam.cont <- glmmTMB(smammals.hr ~ Station + (1|Trail_Walked), data = small.mamms.temp, family = tweedie(link = "log"))
+summary(und.mod) # no difference between understory
 
-sim <- simulateResiduals(fittedModel = smam.cont, plot = T)
+testDispersion(und.mod, plot = F)
+testZeroInflation(und.mod, plot = F)
 
-summary(smam.cont) # great, can report this
+# could report in this format:
+Anova(und.mod)
 
-testDispersion(smam.cont, plot = F)
-testZeroInflation(smam.cont, plot = F)
 
 ```
 
 ## Density estimates
 
-```{r density estimates formatting}
+Look at density estimates overall and by diet type. 
+
+First, create distance bins. 
+
+```{r make bins}
 
 # For starters, I want to look at n per diet type (yes mammals no mammals)
 
 # We should also look at number overall regardless of diet type
 
-# make bins, for now, 0-2, 2-5, 6-8, 8-12 seem ok
-
-# 0 to 2 m away
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 2, "0_2m", NA))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 3, "0_3m", NA))
 
-# between 2 and 5 m away
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <=5, "2_5m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <=6, "3_6m", Distance_bin_m))
 
-# between 5 and 8 m away
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5 & Distance_From_Trail_m <=8, "5_8m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 6 & Distance_From_Trail_m <=11.5, "6_11.5m", Distance_bin_m))
 
-# between 8 and 12 m away
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 8 & Distance_From_Trail_m <= 12, "8_12m", Distance_bin_m))
+```
 
-# tally counts
-tally <- snakes.sur %>%
-  group_by(Start_Date, Station, Diet_Type, SEGMENT, Habitat_Type, Humidity_at_Time_of_Detection, DISTANCE_M, Temperature_at_Time_of_Detection,  Distance_bin_m) %>% tally()
+```{r format for unmarked}
 
-# remove NAs
-tally <- tally %>%
-  na.omit()
+# isolate surveys for which no snakes were found
+zeros <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station, Diet_Type, Segment, Seg_dist_m)
+
+z.tally.no.mammals <- zeros %>%
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
+
+# make all diet types = no mammals
+
+z.tally.no.mammals$Diet_Type <- "no_mammals"
+
+# repeat with eats mammals
+z.tally.yes.mammals <- zeros %>%
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
+
+# make all diet types = no mammals
+
+z.tally.yes.mammals$Diet_Type <- "includes_mammals"
+
+# stack them together
+
+z.tallies <- rbind(z.tally.no.mammals, z.tally.yes.mammals)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies <- z.tallies %>%
+  select(!n)
+
+# also isolate surveys that did have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
 
 # pivot wider
-density_est_df <- tally %>% 
+density_est_df <- survey.tally %>% 
   pivot_wider(names_from = Distance_bin_m,
               values_from = n, 
               values_fill = 0)
 
-Date_station <- enviro %>%
-  select(Start_Date, Station)
+# now, we can add the surveys and the segments with zero detections back
 
-# add back
-density_est_df <- left_join(Date_station, density_est_df)
-
-# double check the above
-
-# fill in 0s
-density_est_df <- density_est_df %>%
-  mutate(`0_2m` = ifelse(is.na(`0_2m`), 0, `0_2m`))
-density_est_df <- density_est_df %>%
-  mutate(`2_5m` = ifelse(is.na(`2_5m`), 0, `2_5m`))
-density_est_df <- density_est_df %>%
-  mutate(`5_8m` = ifelse(is.na(`5_8m`), 0, `5_8m`))
-density_est_df <- density_est_df %>%
-  mutate(`8_12m` = ifelse(is.na(`8_12m`), 0, `8_12m`))
-
-# STOPPING HERE - NEED TO SEGMENTS and METERS WALKED DURING THE SURVEYS W ZERO SNAKE DETECTIONS
+density_est_df <- full_join(z.tallies, density_est_df)
+# make NAs zeros
+density_est_df[is.na(density_est_df)] <- 0
 ```
 
-```{r density estimatation}
+```{r density estimation}
+
 # Package things up into an unmarkedFrame 
+# separate out the covariates
+covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m")]
 
-covs <- density_est_df[,c("Station", "Diet_Type", "SEGMENT", "Humidity_at_Time_of_Detection", "Temperature_at_Time_of_Detection", "DISTANCE_M")]
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,6:8]), siteCovs=data.frame(covs), dist.breaks=c(0, 3, 6, 11.5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,8:11]), siteCovs=data.frame(covs), dist.breaks=c(0, 2, 5, 8, 12), unitsIn="m", survey="line", tlength=covs$DISTANCE_M)
+# Fit model 1
+# detection then abundance 
+dst.m1 <- distsamp(~1 ~ Station/Diet_Type + Seg_dist_m, umf, unitsOut = "kmsq", output = "abund")
+
+summary(dst.m1)
 
 ```
 
 # Occurrence Matrices
+
+```{r occ mat diet}
+
+# edge list - df without zeros
+snake.diet.tally <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
+
+# pivot wider
+diet.tally.wider <- snake.diet.tally %>% 
+  pivot_wider(names_from = Diet_Type,
+              values_from = n, 
+              values_fill = 0)
+
+# now, we can add the surveys and the segments with zero detections back
+
+diet_df1 <- full_join(z.tallies, diet.tally.wider)
+
+z.tallies <- z.tallies %>%
+  as.data.frame() %>%
+  select(!Diet_Type)
+
+diet_df2 <- full_join(z.tallies, diet.tally.wider)
+
+# make NAs zeros
+diet_df[is.na(diet_df)] <- 0
+
+# wait switch back
+diet_df_long <- diet_df %>%
+  pivot_longer(names_to = "Diet_Type",
+               cols = c("no_mammals", 
+                        "includes_mammals"), 
+               values_to = "Number") 
+diet_df_long$Number_1km <- (diet_df_long$Number/diet_df_long$Seg_dist_m)*1000
+
+diet.mean.se <- diet_df_long %>%
+  group_by(Station, Diet_Type) %>%
+  summarise(mean = mean(Number_1km),
+            sd = sd(Number_1km),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+quick.plot <- ggplot(diet.mean.se, aes(x=Station, y=mean, fill = Diet_Type)) + theme_bw() +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se)) + geom_point(pch = 21) + ylab("Individuals") + ggtitle("Snakes detected per diet type")
+
+quick.plot
+```
 
 ## Genera from surveys
 
@@ -482,7 +575,6 @@ snk.sur.mat_genus <- left_join(Date_Meters, snk.sur.mat_genus)
 snk.sur.mat_genus[is.na(snk.sur.mat_genus)] <- 0 #populate NAs with zeros
 
 ```
-
 
 ## Families from surveys
 
