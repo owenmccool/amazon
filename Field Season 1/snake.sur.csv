@@ -1,8 +1,8 @@
 Snake Survey Data Sheet,,,,,,,,,,,,,,,,,,,,,,,,
 Date,Station,Trail_Walked,Segment,Surveyors,Survey_Start_Time,Survey_End_Time,Reptile_ID,Family,Species,Common_Name,Time_Found_,GPS_Coordinates,Observor,Temperature_at_Time_of_Detection,Humidity_at_Time_of_Detection,Distance_From_Trail_m,Height_of_Individual,Habitat_Type,Time_Window_of_Last_Rain_Event_h,Weather,Wind,Diet_Type,Primary_Diet_Component,Notes
 ,,,,,,,,,,,,,,,,,,,,,,,,
-06/11/24*,TBS,"Numa-Chichico-Matapalo, Chichico, Numa",MAPO-06,"O,M,T,A",8:37 PM,11:36 PM,SK0,Colubridae,Xenoxybelis argenteus,Striped Sharpnose Snake,10:14 PM,S 00°38.5950'  W 076°08.7456',Mike,,,6,U,Varzea,12,cloudy,no wind,no mammals,lizards,
-06/11/24*,TBS,"Numa-Chichico-Matapalo, Chichico, Numa",NUMA-01,"O,M,T,A",8:37 PM,11:36 PM,SK00,Colubridae,Imantodes cenchoa,Common Blunt-headed Tree Snake,11:13 PM,S 00°38.3980' W 076°08.9387',Mike,,,0.5,U,Varzea,12,cloudy,no wind,no mammals,lizards,
+06/11/24*,TBS,Numa-Chichico-Matapalo-Chichico-Numa,MAPO-06,"O,M,T,A",8:37 PM,11:36 PM,SK0,Colubridae,Xenoxybelis argenteus,Striped Sharpnose Snake,10:14 PM,S 00°38.5950'  W 076°08.7456',Mike,,,6,U,Varzea,12,cloudy,no wind,no mammals,lizards,
+06/11/24*,TBS,Numa-Chichico-Matapalo-Chichico-Numa,NUMA-01,"O,M,T,A",8:37 PM,11:36 PM,SK00,Colubridae,Imantodes cenchoa,Common Blunt-headed Tree Snake,11:13 PM,S 00°38.3980' W 076°08.9387',Mike,,,0.5,U,Varzea,12,cloudy,no wind,no mammals,lizards,
 6/13/24,TBS,Guacamayo-Danta-Lago,LAGO-01,"O,M,T",8:59 PM,11:54 PM,SK01,Colubridae,Dipsas catesbyi,Catesby's Snail Eater,10:33 PM,S 00°38.324' W 076°09.224',Mike,80.8,83.7,3.5,U,Varzea,6,partly cloudy,no wind,no mammals,arthropods,rain at end of survey
 6/13/24,TBS,Guacamayo-Danta-Lago,LAGO-01,"O,M,T",8:59 PM,11:54 PM,SK02,Colubridae,Dipsas catesbyi,Catesby's Snail Eater,11:07 PM,S 00°38.3868' W 076°09.2344',Mike,83,79.8,0.5,U,Varzea,6,partly cloudy,no wind,no mammals,arthropods,rain at end of survey
 6/17/24,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MAPO-03,"O,T",8:04 PM,12:11 AM,SK03,Colubridae,Oxyrhopus petolarius,Forest Flame Snake,8:47 PM,S 00°38.2292' W 076°08.7913',Owen,79.3,93.2,0,G,Terrafirme,24,clear,no wind,mixed,mixed,
