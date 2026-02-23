@@ -21,7 +21,7 @@ library(hillR) # species diversity
 library(DHARMa) # checking models
 library(car) # reporting model stats
 library(glmmTMB)
-library(unmarked) #density esitmates with hierarchical distance sampling models
+library(unmarked) #density estimates with hierarchical distance sampling models
 library(tidyr)
 
 ```
@@ -225,7 +225,11 @@ enviro$Meters <- as.numeric(enviro$Meters) #now they are numbers
 sum(enviro$Meters[enviro$Station == "TBS"]) # 73,864 meters at TBS
 sum(enviro$Meters[enviro$Station == "YRS"]) # 76,915 meters at YRS
 
-# NOTE FOR OWEN: repeat what I did with the effort time with the distance
+# per night meters
+enviro %>%
+  group_by(Station) %>%
+  summarise(mean_m_per_night = mean(Meters),
+            standard_deviation = sd(Meters))
 ```
 
 ## Small mammals
@@ -290,7 +294,7 @@ smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group 
 
 smamm.fig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
-ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 4)
+#ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 4)
 
 rm(smams.mean.se, smamm.fig)
 
@@ -393,7 +397,6 @@ Anova(und.mod)
 
 ```
 
-
 ## Temperature
 
 ### Temp Set-Up
@@ -450,26 +453,28 @@ temp.fig
 
 #Interesting, seems 2025 was def colder at YRS, and a little bit overall as well
 
-#ggsave(und.fig, file="understory-mean-se.png", width = 6,  height = 4)
+#ggsave(temp.fig, file="temp-mean-se.png", width = 6,  height = 4)
 
-#rm(und.fig)
+rm(temp.fig)
 ```
+
 ### Temp Model
 
 ```{r temperature model}
+#2/23: in this case with temp and humidity, we do not need the trail name random effect
+temp.mod <- glmmTMB(Temperature ~ Station + Season, data = temperature_long, family = gaussian()) #is this the right family argument?
 
-temp.mod <- glmmTMB(Temperature ~ Station + Season + (1|Parent_Trail_LongName), data = temperature_long, family = gaussian()) #is this the right family argument?
+# 2/23: this is a good place to start with the family. The function below tests the model to see if it meets the assumptions of the assigned family, and if you look at the plot it produces, the red indicates that this does not fit assumptions for a gaussian (normal) model distribution (which is to be expected)
 
+# test model assumptions
 sim <- simulateResiduals(fittedModel = temp.mod, plot = T)
-
-summary(temp.mod) # HOW TO INTERPRET OUTPUT? CAN'T FIND REFERENCE GROUPS FOR 
-# COMPARISONS OF EACH STATION B/W EACH YEAR
 
 testDispersion(temp.mod, plot = F)
 testZeroInflation(temp.mod, plot = F)
 
-# could report in this format: 
-Anova(temp.mod)
+# 2/23: tried with tweedie, log normal, and incorporating date. Model not passing validation. Also we will want an interaction term between Station and Season because we expect (based on the figures of the data) that at one station (YRS) things were cooler one season - this would be reflected by an interaction term, for which we use an asterisk in the model syntax
+
+# 2/23: I'm going to move on because really what we want is to incorporate a variable that reflects temperature into the distance sampling-based density estimate model
 
 ```
 
@@ -491,7 +496,6 @@ humidity_long <- enviro %>%
 
 humidity_long <- humidity_long %>%
   na.omit()
-
 
 # Sanity check to make sure pivoted temp and humidity DFs are same length
 length(humidity_long$Survey_Start_Date_Time)
@@ -532,16 +536,21 @@ hum.fig
 #Huge amount of variation in humidity, overall more humid at YRS but 
 # definitely more humid in 2025, likely from all the huge rain events 
 
-#ggsave(und.fig, file="understory-mean-se.png", width = 6,  height = 4)
+#ggsave(hum.fig, file="humidty-mean-se.png", width = 6,  height = 4)
 
-#rm(und.fig)
+#rm(hum.fig)
 ```
 
 ### Hum Model
 
 ```{r humidity model}
 
-hum.mod <- glmmTMB(Humidity ~ Station + Season + (1|Parent_Trail_LongName), data = humidity_long, family = gaussian()) #is this the right family argument?
+# 2/23: note - I have not attempted to get this to run. I think we need to make sure our Parent_Trail_LongName column is cleaned up; but also, this model probably isn't needed.
+
+# 2/23: I'm going to remove the random effect, I think for these variables (temp and humidity), we can do without (and the model will probably be easier to get to work without a random effect, if we decide we want the model)
+
+hum.mod <- glmmTMB(Humidity ~ Station + Season, data = humidity_long, family = gaussian()) #is this the right family argument? 
+#2/23 - based on the sim output below, it is not. Try log normal.
 
 sim <- simulateResiduals(fittedModel = hum.mod, plot = T)
 
@@ -558,8 +567,43 @@ Anova(hum.mod)
 
 ```
 
+## Handling Humidity and Temp
+
+We want to summarize humidity and temp in a way that allows us to incorporate it into our model. As of 2/23, I'm thinking the best way to do this is to take means per survey date
+
+```{r parent trails and segments}
+# to understand survey makeup per night, look at segments for each parent trail long name
+
+trails <- snakes.sur %>%
+  group_by(Parent_Trail_LongName) %>%
+  reframe(unique(Segment))
+
+enviro %>%
+  reframe(unique(Parent_Trail_LongName))
+
+# also it doesn't seem that the enviro Parent Trail Long Names match those in enviro - but as of 2/23 T has not put much thought or effort into verifying that. 
+```
+
+Let's take the mean vals per date
+
+```{r temp hum means}
+
+temp_date_means <- temperature_long %>%
+  group_by(Survey_Start_Date_Time, Station) %>%
+  reframe(mean_temp_F = mean(Temperature))
 
 
+hum_date_means <- humidity_long %>%
+  group_by(Survey_Start_Date_Time, Station) %>%
+  reframe(mean_humidity_percent = mean(Humidity))
+
+temp_hum_df <- left_join(temp_date_means, hum_date_means)
+
+temp_hum_df$Start_Date <- as.Date(temp_hum_df$Survey_Start_Date_Time)
+
+temp_hum_df <- temp_hum_df %>%
+  select(-Survey_Start_Date_Time)
+```
 
 
 
@@ -648,7 +692,7 @@ density_est_df[is.na(density_est_df)] <- 0
 # Package things up into an unmarkedFrame 
 
 # separate out the covariates
-covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m")]
+covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m", "Temperature_F", "Humidity")]
 
 umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,6:8]), siteCovs=data.frame(covs), dist.breaks=c(0, 3, 6, 11.5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
