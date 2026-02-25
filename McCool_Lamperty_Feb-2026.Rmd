@@ -396,6 +396,12 @@ testZeroInflation(und.mod, plot = F)
 Anova(und.mod)
 
 ```
+## Confirmation of Parent_Trail
+
+```{r parent_trail_longname}
+unique(enviro$Parent_Trail_LongName[enviro$Station == "TBS"])
+unique(snakes.sur$Parent_Trail_LongName[snakes.sur$Station == "YRS"])
+```
 
 ## Temperature
 
