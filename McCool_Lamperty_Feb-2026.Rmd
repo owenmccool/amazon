@@ -118,9 +118,9 @@ Okay now other little things with the datasets
 ```{r df prepping}
 
 # make dates dates
-snakes.master$Start_Date <- as.Date(snakes.master$Start_Date)
+snakes.master$Start_Date <- mdy(snakes.master$Start_Date)
 
-snakes.master$Date <- as.Date(snakes.master$Date)
+snakes.master$Date <- mdy(snakes.master$Date)
 
 enviro$Start_Date <- mdy(enviro$Start_Date)
 
@@ -577,19 +577,6 @@ Anova(hum.mod)
 
 We want to summarize humidity and temp in a way that allows us to incorporate it into our model. As of 2/23, I'm thinking the best way to do this is to take means per survey date
 
-```{r parent trails and segments}
-# to understand survey makeup per night, look at segments for each parent trail long name
-
-trails <- snakes.sur %>%
-  group_by(Parent_Trail_LongName) %>%
-  reframe(unique(Segment))
-
-enviro %>%
-  reframe(unique(Parent_Trail_LongName))
-
-# also it doesn't seem that the enviro Parent Trail Long Names match those in enviro - but as of 2/23 T has not put much thought or effort into verifying that. 
-```
-
 Let's take the mean vals per date
 
 ```{r temp hum means}
@@ -635,6 +622,8 @@ snakes.sur <- snakes.sur %>%
 snakes.sur <- snakes.sur %>%
   mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 6 & Distance_From_Trail_m <=11.5, "6_11.5m", Distance_bin_m))
 
+# join temp and humidity means to the snakes.sur data
+snakes.sur <- left_join(snakes.sur, temp_hum_df)
 ```
 
 ```{r format for unmarked}
@@ -642,17 +631,17 @@ snakes.sur <- snakes.sur %>%
 # isolate surveys for which no snakes were found
 zeros <- snakes.sur %>%
   filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Station, Diet_Type, Segment, Seg_dist_m)
+  select(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent)
 # get them into the format we want (tally doesn't actually matter here)
 z.tally.no.mammals <- zeros %>%
-  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 # for the nights when 0 snakes were found, make a dataframe of instances that specifies zero non-mammal eaters were found specifically
 z.tally.no.mammals$Diet_Type <- "no_mammals"
 
 # repeat with making a df of instances when zero mammal eating snakes were found
 z.tally.yes.mammals <- zeros %>%
-  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 # make all diet types = no mammals
 
@@ -677,7 +666,7 @@ surveys.no.zeros <- snakes.sur %>%
 
 # tally counts - df without zeros
 survey.tally <- surveys.no.zeros %>%
-  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
+  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, Distance_bin_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 # pivot wider that wider
 density_est_df <- survey.tally %>% 
@@ -689,8 +678,25 @@ density_est_df <- survey.tally %>%
 
 density_est_df <- full_join(z.tallies, density_est_df)
 
-# make NAs zeros
-density_est_df[is.na(density_est_df)] <- 0
+# make NAs zeros - except the temp and humidty NAs
+density_est_df[8:10][is.na(density_est_df[8:10])] <- 0
+```
+
+```{r trends w temp humidity}
+
+density_est_df$sums <- rowSums(density_est_df[8:10])
+
+ggplot(density_est_df, aes(x=mean_temp_F, y=sums)) + theme_bw() +
+  geom_jitter()
+
+# to me that doesn't look like anything... 
+
+# look at humidity
+ggplot(density_est_df, aes(x=mean_humidity_percent, y=sums)) + theme_bw() +
+  geom_jitter()
+
+# to me that doesn't look like anything... 
+
 ```
 
 ```{r density estimation}
@@ -698,12 +704,9 @@ density_est_df[is.na(density_est_df)] <- 0
 # Package things up into an unmarkedFrame 
 
 # separate out the covariates
-covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m", "Temperature_F", "Humidity")]
+covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m", "mean_temp_F", "mean_humidity_percent")]
 
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,6:8]), siteCovs=data.frame(covs), dist.breaks=c(0, 3, 6, 11.5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
-
-# NEED TO VERIFY 1 BIN DETERMINATION RULES OF THUMB
-# ALSO, DO WE NEED TO MODIFY TLENGTH BY 1000?
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,8:10]), siteCovs=data.frame(covs), dist.breaks=c(0, 3, 6, 11.5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
 # Fit model 1
 # ~detection (1) unless we want to summarize per segment density readings.... and ~ abundance (covariates of interest)
@@ -720,6 +723,19 @@ summary(dst.m2) # THIS IS THE TOP MODEL BY FAR
 dst.m3 <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
 
 summary(dst.m3)
+
+# the AIC of these models (below) can't be compared with mods 1-3 bc of the NA removal
+
+# fit model 4 with temperature
+dst.m4 <- distsamp(~1 ~ Station/Diet_Type + mean_temp_F, umf, unitsOut = "kmsq")
+
+summary(dst.m4)
+
+# fit model 5 with humidity
+dst.m5 <- distsamp(~1 ~ Station/Diet_Type + mean_humidity_percent, umf, unitsOut = "kmsq")
+
+summary(dst.m5)
+
 ```
 
 Next step is to check model fit
