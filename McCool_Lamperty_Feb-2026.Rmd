@@ -23,6 +23,7 @@ library(car) # reporting model stats
 library(glmmTMB)
 library(unmarked) #density estimates with hierarchical distance sampling models
 library(tidyr)
+library(AICcmodavg) # has convenient functions for comparing models based on AIC
 
 ```
 
@@ -322,6 +323,10 @@ Anova(smam.cont)
 
 ```
 
+```{r clean env after smamm}
+rm(sim, small.mamms.temp, smam.cont)
+```
+
 ## Understory
 
 ### Understory Set-Up
@@ -396,11 +401,16 @@ testZeroInflation(und.mod, plot = F)
 Anova(und.mod)
 
 ```
+<<<<<<< HEAD
 ## Confirmation of Parent_Trail
 
 ```{r parent_trail_longname}
 unique(enviro$Parent_Trail_LongName[enviro$Station == "TBS"])
 unique(snakes.sur$Parent_Trail_LongName[snakes.sur$Station == "YRS"])
+=======
+```{r clean env after und}
+rm(sim, und.mean.se, und.mod, under.hist)
+>>>>>>> 506f7683e49c58dd5675e5e89b96e118b8ca96b2
 ```
 
 ## Temperature
@@ -482,6 +492,9 @@ testZeroInflation(temp.mod, plot = F)
 
 # 2/23: I'm going to move on because really what we want is to incorporate a variable that reflects temperature into the distance sampling-based density estimate model
 
+```
+```{r clean after temp}
+rm(sim, temp.mean.se, temp.mod, temperature.hist)
 ```
 
 ## Humidity
@@ -572,6 +585,9 @@ Anova(hum.mod)
 # Seems like we may have some real differences here
 
 ```
+```{r clean env after hum}
+rm(hum.fig, hum.mean.se, hum.mod, humidity.hist, sim)
+```
 
 ## Handling Humidity and Temp
 
@@ -585,7 +601,6 @@ temp_date_means <- temperature_long %>%
   group_by(Survey_Start_Date_Time, Station) %>%
   reframe(mean_temp_F = mean(Temperature))
 
-
 hum_date_means <- humidity_long %>%
   group_by(Survey_Start_Date_Time, Station) %>%
   reframe(mean_humidity_percent = mean(Humidity))
@@ -596,6 +611,9 @@ temp_hum_df$Start_Date <- as.Date(temp_hum_df$Survey_Start_Date_Time)
 
 temp_hum_df <- temp_hum_df %>%
   select(-Survey_Start_Date_Time)
+
+# clean
+rm(temperature_long, humidity_long, temp_date_means, hum_date_means, understory_long)
 ```
 
 
@@ -614,16 +632,34 @@ First, create distance bins.
 # Note for Owen: can you look into the best way to determine bins?
 
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 3, "0_3m", NA))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1m", NA))
 
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <=6, "3_6m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0 & Distance_From_Trail_m <=1, "0_1m", Distance_bin_m))
 
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 6 & Distance_From_Trail_m <=11.5, "6_11.5m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <=2, "1_2m", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <=3, "2_3m", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <=4, "3_4m", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4 & Distance_From_Trail_m <=5, "4_5m", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5 & Distance_From_Trail_m <=7, "5_7m", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 7 & Distance_From_Trail_m <=11.5, "7_12m", Distance_bin_m))
 
 # join temp and humidity means to the snakes.sur data
 snakes.sur <- left_join(snakes.sur, temp_hum_df)
+
+# clean
+rm(temp_hum_df)
 ```
 
 ```{r format for unmarked}
@@ -679,70 +715,153 @@ density_est_df <- survey.tally %>%
 density_est_df <- full_join(z.tallies, density_est_df)
 
 # make NAs zeros - except the temp and humidty NAs
-density_est_df[8:10][is.na(density_est_df[8:10])] <- 0
-```
+density_est_df[8:14][is.na(density_est_df[8:14])] <- 0
 
-```{r trends w temp humidity}
-
-density_est_df$sums <- rowSums(density_est_df[8:10])
-
-ggplot(density_est_df, aes(x=mean_temp_F, y=sums)) + theme_bw() +
-  geom_jitter()
-
-# to me that doesn't look like anything... 
-
-# look at humidity
-ggplot(density_est_df, aes(x=mean_humidity_percent, y=sums)) + theme_bw() +
-  geom_jitter()
-
-# to me that doesn't look like anything... 
-
+# clean
+rm(survey.tally, surveys.no.zeros, z.tallies, zeros)
 ```
 
 ```{r density estimation}
 
 # Package things up into an unmarkedFrame 
 
+# Seasons
+# So we technically have a multi season study. Because our data is sparse and it is only two seasons, I don't know if it is the right course of action to use multi season modeling or to just include year as a covariate. This is further complicated by the fact that there was much more effort the second year. Shit. I might suggest we combine the years for now and see what others say. Essentially treat it as a single season with the argument that our goal is comparison, not accurate density estimates per station. We would just need to be sure to present the results as a relative difference and not infer much from the actualy model estimates of density because our data is 2 seasons but without accounting for year, that could inflate our results... I'm not sure. 
+
 # separate out the covariates
-covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m", "mean_temp_F", "mean_humidity_percent")]
+covs <- density_est_df[,c("Station", "Diet_Type", "Segment", "Seg_dist_m")]
 
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,8:10]), siteCovs=data.frame(covs), dist.breaks=c(0, 3, 6, 11.5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,8:14]), siteCovs=data.frame(covs), dist.breaks=c(0, 1, 2, 3, 4, 5, 7, 12), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
-# Fit model 1
-# ~detection (1) unless we want to summarize per segment density readings.... and ~ abundance (covariates of interest)
-dst.m1 <- distsamp(~1 ~ Station, umf, unitsOut = "kmsq")
+hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
-summary(dst.m1)
+# we need to do more reading on figuring out approp distance bins (we = Owen)
+```
 
-# fit model 2
-dst.m2 <- distsamp(~1 ~ Station/Diet_Type, umf, unitsOut = "kmsq")
+```{r density est mods}
+# Fit model 1, null model
 
-summary(dst.m2) # THIS IS THE TOP MODEL BY FAR
+null <- distsamp(~1 ~ 1, umf, keyfun = "halfnorm", output = "density", unitsOut = "kmsq")
 
-# fit model 3 null
-dst.m3 <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
+summary(null)
 
-summary(dst.m3)
+# Fit model 2, station only
+station <- distsamp(~1 ~ Station, keyfun = "halfnorm", output = "density", umf, unitsOut = "kmsq")
 
-# the AIC of these models (below) can't be compared with mods 1-3 bc of the NA removal
+summary(station)
 
-# fit model 4 with temperature
-dst.m4 <- distsamp(~1 ~ Station/Diet_Type + mean_temp_F, umf, unitsOut = "kmsq")
+# fit model 3, diet type only
+diet_type <- distsamp(~1 ~ Diet_Type, keyfun = "halfnorm", output = "density", umf, unitsOut = "kmsq")
 
-summary(dst.m4)
+summary(diet_type)
 
-# fit model 5 with humidity
-dst.m5 <- distsamp(~1 ~ Station/Diet_Type + mean_humidity_percent, umf, unitsOut = "kmsq")
+# fit model 4, station + interaction term for station X diet type
+stationXdiet_type <- distsamp(~1 ~ Station/Diet_Type, keyfun = "halfnorm", output = "density", umf, unitsOut = "kmsq")
 
-summary(dst.m5)
+summary(stationXdiet_type)
+
+# Make a table to compare models
+
+# put mods in a list
+mod.set.1 <- list(null = null, hunting = station, guild = diet_type, huntingXguild = stationXdiet_type)
+
+# make table
+aic_table.1 <- aictab(cand.set = mod.set.1, sort = TRUE)
+
+aic_table.1
+```
+Based on this, the top model includes a fixed effect of station (hunting/defaunation status) and the interaction term between hunting status and dietary group (eats mammals vs does not eat mammals).
+
+### Humidity and Temperature
+
+Just to be sure, let's look at how humidity and temperature affect model AIC values. 
+
+```{r density est mods hum and temp}
+
+# HUMIDITY AND TEMP INCLUSION
+
+# The AIC of the models below can't be compared with mods 1-4 above bc of the NA removal necessary to include the humidity and the temperature data
+
+# make a df that excludes all surveys associated with the NA readings of temp and humidity
+
+density_est_df.shortened <- density_est_df %>%
+  na.omit()
+
+# scale and center continuous covs
+density_est_df.shortened$temp_scaled <-as.numeric(scale(density_est_df.shortened$mean_temp_F, center = TRUE))
+
+density_est_df.shortened$hum_scaled <-as.numeric(scale(density_est_df.shortened$mean_humidity_percent, center = TRUE))
+
+covs.shortened <- density_est_df.shortened[,c("Station", "Diet_Type", "Segment", "Seg_dist_m", "temp_scaled", "hum_scaled")]
+
+umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,8:10]), siteCovs=data.frame(covs.shortened), dist.breaks=c(0, 3, 6, 11.5), unitsIn="m", survey="line", tlength=covs.shortened$Seg_dist_m)
+
+# null with shortened df
+null.shortened <- distsamp(~1 ~ 1, keyfun = "halfnorm", output = "density", umf.shortened, unitsOut = "kmsq")
+
+summary(null.shortened)
+
+# humidity
+humidity <- distsamp(~1 ~ hum_scaled,keyfun = "halfnorm", output = "density", umf.shortened, unitsOut = "kmsq")
+
+summary(humidity)
+
+# temperature
+temperature <- distsamp(~1 ~ temp_scaled, keyfun = "halfnorm", output = "density", umf.shortened, unitsOut = "kmsq")
+
+summary(temperature)
+
+# make a table for easy model comparison
+
+# put mods in a list
+mod.set.2 <- list(null = null.shortened, humidity = humidity, temperature = temperature)
+
+# make table
+aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
+
+aic_table.2
+```
+
+```{r clean density mods}
+rm(humidity, null, temperature, null.shortened, station, diet_type, mod.set.1, mod.set.2, umf.shortened, covs.shortened, density_est_df.shortened)
+```
+
+Including humidity or temperature does not substantially improve model fit relative to the null (based on AIC values). We should leave it out for obtaining density estimates unless we decide we want per-year estimates, in which case, we should probably incorporate it since those are so different between years.
+
+### Predictions
+
+```{r model fit check}
+
+#When covariates are present, predict in conjunction with the newdata argument should be used. Here, we request the value of sigma when station = YRS
+
+newdata_temporary <- data.frame(Station = "YRS", Diet_Type = "includes_mammals")
+
+predict(stationXdiet_type, type = 'state', newdata=newdata_temporary, appendData = TRUE)
+
+rm(newdata_temporary)
+
+# now lets build a full new data dataframe and check out predictions - my understanding is the values are per square km estimates
+
+newdata <- data.frame(Station=factor(c('YRS', 'YRS', 'TBS', 'TBS')), Diet_Type = factor(c('includes_mammals', 'no_mammals', 'includes_mammals', 'no_mammals')))
+
+density_estimates <- predict(stationXdiet_type, type = 'state', newdata=newdata, appendData = TRUE)
+
+ggplot(density_estimates, aes(x=Station, y=Predicted, color = Diet_Type, group = Diet_Type)) + geom_errorbar(aes(ymin =lower, ymax = upper), position=position_dodge(width = 0.9), width = 0.01) + geom_point(position = position_dodge(width=0.9), size = 3) + scale_color_manual(values = c("black", "darkgray")) + theme_bw() + ylab("Individuals/Km2") + ggtitle("Estimated density with 95% CI\nSnakes by guild") + scale_x_discrete(labels=c("Unhunted site", "Hunted site")) + theme(axis.text = element_text(color = "black", size = 12)) 
+
+```
+Estimates with standard error
+
+```{r plot SE}
+ggplot(density_estimates, aes(x=Station, y=Predicted, color = Diet_Type, group = Diet_Type)) + geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), position=position_dodge(width = 0.9), width = 0.25) + geom_point(position = position_dodge(width=0.9), size = 3) + scale_color_manual(values = c("black", "darkgray")) + theme_bw() + ylab("Individuals/Km2") + ggtitle("Estimated density with SE\n Snakes by guild") + scale_x_discrete(labels=c("Unhunted site", "Hunted site")) + theme(axis.text = element_text(color = "black", size = 12)) 
 
 ```
 
-Next step is to check model fit
+Feb 26, 2026
 
-Then the next step is to extract density estimates for each diet type at each station
+Stopping here for now. At the very least we can say that our qualitative trend actually does support the hypothesis. We need to check if the model is meeting assumptions, if it is okay to combine our seasons in this context, and how to address SE versus 95% confidence intervals in the presentation of the data.
 
-Then we have to decide how we want to present those results
+
+
 
 
 ## Occurrence Matrices
