@@ -401,17 +401,6 @@ testZeroInflation(und.mod, plot = F)
 Anova(und.mod)
 
 ```
-<<<<<<< HEAD
-## Confirmation of Parent_Trail
-
-```{r parent_trail_longname}
-unique(enviro$Parent_Trail_LongName[enviro$Station == "TBS"])
-unique(snakes.sur$Parent_Trail_LongName[snakes.sur$Station == "YRS"])
-=======
-```{r clean env after und}
-rm(sim, und.mean.se, und.mod, under.hist)
->>>>>>> 506f7683e49c58dd5675e5e89b96e118b8ca96b2
-```
 
 ## Temperature
 
@@ -627,6 +616,7 @@ First, create distance bins.
 ```{r make bins}
 
 # For starters, I want to look at n per diet type (yes mammals no mammals)
+# FIND LIT FOR DISTANCE SAMPLING IN TROPICAL FORESTS (OWEN)
 
 # We should also look at number overall regardless of diet type
 # Note for Owen: can you look into the best way to determine bins?
@@ -740,6 +730,7 @@ hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
 ```{r density est mods}
 # Fit model 1, null model
+# What model fits the best
 
 null <- distsamp(~1 ~ 1, umf, keyfun = "halfnorm", output = "density", unitsOut = "kmsq")
 
@@ -755,7 +746,7 @@ diet_type <- distsamp(~1 ~ Diet_Type, keyfun = "halfnorm", output = "density", u
 
 summary(diet_type)
 
-# fit model 4, station + interaction term for station X diet type
+# fit model 4, station + interaction term for station X diet type, station is viewed on its own and as an interaction term w/ diet type
 stationXdiet_type <- distsamp(~1 ~ Station/Diet_Type, keyfun = "halfnorm", output = "density", umf, unitsOut = "kmsq")
 
 summary(stationXdiet_type)
@@ -844,7 +835,7 @@ rm(newdata_temporary)
 
 newdata <- data.frame(Station=factor(c('YRS', 'YRS', 'TBS', 'TBS')), Diet_Type = factor(c('includes_mammals', 'no_mammals', 'includes_mammals', 'no_mammals')))
 
-density_estimates <- predict(stationXdiet_type, type = 'state', newdata=newdata, appendData = TRUE)
+density_estimates <- predict(stationXdiet_type, type = 'state', newdata=newdata, appendData = TRUE) #extract density rather than detection probability
 
 ggplot(density_estimates, aes(x=Station, y=Predicted, color = Diet_Type, group = Diet_Type)) + geom_errorbar(aes(ymin =lower, ymax = upper), position=position_dodge(width = 0.9), width = 0.01) + geom_point(position = position_dodge(width=0.9), size = 3) + scale_color_manual(values = c("black", "darkgray")) + theme_bw() + ylab("Individuals/Km2") + ggtitle("Estimated density with 95% CI\nSnakes by guild") + scale_x_discrete(labels=c("Unhunted site", "Hunted site")) + theme(axis.text = element_text(color = "black", size = 12)) 
 
@@ -858,7 +849,7 @@ ggplot(density_estimates, aes(x=Station, y=Predicted, color = Diet_Type, group =
 
 Feb 26, 2026
 
-Stopping here for now. At the very least we can say that our qualitative trend actually does support the hypothesis. We need to check if the model is meeting assumptions, if it is okay to combine our seasons in this context, and how to address SE versus 95% confidence intervals in the presentation of the data.
+Stopping here for now. At the very least we can say that our qualitative trend actually does support the hypothesis. We need to check if the model is meeting assumptions, if it is okay to combine our seasons in this context, and how to address SE versus 95% confidence intervals in the presentation of the data. Think about which bins to use and figure our multi-season approach?
 
 
 
