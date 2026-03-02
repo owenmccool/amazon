@@ -587,10 +587,12 @@ Let's take the mean vals per date
 ```{r temp hum means}
 
 temp_date_means <- temperature_long %>%
+  na.omit() %>%
   group_by(Survey_Start_Date_Time, Station) %>%
   reframe(mean_temp_F = mean(Temperature))
 
 hum_date_means <- humidity_long %>%
+  na.omit() %>%
   group_by(Survey_Start_Date_Time, Station) %>%
   reframe(mean_humidity_percent = mean(Humidity))
 
@@ -613,7 +615,7 @@ First, create distance bins.
 
 ```{r make bins}
 
-# FIND LIT FOR DISTANCE SAMPLING IN TROPICAL FORESTS (OWEN)
+# FIND LIT FOR DISTANCE SAMPLING IN TROPICAL FORESTS (OWEN -see my note below)
 
 # THIS IS WHAT I'VE FOUND (THERESE) 
 #Deciding on distance bins in distance sampling involves selecting cutpoints that adequately capture the shape of the detection function, typically ensuring more bins near the line (where detection probability changes rapidly) and fewer further away. The goal is to minimize bias from data rounding while ensuring enough observations per bin for accurate model fitting. 
@@ -624,17 +626,7 @@ First, create distance bins.
 
 # First, look at a histogram of distance from trail to get an idea of detection distribution
 
-hist(snakes.sur$Distance_From_Trail_m, breaks = seq(0, 12, by = 0.25))
-
-# this is what I propose:
-
-# 0-0.5
-# 0.5-1
-# 1-1.5
-# 1.5-2
-# 2-3
-# 3-4
-# 4-8.5 (put the 11.5m one in that bin)
+hist(snakes.sur$Distance_From_Trail_m, breaks = seq(0, 12, by = 0.5))
 
 ```
 
@@ -642,33 +634,32 @@ Proceed with specifying bins and truncating the data to remove the 11.5m away de
 
 ```{r divide up bins}
 
-# 0-0.5
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 0.5, "0_0.5m", NA))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 0.25, "0_0.25", NA))
 
-# 0.5-1
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.5 & Distance_From_Trail_m <= 1, "0.5_1m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.25 & Distance_From_Trail_m <= 0.5, "0.25_0.5", Distance_bin_m))
 
-# 1-1.5
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 1.5, "1_1.5m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.5 & Distance_From_Trail_m <= 1, "0.5_1", Distance_bin_m))
 
-# 1.5-2
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1.5 & Distance_From_Trail_m <= 2, "1.5_2m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 1.5, "1_1.5", Distance_bin_m))
 
-# 2-3
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2_3m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1.5 & Distance_From_Trail_m <= 2, "1.5_2", Distance_bin_m))
 
-# 3-4
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 4, "3_4m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 2.5, "2_2.5", Distance_bin_m))
 
-# 4-8.5
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4, "4_8.5m", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2.5 & Distance_From_Trail_m <=3.5, "2.5_3.5", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3.5 & Distance_From_Trail_m <=5, "3.5_5", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
 
 # join temp and humidity means to the snakes.sur data
 snakes.sur <- left_join(snakes.sur, temp_hum_df)
@@ -677,7 +668,7 @@ snakes.sur <- left_join(snakes.sur, temp_hum_df)
 ```{r format for unmarked}
 # pull out year to make a way to distinguish between seasons
 
-snakes.sur$Year <- factor(format(snakes.sur$Start_Date, "%Y")) 
+snakes.sur$Year <- factor(format(snakes.sur$Start_Date, "%Y"))
 
 # isolate surveys for which no snakes were found
 zeros <- snakes.sur %>%
@@ -730,7 +721,7 @@ density_est_df <- survey.tally %>%
 density_est_df <- full_join(z.tallies, density_est_df)
 
 # make NAs zeros - except the temp and humidty NAs
-density_est_df[9:15][is.na(density_est_df[9:15])] <- 0
+density_est_df[9:17][is.na(density_est_df[9:17])] <- 0
 
 # clean
 rm(survey.tally, surveys.no.zeros, z.tallies, zeros)
@@ -741,16 +732,15 @@ rm(survey.tally, surveys.no.zeros, z.tallies, zeros)
 # Package things up into an unmarkedFrame 
 
 # Seasons
-# So we technically have a multi season study. Because our data is sparse and it is only two seasons, I don't know if it is the right course of action to use multi season modeling or to just include year as a covariate. This is further complicated by the fact that there was much more effort the second year. Shit. I might suggest we combine the years for now and see what others say. Essentially treat it as a single season with the argument that our goal is comparison, not accurate density estimates per station. We would just need to be sure to present the results as a relative difference and not infer much from the actualy model estimates of density because our data is 2 seasons but without accounting for year, that could inflate our results... I'm not sure. 
+# Feedback from Morgan indicates that combining years is not a problem in our case. We may want to explore incorporating year as a factor though. 
 
 # separate out the covariates
 covs <- density_est_df[,c("Station", "Year", "Diet_Type", "Segment", "Seg_dist_m")]
 
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:15]), siteCovs=data.frame(covs), dist.breaks=c(0, 0.5, 1, 1.5, 2, 3, 4, 8.5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:17]), siteCovs=data.frame(covs), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
 hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
-# idk seems ok to me....
 ```
 
 ```{r density est mods}
@@ -758,33 +748,35 @@ hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 # Fit model 1, null model
 # What model fits the best
 
-null <- distsamp(~1 ~ 1, umf, keyfun = "halfnorm", output = "density", unitsOut = "kmsq")
+null <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
 
 summary(null)
 
-# Fit model 2, incorporate year
-year <- distsamp(~1 ~ Year, keyfun = "halfnorm", output = "density", umf, unitsOut = "kmsq")
+# Mod 2
+year.det <- distsamp(~ Year ~ 1, umf, unitsOut = "kmsq")
 
-summary(year)
-# huge improvement on model fit
-# so keep year moving forward
+summary(year.det)
 
-# fit model 3, station and year
-station.year <- distsamp(~1 ~ Year + Station, keyfun = "halfnorm", output = "density", umf, unitsOut = "kmsq")
+# Mod 3
 
-summary(station.year)
-# station on its own doesnt appear to have an overall effect on snake density (not accounting for differences between diet types)
+year.det.den <- distsamp(~ Year ~ Year, umf, unitsOut = "kmsq")
 
-# fit model 5, year, station + interaction term for station X diet type, station is viewed on its own and as an interaction term w/ diet type
-stationXdiet_type <- distsamp(~1 ~ Year + Station/Diet_Type, keyfun = "halfnorm", output = "density", umf, unitsOut = "kmsq")
+summary(year.det.den)
+
+# Mod 4
+station <- distsamp(~Year ~ Year + Station, umf, unitsOut = "kmsq")
+
+summary(station)
+
+# Mod 5
+stationXdiet_type <- distsamp(~Year ~ Year + Station/Diet_Type, umf, unitsOut = "kmsq")
 
 summary(stationXdiet_type)
-# huge improvement in model fit
 
 # Make a table to compare models
 
 # put mods in a list
-mod.set.1 <- list(null = null, year.only = year, hunting.year = station.year, huntingXguild.year = stationXdiet_type)
+mod.set.1 <- list(null = null, year.det = year.det, year.det.den = year.det.den, huntingXguild.year = stationXdiet_type)
 
 # make table
 aic_table.1 <- aictab(cand.set = mod.set.1, sort = TRUE)
@@ -816,33 +808,30 @@ density_est_df.shortened$hum_scaled <-as.numeric(scale(density_est_df.shortened$
 
 covs.shortened <- density_est_df.shortened[,c("Station", "Diet_Type", "Year", "Segment", "Seg_dist_m", "temp_scaled", "hum_scaled")]
 
-umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:15]), siteCovs=data.frame(covs.shortened), dist.breaks=c(0, 0.5, 1, 1.5, 2, 3, 4, 8.5), unitsIn="m", survey="line", tlength=covs.shortened$Seg_dist_m)
+umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:17]), siteCovs=data.frame(covs.shortened), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs.shortened$Seg_dist_m)
 
 # null with shortened df
-null.shortened <- distsamp(~1 ~ Year, keyfun = "halfnorm", output = "density", umf.shortened, unitsOut = "kmsq")
+null2 <- distsamp(~1 ~ 1, umf.shortened, unitsOut = "kmsq")
 
-summary(null.shortened)
+# mod 1
+yr.det2 <- distsamp(~Year ~ 1, umf.shortened, unitsOut = "kmsq")
 
-# humidity
-humidity <- distsamp(~1 ~ Year + hum_scaled,keyfun = "halfnorm", output = "density", umf.shortened, unitsOut = "kmsq")
+# mod 2
+yr.det.den2 <- distsamp(~Year ~ Year, umf.shortened, unitsOut = "kmsq")
 
-summary(humidity)
+# mod 3 
+yr.temp <- distsamp(~Year ~ Year + temp_scaled, umf.shortened, unitsOut = "kmsq")
 
-# temperature
-temperature <- distsamp(~1 ~ Year + temp_scaled, keyfun = "halfnorm", output = "density", umf.shortened, unitsOut = "kmsq")
+yr.station <- distsamp(~Year ~ Year + Station, umf.shortened, unitsOut = "kmsq")
 
-summary(temperature)
+yr.temp.station <- distsamp(~Year ~ Year + temp_scaled + Station, umf.shortened, unitsOut = "kmsq")
 
-temperature.station <- distsamp(~1 ~ Year + temp_scaled + Station, keyfun = "halfnorm", output = "density", umf.shortened, unitsOut = "kmsq")
+yr.temp.station.guild <- distsamp(~Year ~ Year + temp_scaled + Diet_Type*Station, umf.shortened, unitsOut = "kmsq")
 
-summary(temperature.station)
-
-temperature.stationXguild <- distsamp(~1 ~ Year + temp_scaled + Station/Diet_Type, keyfun = "halfnorm", output = "density", umf.shortened, unitsOut = "kmsq")
-
-summary(temperature.stationXguild)
+yr.temp.hum.station.guild <- distsamp(~Year ~ Year + temp_scaled + Diet_Type*Station + hum_scaled, umf.shortened, unitsOut = "kmsq")
 
 # put mods in a list
-mod.set.2 <- list(null = null.shortened, humidity = humidity, temperature = temperature, temp.station = temperature.station, temp.stationXguild = temperature.stationXguild)
+mod.set.2 <- list(null = null2, yr.det = yr.det2, yr.det.den = yr.det.den2, yr.station = yr.station, yr.temp.station = yr.temp.station, yr.temp.station.guild = yr.temp.station.guild, yr.temp.hum.station.guild = yr.temp.hum.station.guild)
 
 
 # make table
@@ -852,25 +841,56 @@ aic_table.2
 
 # so the top model includes temperature, station, year, and an interaction between station and dietary guild. This needs to be rechecked.
 
+summary(yr.temp.station.guild)
+
 ```
 So the top model includes temperature, station, year, and an interaction between station and dietary guild.
 
 ### Predictions
 
-```{r model fit check}
+```{r model pred}
 
+density_est_df.shortened$temp_scaled.constant <- 0
+
+
+density_est_df.shortened$year.constant <- "2025"
+
+newdata <- density_est_df.shortened %>%
+  group_by(Station, Diet_Type, temp_scaled) %>%
+  summarize(Station = unique(Station), Year = unique(Year), Diet_Type = unique(Diet_Type), temp_scaled = unique(temp_scaled))
+
+predicted <- predict(yr.temp.station.guild, type="state", newdata=newdata,
+    appendData=TRUE)
+
+snk.fig2 <- ggplot(predicted, aes(x=Diet_Type, y=Predicted, color = Station, group = Station, shape = Year)) + 
+  geom_errorbar(aes(ymin=Predicted-SE, ymax=Predicted+SE), width=.2, position = position_dodge(width = .4)) + geom_point(aes(color = Station, shape = Year), size = 3.5, position = position_dodge(width = .4)) + theme_bw() +
+  theme(legend.title=element_blank(), legend.position = "right") + scale_color_manual(values = c("TBS" = "darkgray", "YRS" = "black"), labels = c("TBS" = "Unhunted", "YRS" = "Hunted")) + scale_x_discrete(labels = c("no_mammals" = "Non-mammal eaters", "includes_mammals" = "Mammal eaters")) + ylab(expression("Individuals per km"^2*"")) + xlab("") + ggtitle("Estimated snake density by feeding guild\n hunted and unhunted sites") + theme(axis.text = element_text(color = "black", size = 10)) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+snk.fig2
+
+#ggsave(snk.fig2, file="snk_predicted_density_2024-2025.png", width = 6,  height = 4)
+
+# temp pattern
+
+newdata2 <- density_est_df.shortened %>%
+  group_by(Station, Diet_Type, Year, temp_scaled) %>%
+  summarize(Station = unique(Station), Year = 2024, Diet_Type = unique(Diet_Type), temp_scaled = unique(temp_scaled))
+
+predicted <- predict(yr.temp.station.guild, type="state", newdata=newdata,
+    appendData=TRUE)
+
+ggplot(predicted, aes(x=temp_scaled, y=Predicted, color = Station, group = Station, shape = Diet_Type)) + 
+  geom_errorbar(aes(ymin=Predicted-SE, ymax=Predicted+SE), width=.2, position = position_dodge(width = .4)) + geom_point(aes(color = Station), size = 3.5, position = position_dodge(width = .4)) + theme_bw() +
+  theme(legend.title=element_blank(), legend.position = "right") + scale_color_manual(values = c("TBS" = "darkgray", "YRS" = "black"), labels = c("TBS" = "Unhunted", "YRS" = "Hunted")) + ylab(expression("Individuals per km"^2*"")) + ggtitle("Estimated snake density by feeding guild\n hunted and unhunted sites") + theme(axis.text = element_text(color = "black", size = 10)) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+snk.fig2
+
+#ggsave(snk.fig2, file="snk_predicted_density_2024-2025.png", width = 6,  height = 4)
 
 ```
-Estimates with standard error
 
-```{r plot SE}
-
-
-```
-
-Feb 27, 2026
-
-I examined Year, and it may improve model fit but I still am unsure if for our purposes it makes sense to use it. Temperature with Year being included appears to matter after a preliminary check. Need to carefully go through this. I also regrouped into smaller bins, which seems better but we should probably group 1-2 together because the curve still doesn't fit great. 
 
 
 
