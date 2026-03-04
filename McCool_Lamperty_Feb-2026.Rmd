@@ -288,14 +288,18 @@ smams.mean.se <- small.mamms.temp %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = small.mamms.temp, aes( x = Station, y = smammals.hr), width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2) + geom_point(pch = 21, size = 3)+ theme_bw() +
-  scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Individuals/Hour") + ggtitle("Small Mammal Detections") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) 
+smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = small.mamms.temp, 
+              aes(x = Station, y = smammals.hr), 
+              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small Mammal Detections") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(),axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 14)) 
 
 smamm.fig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
-#ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 4)
+# ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 4)
 
 rm(smams.mean.se, smamm.fig)
 
