@@ -619,6 +619,10 @@ First, create distance bins.
 
 ```{r make bins}
 
+snakes.sur %>%
+  group_by(Year, Station) %>%
+    reframe(N_surveys = length(unique(Start_Date))) #Effort comparisons between stations (WHERE DID 'EFFORT' GO FROM snakes.sur)
+
 # FIND LIT FOR DISTANCE SAMPLING IN TROPICAL FORESTS (OWEN -see my note below)
 
 # THIS IS WHAT I'VE FOUND (THERESE) 
@@ -892,6 +896,7 @@ ggplot(predicted, aes(x=temp_scaled, y=Predicted, color = Station, group = Stati
 snk.fig2
 
 #ggsave(snk.fig2, file="snk_predicted_density_2024-2025.png", width = 6,  height = 4)
+
 
 ```
 
