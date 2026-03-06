@@ -623,6 +623,10 @@ snakes.sur %>%
   group_by(Year, Station) %>%
     reframe(N_surveys = length(unique(Start_Date))) #Effort comparisons between stations (WHERE DID 'EFFORT' GO FROM snakes.sur)
 
+enviro %>%
+  group_by(Season, Station) %>%
+    reframe(Accum_hrs = sum(Effort_hrs))
+
 # FIND LIT FOR DISTANCE SAMPLING IN TROPICAL FORESTS (OWEN -see my note below)
 
 # THIS IS WHAT I'VE FOUND (THERESE) 
