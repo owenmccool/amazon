@@ -246,7 +246,7 @@ sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station ==
 
 enviro %>%
   group_by(Station) %>%
-  summarise(mean_duration = mean(Number_of_Small_Mammals_Spotted),
+  summarise(mean_detections_per_hr = mean(Number_of_Small_Mammals_Spotted),
             standard_deviation = sd(Number_of_Small_Mammals_Spotted))
 
 ```
@@ -325,7 +325,12 @@ testZeroInflation(smam.cont, plot = F)
 # could report in this format:
 Anova(smam.cont)
 
+#
+
+#https://stats.stackexchange.com/questions/603155/seeking-feedback-on-the-interpretation-and-reporting-of-a-glmm-output
 ```
+
+
 
 ```{r clean env after smamm}
 rm(sim, small.mamms.temp, smam.cont)
@@ -361,6 +366,16 @@ under.hist <- ggplot(understory_long, aes(x= Understory_leaves)) +
   geom_histogram() +facet_wrap(~Station) + theme_bw()
 
 under.hist
+
+# summary
+understory_long %>%
+  na.omit() %>%
+  group_by(Station) %>%
+  summarise(mean = mean(Understory_leaves),
+            sd = sd(Understory_leaves),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
 ```
 
 And do a mean and se with points overlain
@@ -390,19 +405,21 @@ rm(und.fig)
 
 ### Und Model
 
+NOTE THIS DOES NOT NEED TO BE REPORTED SO IM COMMENTING IT OUT
+
 ```{r understory model}
 
-und.mod <- glmmTMB(Understory_leaves ~ Station + (1|Parent_Trail_LongName), data = understory_long, family = nbinom2())
+#und.mod <- glmmTMB(Understory_leaves ~ Station + (1|Parent_Trail_LongName), data = understory_long, family = nbinom2())
 
-sim <- simulateResiduals(fittedModel = und.mod, plot = T)
+#sim <- simulateResiduals(fittedModel = und.mod, plot = T)
 
-summary(und.mod) # no difference between understory
+#summary(und.mod) # no difference between understory
 
-testDispersion(und.mod, plot = F)
-testZeroInflation(und.mod, plot = F)
+#testDispersion(und.mod, plot = F)
+#testZeroInflation(und.mod, plot = F)
 
 # could report in this format:
-Anova(und.mod)
+#Anova(und.mod)
 
 ```
 
@@ -467,25 +484,6 @@ temp.fig
 rm(temp.fig)
 ```
 
-### Temp Model
-
-```{r temperature model}
-#2/23: in this case with temp and humidity, we do not need the trail name random effect
-temp.mod <- glmmTMB(Temperature ~ Station + Season, data = temperature_long, family = gaussian()) #is this the right family argument?
-
-# 2/23: this is a good place to start with the family. The function below tests the model to see if it meets the assumptions of the assigned family, and if you look at the plot it produces, the red indicates that this does not fit assumptions for a gaussian (normal) model distribution (which is to be expected)
-
-# test model assumptions
-sim <- simulateResiduals(fittedModel = temp.mod, plot = T)
-
-testDispersion(temp.mod, plot = F)
-testZeroInflation(temp.mod, plot = F)
-
-# 2/23: tried with tweedie, log normal, and incorporating date. Model not passing validation. Also we will want an interaction term between Station and Season because we expect (based on the figures of the data) that at one station (YRS) things were cooler one season - this would be reflected by an interaction term, for which we use an asterisk in the model syntax
-
-# 2/23: I'm going to move on because really what we want is to incorporate a variable that reflects temperature into the distance sampling-based density estimate model
-
-```
 ```{r clean after temp}
 rm(sim, temp.mean.se, temp.mod, temperature.hist)
 ```
@@ -553,38 +551,14 @@ hum.fig
 #rm(hum.fig)
 ```
 
-### Hum Model
-
-```{r humidity model}
-
-# 2/23: note - I have not attempted to get this to run. I think we need to make sure our Parent_Trail_LongName column is cleaned up; but also, this model probably isn't needed.
-
-# 2/23: I'm going to remove the random effect, I think for these variables (temp and humidity), we can do without (and the model will probably be easier to get to work without a random effect, if we decide we want the model)
-
-hum.mod <- glmmTMB(Humidity ~ Station + Season, data = humidity_long, family = gaussian()) #is this the right family argument? 
-#2/23 - based on the sim output below, it is not. Try log normal.
-
-sim <- simulateResiduals(fittedModel = hum.mod, plot = T)
-
-summary(hum.mod) # HOW TO INTERPRET OUTPUT? CAN'T FIND REFERENCE GROUPS FOR 
-# COMPARISONS OF EACH STATION B/W EACH YEAR. 
-
-testDispersion(hum.mod, plot = F)
-testZeroInflation(hum.mod, plot = F)
-
-# could report in this format: 
-Anova(hum.mod)
-
-# Seems like we may have some real differences here
-
-```
+#
 ```{r clean env after hum}
-rm(hum.fig, hum.mean.se, hum.mod, humidity.hist, sim)
+rm(hum.fig, hum.mean.se, humidity.hist)
 ```
 
 ## Handling Humidity and Temp
 
-We want to summarize humidity and temp in a way that allows us to incorporate it into our model. As of 2/23, I'm thinking the best way to do this is to take means per survey date
+We want to summarize humidity and temp in a way that allows us to incorporate it into our model. As of 2/23, I'm thinking the best way to do this is to take means per survey date.
 
 Let's take the mean vals per date
 
