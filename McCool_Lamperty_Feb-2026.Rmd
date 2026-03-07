@@ -433,11 +433,18 @@ Get temperature data reformatted. We took these readings every 30 min and also e
 # First, let's add column to differentiate by season (2024 or 2025)
 enviro$Season <- factor(format(enviro$Start_Date, "%Y"))
 
-temperature_long <- enviro %>%
+# pull out per data record enviro data from snake.sur
+
+env_at_detection <- snakes.sur %>%
+  select(Station, Start_Date, Temperature_at_Time_of_Detection, Humidity_at_Time_of_Detection) %>% na.omit()
+
+enviro2 <- left_join(enviro, env_at_detection)
+
+temperature_long <- enviro2 %>%
   select(Survey_Start_Date_Time, Station, Season, Parent_Trail_LongName, 
-         Temperature_1:Temperature_7, Temperature_Final) %>%
+         Temperature_1:Temperature_7, Temperature_Final, Temperature_at_Time_of_Detection) %>%
   pivot_longer(names_to = "Measurement",
-               cols = Temperature_1:Temperature_Final,
+               cols = Temperature_1:Temperature_at_Time_of_Detection,
                values_to = "Temperature", names_repair = "unique")
 # remove NAs
 
@@ -485,7 +492,7 @@ rm(temp.fig)
 ```
 
 ```{r clean after temp}
-rm(sim, temp.mean.se, temp.mod, temperature.hist)
+rm(temp.mean.se, temperature.hist)
 ```
 
 ## Humidity
@@ -496,11 +503,11 @@ Get temperature data reformatted. We took these readings every 30 min and also e
 
 ```{r reformat humidity}
 
-humidity_long <- enviro %>%
+humidity_long <- enviro2 %>%
   select(Survey_Start_Date_Time, Station, Season, Parent_Trail_LongName, 
-         Humidity_1:Humidity_7, Humidity_Final) %>%
+         Humidity_1:Humidity_7, Humidity_Final, Humidity_at_Time_of_Detection) %>%
   pivot_longer(names_to = "Measurement",
-               cols = Humidity_1:Humidity_Final,
+               cols = Humidity_1:Humidity_at_Time_of_Detection,
                values_to = "Humidity", names_repair = "unique")
 # remove NAs
 
@@ -551,7 +558,7 @@ hum.fig
 #rm(hum.fig)
 ```
 
-#
+
 ```{r clean env after hum}
 rm(hum.fig, hum.mean.se, humidity.hist)
 ```
@@ -562,7 +569,7 @@ We want to summarize humidity and temp in a way that allows us to incorporate it
 
 Let's take the mean vals per date
 
-```{r temp hum means}
+```{r temp hum means} 
 
 temp_date_means <- temperature_long %>%
   na.omit() %>%
@@ -587,21 +594,21 @@ rm(temperature_long, humidity_long, temp_date_means, hum_date_means, understory_
 
 ## Density estimates
 
-Look at density estimates overall and by diet type. 
+First, create distance bins. Also look at some things.
 
-First, create distance bins. 
+```{r review data more} 
 
-```{r make bins}
+# pull out year to make a way to distinguish between seasons
+
+snakes.sur$Year <- factor(format(snakes.sur$Start_Date, "%Y"))
 
 snakes.sur %>%
   group_by(Year, Station) %>%
-    reframe(N_surveys = length(unique(Start_Date))) #Effort comparisons between stations (WHERE DID 'EFFORT' GO FROM snakes.sur)
+    reframe(N_surveys = length(unique(Start_Date))) #Effort comparisons between stations
 
 enviro %>%
   group_by(Season, Station) %>%
     reframe(Accum_hrs = sum(Effort_hrs))
-
-# FIND LIT FOR DISTANCE SAMPLING IN TROPICAL FORESTS (OWEN -see my note below)
 
 # THIS IS WHAT I'VE FOUND (THERESE) 
 #Deciding on distance bins in distance sampling involves selecting cutpoints that adequately capture the shape of the detection function, typically ensuring more bins near the line (where detection probability changes rapidly) and fewer further away. The goal is to minimize bias from data rounding while ensuring enough observations per bin for accurate model fitting. 
@@ -618,7 +625,7 @@ hist(snakes.sur$Distance_From_Trail_m, breaks = seq(0, 12, by = 0.5))
 
 Proceed with specifying bins and truncating the data to remove the 11.5m away detection.
 
-```{r divide up bins}
+```{r divide up bins} 
 
 snakes.sur <- snakes.sur %>%
   mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 0.25, "0_0.25", NA))
@@ -652,9 +659,6 @@ snakes.sur <- left_join(snakes.sur, temp_hum_df)
 ```
 
 ```{r format for unmarked}
-# pull out year to make a way to distinguish between seasons
-
-snakes.sur$Year <- factor(format(snakes.sur$Start_Date, "%Y"))
 
 # isolate surveys for which no snakes were found
 zeros <- snakes.sur %>%
@@ -713,7 +717,7 @@ density_est_df[9:17][is.na(density_est_df[9:17])] <- 0
 rm(survey.tally, surveys.no.zeros, z.tallies, zeros)
 ```
 
-```{r density estimation}
+```{r density estimation} 
 
 # Package things up into an unmarkedFrame 
 
@@ -729,40 +733,36 @@ hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
 ```
 
-```{r density est mods}
+### Mods without Env
+
+First compare models based on AIC without worrying about temperature and humidity.
+
+```{r density models no env covs}
 
 # Fit model 1, null model
-# What model fits the best
 
 null <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
 
-summary(null)
-
 # Mod 2
-year.det <- distsamp(~ Year ~ 1, umf, unitsOut = "kmsq")
-
-summary(year.det)
+Year <- distsamp(~ 1 ~ Year, umf, unitsOut = "kmsq")
 
 # Mod 3
 
-year.det.den <- distsamp(~ Year ~ Year, umf, unitsOut = "kmsq")
-
-summary(year.det.den)
+Year_Station <- distsamp(~1 ~ Year + Station, umf, unitsOut = "kmsq")
 
 # Mod 4
-station <- distsamp(~Year ~ Year + Station, umf, unitsOut = "kmsq")
-
-summary(station)
+Year_Station_StationXGuild <- distsamp(~1 ~ Year + Station/Diet_Type, umf, unitsOut = "kmsq")
 
 # Mod 5
-stationXdiet_type <- distsamp(~Year ~ Year + Station/Diet_Type, umf, unitsOut = "kmsq")
+Station <- distsamp(~1 ~ Station, umf, unitsOut = "kmsq")
 
-summary(stationXdiet_type)
+# Mod 7
+Station_StationXGuild <-distsamp(~1 ~ Station/Diet_Type, umf, unitsOut = "kmsq")
 
 # Make a table to compare models
 
 # put mods in a list
-mod.set.1 <- list(null = null, year.det = year.det, year.det.den = year.det.den, huntingXguild.year = stationXdiet_type)
+mod.set.1 <- list(null = null, Year = Year, Year_Station = Year_Station, Year_Station_StationXGuild = Year_Station_StationXGuild, Station_StationXGuild = Station_StationXGuild, Station = Station)
 
 # make table
 aic_table.1 <- aictab(cand.set = mod.set.1, sort = TRUE)
@@ -772,9 +772,9 @@ aic_table.1
 
 Clear best fit model of year, station, diet type
 
-### Humidity and Temperature
+### Mods with env covs
 
-Just to be sure, let's look at how humidity and temperature affect model AIC values. 
+Let's look at how humidity and temperature affect model AIC values. 
 
 ```{r density est mods hum and temp}
 
@@ -796,48 +796,73 @@ covs.shortened <- density_est_df.shortened[,c("Station", "Diet_Type", "Year", "S
 
 umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:17]), siteCovs=data.frame(covs.shortened), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs.shortened$Seg_dist_m)
 
-# null with shortened df
+# Fit model 1, null model
+
 null2 <- distsamp(~1 ~ 1, umf.shortened, unitsOut = "kmsq")
 
-# mod 1
-yr.det2 <- distsamp(~Year ~ 1, umf.shortened, unitsOut = "kmsq")
+# Mod 2
+Year2 <- distsamp(~ 1 ~ Year, umf.shortened, unitsOut = "kmsq")
 
-# mod 2
-yr.det.den2 <- distsamp(~Year ~ Year, umf.shortened, unitsOut = "kmsq")
+# Mod 3
 
-# mod 3 
-yr.temp <- distsamp(~Year ~ Year + temp_scaled, umf.shortened, unitsOut = "kmsq")
+Year_Station2 <- distsamp(~1 ~ Year + Station, umf.shortened, unitsOut = "kmsq")
 
-yr.station <- distsamp(~Year ~ Year + Station, umf.shortened, unitsOut = "kmsq")
+# Mod 4
+Year_Station_StationXGuild2 <- distsamp(~1 ~ Year + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
 
-yr.temp.station <- distsamp(~Year ~ Year + temp_scaled + Station, umf.shortened, unitsOut = "kmsq")
+# Mod 5
 
-yr.temp.station.guild <- distsamp(~Year ~ Year + temp_scaled + Diet_Type*Station, umf.shortened, unitsOut = "kmsq")
+Station2 <- distsamp(~1 ~ Station, umf.shortened, unitsOut = "kmsq")
 
-yr.temp.hum.station.guild <- distsamp(~Year ~ Year + temp_scaled + Diet_Type*Station + hum_scaled, umf.shortened, unitsOut = "kmsq")
+# Mod 7
+Station_StationXGuild2 <-distsamp(~1 ~ Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+
+# Mod 8
+# Substitute temperature for year
+Temp_Station_StationXGuild <- distsamp(~1 ~ temp_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+
+# Mod 9
+# Substitute humidity for year
+Humid_Station_StationXGuild <- distsamp(~1 ~ hum_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+
+# Mod 10
+# Temperature and year
+Temp_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + temp_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+
+# Mod 11
+# Humidity and year
+Humid_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+
+# Mod 12
+# Humidity, Temp, Year (and Station and Station x Diet type)
+Humid_Yr_Temp_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + temp_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+
+# Make a table to compare models
 
 # put mods in a list
-mod.set.2 <- list(null = null2, yr.det = yr.det2, yr.det.den = yr.det.den2, yr.station = yr.station, yr.temp.station = yr.temp.station, yr.temp.station.guild = yr.temp.station.guild, yr.temp.hum.station.guild = yr.temp.hum.station.guild)
-
+mod.set.2 <- list(null = null2, Year = Year2, Year_Station = Year_Station2, Year_Station_StationXGuild = Year_Station_StationXGuild2, Station_StationXGuild = Station_StationXGuild2, Station = Station2, Temp_Station_StationXGuild = Temp_Station_StationXGuild, Humid_Station_StationXGuild = Humid_Station_StationXGuild, Temp_Yr_Stn_StnXGuild = Temp_Yr_Stn_StnXGuild, Humid_Yr_Temp_Stn_StnXGuild = Humid_Yr_Temp_Stn_StnXGuild)
 
 # make table
 aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
 
 aic_table.2
 
-# so the top model includes temperature, station, year, and an interaction between station and dietary guild. This needs to be rechecked.
-
-summary(yr.temp.station.guild)
-
 ```
-So the top model includes temperature, station, year, and an interaction between station and dietary guild.
+So the top model is Temp_Yr_Stn_StnXGuild which includes temperature, station, year, and an interaction between station and dietary guild.
+
+### Evaluate Model Fit
 
 ### Predictions
+
+This should include:
+(1) a predicted density per hunted and unhunted forest
+(2) a predicted density per guild per hunted and unhunted forest
+
+Unclear if this needs to be per year or not.
 
 ```{r model pred}
 
 density_est_df.shortened$temp_scaled.constant <- 0
-
 
 density_est_df.shortened$year.constant <- "2025"
 
