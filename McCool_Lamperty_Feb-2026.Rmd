@@ -883,6 +883,8 @@ p3
 
 ### Mods with env covs
 
+T NOTE TO SELF PICK UP HERE 3/7
+
 Let's look at how humidity and temperature affect model AIC values. 
 
 ```{r density est mods hum and temp}
@@ -957,58 +959,14 @@ aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
 aic_table.2
 
 ```
-So the top model is Temp_Yr_Stn_StnXGuild which includes temperature, station, year, and an interaction between station and dietary guild.
 
-### Evaluate Model Fit
+Goodness of fit
 
-### Predictions
+Model predictions
 
-This should include:
-(1) a predicted density per hunted and unhunted forest
-(2) a predicted density per guild per hunted and unhunted forest
-
-Unclear if this needs to be per year or not.
+Model Plots
 
 ```{r model pred}
-
-density_est_df.shortened$temp_scaled.constant <- 0
-
-density_est_df.shortened$year.constant <- "2025"
-
-newdata <- density_est_df.shortened %>%
-  group_by(Station, Diet_Type, temp_scaled) %>%
-  summarize(Station = unique(Station), Year = unique(Year), Diet_Type = unique(Diet_Type), temp_scaled = unique(temp_scaled))
-
-predicted <- predict(yr.temp.station.guild, type="state", newdata=newdata,
-    appendData=TRUE)
-
-snk.fig2 <- ggplot(predicted, aes(x=Diet_Type, y=Predicted, color = Station, group = Station, shape = Year)) + 
-  geom_errorbar(aes(ymin=Predicted-SE, ymax=Predicted+SE), width=.2, position = position_dodge(width = .4)) + geom_point(aes(color = Station, shape = Year), size = 3.5, position = position_dodge(width = .4)) + theme_bw() +
-  theme(legend.title=element_blank(), legend.position = "right") + scale_color_manual(values = c("TBS" = "darkgray", "YRS" = "black"), labels = c("TBS" = "Unhunted", "YRS" = "Hunted")) + scale_x_discrete(labels = c("no_mammals" = "Non-mammal eaters", "includes_mammals" = "Mammal eaters")) + ylab(expression("Individuals per km"^2*"")) + xlab("") + ggtitle("Estimated snake density by feeding guild\n hunted and unhunted sites") + theme(axis.text = element_text(color = "black", size = 10)) +
-  theme(plot.title = element_text(hjust = 0.5))
-
-snk.fig2
-
-#ggsave(snk.fig2, file="snk_predicted_density_2024-2025.png", width = 6,  height = 4)
-
-# temp pattern
-
-newdata2 <- density_est_df.shortened %>%
-  group_by(Station, Diet_Type, Year, temp_scaled) %>%
-  summarize(Station = unique(Station), Year = 2024, Diet_Type = unique(Diet_Type), temp_scaled = unique(temp_scaled))
-
-predicted <- predict(yr.temp.station.guild, type="state", newdata=newdata,
-    appendData=TRUE)
-
-ggplot(predicted, aes(x=temp_scaled, y=Predicted, color = Station, group = Station, shape = Diet_Type)) + 
-  geom_errorbar(aes(ymin=Predicted-SE, ymax=Predicted+SE), width=.2, position = position_dodge(width = .4)) + geom_point(aes(color = Station), size = 3.5, position = position_dodge(width = .4)) + theme_bw() +
-  theme(legend.title=element_blank(), legend.position = "right") + scale_color_manual(values = c("TBS" = "darkgray", "YRS" = "black"), labels = c("TBS" = "Unhunted", "YRS" = "Hunted")) + ylab(expression("Individuals per km"^2*"")) + ggtitle("Estimated snake density by feeding guild\n hunted and unhunted sites") + theme(axis.text = element_text(color = "black", size = 10)) +
-  theme(plot.title = element_text(hjust = 0.5))
-
-snk.fig2
-
-#ggsave(snk.fig2, file="snk_predicted_density_2024-2025.png", width = 6,  height = 4)
-
 
 ```
 
