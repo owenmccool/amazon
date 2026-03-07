@@ -770,7 +770,116 @@ aic_table.1 <- aictab(cand.set = mod.set.1, sort = TRUE)
 aic_table.1
 ```
 
-Clear best fit model of year, station, diet type
+Lowest AIC model has fixed terms of year, station, and the interaction between station and diet type
+
+```{r goodness of fit without env covs}
+
+# using this resource: https://www.montana.edu/screel/teaching/bioe-440r-521/bioe-440-distance-sampling.html
+
+# Goodness of fit test: good fit if results of these tests show p > 0.05. First, fit a model: use your best-supported model (Lowest AIC). Then check GOF for that model.
+
+Year_Station_StationXGuild
+
+# Function returning three fit-statistics.
+
+fitstats <- function(fm) {
+
+  observed <- getY(fm@data)
+
+  expected <- fitted(fm)
+
+  resids <- residuals(fm)
+
+  sse <- sum(resids^2)
+
+  chisq <- sum((observed - expected)^2 / expected)
+
+  freeTuke <- sum((sqrt(observed) - sqrt(expected))^2)
+
+  out <- c(SSE=sse, Chisq=chisq, freemanTukey=freeTuke)
+
+  return(out)
+
+}
+
+
+
+pb <- parboot(Year_Station_StationXGuild, fitstats, nsim=25, report=1)
+
+pb
+
+# from my not thorough understanding of this, the tests indicate or top model passes goodness of fit tests. 
+```
+
+
+```{r extract predicted values without env vars}
+
+new.data1 <- density_est_df %>%
+  ungroup() %>%
+  dplyr::select(Station, Year, Diet_Type) %>%
+  distinct()
+  
+#Predict
+
+predictions1 <- predict(Year_Station_StationXGuild, type="state", newdata=new.data1, appendData=TRUE)
+
+predictions1  
+
+```
+
+```{r plot without env covs, warning=FALSE}
+
+p1<-ggplot(predictions1, aes(x=Station, y=Predicted, fill = Year, group = Station)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by year and diet type") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12)) + facet_wrap(~Diet_Type)
+p1
+```
+
+Repeat without year because of the added difficulty that brings to interpretation AND it's not a hypothesis we're testing. We don't expect snakes to vary between years and in the second year, effort was higher, which I believe is reflected by the smaller error bars for 2025.
+
+```{r assess mod fit without year}
+# this model only has station and the station x diet type interaction. 
+
+pb2 <- parboot(Station_StationXGuild, fitstats, nsim=25, report=1)
+
+pb2 # is okay based on these tests
+
+```
+
+```{r extract predictions without year}
+new.data2 <- density_est_df %>%
+  ungroup() %>%
+  dplyr::select(Station, Diet_Type) %>%
+  distinct()
+  
+#Predict
+
+predictions2 <- predict(Station_StationXGuild, type="state", newdata=new.data2, appendData=TRUE)
+
+predictions2
+
+```
+Plot predictions from model without Year included
+
+```{r plot without year}
+
+p2<-ggplot(predictions2, aes(x=Station, y=Predicted, fill = Diet_Type, group = Diet_Type)) + geom_line(linetype = "dashed", position = position_dodge(width = 0.5))+
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type") + labs(fill = "Diet type") + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12))
+
+p2
+
+# without connector line
+
+p3<-ggplot(predictions2, aes(x=Station, y=Predicted, fill = Diet_Type, group = Diet_Type)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type") + labs(fill = "Diet type") + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12))
+
+p3
+```
 
 ### Mods with env covs
 
