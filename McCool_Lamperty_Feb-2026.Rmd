@@ -1116,62 +1116,45 @@ ggplot(predictions_temp.constant.no.yr, aes(x=Station, y=Predicted, fill = Diet_
 
 Okay I feel pretty confident we can say even when year and temperature are controlled for, we find the same trends with our data. 
 
+# Community composition
 
-## Occurrence Matrices
+### Occurrence Matrices
 
-NOTE- T KIND OF SCRAMBLED THIS SECTION AS OF 2/19/2026
+### Species. Surveys only.
 
-```{r occ mat diet}
+```{r species surv occ mat}
 
-# edge list - df without zeros
-snake.diet.tally <- surveys.no.zeros %>%
-  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m) %>% tally()
+snakes.sur <- snakes.sur %>%
+  separate(Species, c("Genus", "Species"), sep="_")
 
-# pivot wider
-diet.tally.wider <- snake.diet.tally %>% 
-  pivot_wider(names_from = Diet_Type,
+# now, use dplyr (tidyverse) functions to aggregate the data
+edgelist_species <- snakes.sur %>%
+  group_by(Start_Date, Station, Species, Segment) %>% tally()
+
+edgelist_genus <- edgelist_genus %>%
+  na.omit()
+
+# make an extra column that has the station ID and trail walked and date, separated by //
+
+edgelist_genus$st.date.meters <- paste(edgelist_genus$Station, edgelist_genus$Start_Date, edgelist_genus$Meters, sep = "//")
+
+snk.sur.mat_genus <- edgelist_genus %>% 
+  pivot_wider(names_from = Genus, #takes species column values and pivots it 'wider' (ow each species its own column)
               values_from = n, 
-              values_fill = 0)
+              values_fill = 0) %>%
+  column_to_rownames(var = "st.date.meters") #put messy // column and keep it with each snake record
 
-# now, we can add the surveys and the segments with zero detections back
+# rows should be number of surveys where more than zero snakes detected 
 
-diet_df1 <- full_join(z.tallies, diet.tally.wider)
+snk.sur.mat_genus <- left_join(Date_Meters, snk.sur.mat_genus)
 
-z.tallies <- z.tallies %>%
-  as.data.frame() %>%
-  select(!Diet_Type)
+snk.sur.mat_genus[is.na(snk.sur.mat_genus)] <- 0 #populate NAs with zeros
 
-diet_df2 <- full_join(z.tallies, diet.tally.wider)
-
-# make NAs zeros
-diet_df[is.na(diet_df)] <- 0
-
-# wait switch back
-diet_df_long <- diet_df %>%
-  pivot_longer(names_to = "Diet_Type",
-               cols = c("no_mammals", 
-                        "includes_mammals"), 
-               values_to = "Number") 
-diet_df_long$Number_1km <- (diet_df_long$Number/diet_df_long$Seg_dist_m)*1000
-
-diet.mean.se <- diet_df_long %>%
-  group_by(Station, Diet_Type) %>%
-  summarise(mean = mean(Number_1km),
-            sd = sd(Number_1km),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-quick.plot <- ggplot(diet.mean.se, aes(x=Station, y=mean, fill = Diet_Type)) + theme_bw() +
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se)) + geom_point(pch = 21) + ylab("Individuals") + ggtitle("Snakes detected per diet type")
-
-quick.plot
 ```
 
 ## Genera from surveys
 
 ```{r genus occurrence mat}
-
-
 
 snakes.sur <- snakes.sur %>%
   separate(Species, c("Genus", "Species"), sep="_")
