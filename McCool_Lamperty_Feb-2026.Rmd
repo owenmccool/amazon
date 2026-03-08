@@ -717,6 +717,9 @@ density_est_df[9:17][is.na(density_est_df[9:17])] <- 0
 rm(survey.tally, surveys.no.zeros, z.tallies, zeros)
 ```
 
+Note I think it's a good idea to follow the methods in this paper: Hierarchical distance sampling to estimate population sizes of common lizards across a desert ecoregion (in Zotero shared library)
+
+
 ```{r density estimation} 
 
 # Package things up into an unmarkedFrame 
@@ -771,6 +774,16 @@ aic_table.1
 ```
 
 Lowest AIC model has fixed terms of year, station, and the interaction between station and diet type
+
+```{r best model without env vars}
+
+summary(Year_Station_StationXGuild)
+summary(Station_StationXGuild)
+
+# Get coefficients for covariate effects (on log scale)
+
+coef(Year_Station_StationXGuild)
+```
 
 ```{r goodness of fit without env covs}
 
@@ -881,15 +894,20 @@ p3<-ggplot(predictions2, aes(x=Station, y=Predicted, fill = Diet_Type, group = D
 p3
 ```
 
-### Mods with env covs
+Clean plots and the other models from above and some other misc things
 
-T NOTE TO SELF PICK UP HERE 3/7
+```{r clean plots and mods part one}
+rm(new.data1, new.data2, null, p1, p2, p3, pb, pb2, Station, umf, covs, env_at_detection, enviro2, temp_hum_df, Year, Year_Station, Year_Station_StationXGuild, und.mean.se, under.hist, segs_expanded, segs, mod.set.1)
+
+```
+
+### Mods with env covs
 
 Let's look at how humidity and temperature affect model AIC values. 
 
 ```{r density est mods hum and temp}
 
-# HUMIDITY AND TEMP INCLUSION
+# HUMIDITY AND TEMPERATURE INCLUSION
 
 # The AIC of the models below can't be compared with mods 1-4 above bc of the NA removal necessary to include the humidity and the temperature data
 
@@ -906,6 +924,9 @@ density_est_df.shortened$hum_scaled <-as.numeric(scale(density_est_df.shortened$
 covs.shortened <- density_est_df.shortened[,c("Station", "Diet_Type", "Year", "Segment", "Seg_dist_m", "temp_scaled", "hum_scaled")]
 
 umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:17]), siteCovs=data.frame(covs.shortened), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs.shortened$Seg_dist_m)
+```
+
+```{r now structure and compare models}
 
 # Fit model 1, null model
 
@@ -959,20 +980,141 @@ aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
 aic_table.2
 
 ```
+So.... we can look at *Temp_Yr_Stn_StnXGuild* (top mod based on AIC), which has a lower AIC than the model that only includes Year, Station, and the Station x Guild interaction (dAIC = 2.95 between those two models). That difference in AIC values indicates that Temperature could be an important covariate to consider. However, when year is not used (which I'm like 99% sure is what we want for testing our specific hypotheses which have nothing to do with differences between years, between which sampling effort differed), then **temperature does not improve model fit** and actually makes it a tad worse: *Station_StationXGuild* AIC = 700.86, *Temp_Station_StationXGuild* = 701.39 (dAIC = 0.53) (all of which perform better than the null by a lot). 
 
-Goodness of fit
+Assuming the three models above pass GOF tests, we probably want to report all 3 of them in the supplementary materials, along with the top model from the non-shortened dataset that didn't consider env covs (the section above this one) which includes year. This would be to show that we checked and confirmed results were relatively consistent, but we I think it probably makes sense to stick with reporting the results from the Station_StationXGuild model from the first set of tests in the main paper (so the mod that incorporates all data collected, rather than the one that has shortened data to accommodate for the NAs for the missing temp and humidity data on some surveys).
 
-Model predictions
 
-Model Plots
+Okay moving on, look at GOF (Goodness of fit)
 
-```{r model pred}
+```{r GOF env covs and shortened df mods}
+
+# GOF for top model from above (Temp_Yr_Stn_StnXGuild)
+Temp_Yr_Stn_StnXGuild_GOF <- parboot(Temp_Yr_Stn_StnXGuild, fitstats, nsim=25, report=1)
+
+Temp_Yr_Stn_StnXGuild_GOF
+# again, based on my not great understanding of this, it passes
+
+# GOF for Station_StationXGuild
+Station_StationXGuild_GOF <- parboot(Station_StationXGuild, fitstats, nsim=25, report=1)
+
+Station_StationXGuild_GOF # passes. I think something is up with the ChiSq part of this though for all the GOF tests I've run with this function tbh
+
+# clean
+rm(Station_StationXGuild_GOF, Temp_Yr_Stn_StnXGuild_GOF)
+
+# one last GOF test using the temp and station and stationxguild model without year (which doesn't perform as well as the model that leaves both temp and year out)
+
+bp<-Temp_Station_StationXGuild_GOF <- parboot(Temp_Station_StationXGuild, fitstats, nsim=25, report=1)
+
+bp
+
+```
+
+Model predictions - first looking at *Temp_Yr_Stn_StnXGuild*
+
+```{r mod predictions temp}
+# new data frame for prediction extraction, first, look at trend with temperature because I'm curious
+new.data.temp.continuous <- density_est_df.shortened %>%
+  ungroup() %>%
+  dplyr::select(Station, Diet_Type, Year, temp_scaled) %>%
+  distinct()
+
+
+#Predict
+
+predictions_temp <- predict(Temp_Yr_Stn_StnXGuild, type="state", newdata=new.data.temp.continuous, appendData=TRUE)
+
+predictions_temp 
+```
+
+Plot trend with temp based on model with year (which has 2024 predictions that are wack)
+
+```{r temp trend model with year}
+
+# trend exists in both guilds, fewer detections when hotter (not what I'd expect but I guess it's always kinda hot there)
+
+p1 <-ggplot(predictions_temp, aes(x=temp_scaled, y=Predicted, fill = Diet_Type))  + geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE)) +
+geom_point(pch = 21, size = 2) + theme_bw() + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates and temperature") + scale_fill_manual(values = c("darkred", "lightgreen"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) 
+
+p1
+
+# omit 2024 data
+
+p2 <- predictions_temp %>%
+  filter(Year == "2025") %>%
+  ggplot(aes(x=temp_scaled, y=Predicted, fill = Diet_Type))  + geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE)) +
+geom_point(pch = 21, size = 2) + theme_bw() + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates and temperature") + scale_fill_manual(values = c("darkred", "lightgreen"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) 
+
+p2
+```
+
+Okay cool well I'm satisfied. It appears that temperature has a slight negative effect on detections. Now I guess we need to check to make sure our results are still the same when temperature is included in the model.
+
+
+```{r mod predictions yr station stationxguild}
+
+# new data frame, hold temp constant at mean
+temp_mean <- mean(density_est_df.shortened$temp_scaled) # get mean temp (scaled)
+
+new.data.temp.constant <-density_est_df.shortened %>% # isolate covariates in new df
+  ungroup() %>%
+  dplyr::select(Station, Diet_Type, Year) %>%
+  distinct()
+
+new.data.temp.constant$temp_scaled <- temp_mean # insert mean for temp (needs to have same name as cov when entered in umf, hence 'temp_scaled')
+
+#Predict with temp held constant at mean
+
+predictions_temp.constant <- predict(Temp_Yr_Stn_StnXGuild, type="state", newdata=new.data.temp.constant, appendData=TRUE)
+
+predictions_temp.constant 
+```
+
+Plot
+
+```{r plot with temp held constant}
+
+ggplot(predictions_temp.constant, aes(x=Station, y=Predicted, fill = Diet_Type, group = Diet_Type)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type\n using model that accounts for temperature") + labs(fill = "Diet type") + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12)) + geom_line(linetype = "dashed", position = position_dodge(width = 0.5)) + facet_wrap(~Year, scales = "free")
 
 ```
 
 
+Okay great things are looking consistent. Now lets do this with the model that accounts for temperature but not for year (which... technically does not perform better based on AIC when compared to the model that omits temperature and year).
 
+```{r mod predictions no year yes temp}
 
+# new data frame, hold temp constant at mean
+temp_mean <- mean(density_est_df.shortened$temp_scaled) # get mean temp (scaled)
+
+new.data.temp.constant.no.yr <-density_est_df.shortened %>% # isolate covariates in new df
+  ungroup() %>%
+  dplyr::select(Station, Diet_Type) %>%
+  distinct()
+
+new.data.temp.constant.no.yr$temp_scaled <- temp_mean # insert mean for temp (needs to have same name as cov when entered in umf, hence 'temp_scaled')
+
+#Predict with temp held constant at mean
+
+predictions_temp.constant.no.yr <- predict(Temp_Station_StationXGuild, type="state", newdata=new.data.temp.constant.no.yr, appendData=TRUE)
+
+```
+
+And plot it
+
+```{r plot no year yes temp}
+
+ggplot(predictions_temp.constant.no.yr, aes(x=Station, y=Predicted, fill = Diet_Type, group = Diet_Type)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type\n using model that accounts for temperature") + labs(fill = "Diet type") + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12)) + geom_line(linetype = "dashed", position = position_dodge(width = 0.5)) 
+
+```
+
+Okay I feel pretty confident we can say even when year and temperature are controlled for, we find the same trends with our data. 
 
 
 ## Occurrence Matrices
