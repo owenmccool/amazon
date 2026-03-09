@@ -832,6 +832,7 @@ new.data1 <- density_est_df %>%
   dplyr::select(Station, Year, Diet_Type) %>%
   distinct()
   
+
 #Predict
 
 predictions1 <- predict(Year_Station_StationXGuild, type="state", newdata=new.data1, appendData=TRUE)
@@ -928,6 +929,8 @@ umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:17]), s
 
 ```{r now structure and compare models}
 
+# set levels here
+
 # Fit model 1, null model
 
 null2 <- distsamp(~1 ~ 1, umf.shortened, unitsOut = "kmsq")
@@ -936,7 +939,6 @@ null2 <- distsamp(~1 ~ 1, umf.shortened, unitsOut = "kmsq")
 Year2 <- distsamp(~ 1 ~ Year, umf.shortened, unitsOut = "kmsq")
 
 # Mod 3
-
 Year_Station2 <- distsamp(~1 ~ Year + Station, umf.shortened, unitsOut = "kmsq")
 
 # Mod 4
@@ -979,7 +981,12 @@ aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
 
 aic_table.2
 
+summary(Temp_Yr_Stn_StnXGuild)
 ```
+
+Can explore changing baseline in model.
+
+
 So.... we can look at *Temp_Yr_Stn_StnXGuild* (top mod based on AIC), which has a lower AIC than the model that only includes Year, Station, and the Station x Guild interaction (dAIC = 2.95 between those two models). That difference in AIC values indicates that Temperature could be an important covariate to consider. However, when year is not used (which I'm like 99% sure is what we want for testing our specific hypotheses which have nothing to do with differences between years, between which sampling effort differed), then **temperature does not improve model fit** and actually makes it a tad worse: *Station_StationXGuild* AIC = 700.86, *Temp_Station_StationXGuild* = 701.39 (dAIC = 0.53) (all of which perform better than the null by a lot). 
 
 Assuming the three models above pass GOF tests, we probably want to report all 3 of them in the supplementary materials, along with the top model from the non-shortened dataset that didn't consider env covs (the section above this one) which includes year. This would be to show that we checked and confirmed results were relatively consistent, but we I think it probably makes sense to stick with reporting the results from the Station_StationXGuild model from the first set of tests in the main paper (so the mod that incorporates all data collected, rather than the one that has shortened data to accommodate for the NAs for the missing temp and humidity data on some surveys).
@@ -1084,6 +1091,11 @@ ggplot(predictions_temp.constant, aes(x=Station, y=Predicted, fill = Diet_Type, 
 
 
 Okay great things are looking consistent. Now lets do this with the model that accounts for temperature but not for year (which... technically does not perform better based on AIC when compared to the model that omits temperature and year).
+
+What to report?
+Morgan says betas and 95% CIs, or SE (for comparison) - everything log likelihood.
+
+
 
 ```{r mod predictions no year yes temp}
 
