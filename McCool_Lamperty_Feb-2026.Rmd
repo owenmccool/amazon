@@ -192,9 +192,7 @@ small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted
 snakes.sur <- snakes.sur %>%
   rename(Segment = Location)
 
-snakes.sur <- left_join(segments_master, snakes.sur)
-
-# OWEN - we should spot check this to verify that this has all the observations that it should
+snakes.sur <- left_join(segments_master, snakes.sur) #PROBLEM RIGHT HERE THERESE 
 
 # remove some columns that are duplicated and kind of confusing now
 
