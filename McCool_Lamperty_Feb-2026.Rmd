@@ -425,17 +425,17 @@ und.mean.se <- understory_long %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-und.fig <- ggplot(und.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = understory_long, aes( x = Station, y = Understory_leaves), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
+und.fig <- ggplot(und.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = understory_long, aes( x = Station, y = Understory_leaves), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
   scale_fill_manual(values = c("lightgreen","lightgreen")) + 
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Understory density") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
+  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Understory Density") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
 und.fig
 
-#ggsave(und.fig, file="understory-mean-se.png", width = 6,  height = 4)
+ggsave(und.fig, file="understory-mean-se.png", width = 6,  height = 4)
 
-rm(und.fig)
+# rm(und.fig)
 ```
 
 ### Und Model
