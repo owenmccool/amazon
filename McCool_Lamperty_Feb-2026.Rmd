@@ -191,13 +191,50 @@ small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted
 # add segment lengths to snake sur df
 snakes.sur <- snakes.sur %>%
   rename(Segment = Location)
+```
 
-snakes.sur <- left_join(segments_master, snakes.sur) #PROBLEM RIGHT HERE THERESE 
+```{r check and fix tricky join}
 
-# remove some columns that are duplicated and kind of confusing now
+length(unique(segments_master$Segment)) # 89 unique segments surveyed
+length(unique(segments_master$Start_Date)) #61 surveys
 
-snakes.sur <- snakes.sur %>%
-  select(!c(Date, Trail_Walked))
+snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Segment)) # snakes were found on 46 of them
+
+snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 101 snakes found
+
+length(unique(snakes.sur$Start_Date)) #60, what date is in segments master but not in snakes.sur?
+
+missing_startdate <- anti_join(segments_master, snakes.sur, by = "Start_Date")
+ 
+# MAPO-01 MAPO-02 HARP-01 on 2024-06-21 is in segments master but not snakes.sur. Do we know why?
+
+# okay so do we have distances for all segments snakes were found on?
+
+#missing_segs <- anti_join(segments_master, snakes.sur, by = "Segment")
+# 157 instances of segments being surveyed and no snakes were found?
+
+# also, in theory, segments master has all the cases that a survey occurred, and so I can remove the cases of surveys with no snakes found from the snakes.sur dataframe before merging (double check with owen that this sounds right)
+
+snakes.sur.zeros.dropped <- snakes.sur %>%
+ filter(!is.na(Snake_ID))
+
+snakes.sur.zeros.dropped <- snakes.sur.zeros.dropped %>%
+  select(Start_Date, Station, Segment, Snake_ID, Distance_From_Trail_m, Diet_Type, Family, Genus, Species, Common_Name)
+
+snakes.sur <- full_join(segments_master, snakes.sur.zeros.dropped, relationship = "many-to-many")
+
+length(unique(snakes.sur$Segment)) # 89 unique segments surveyed
+
+length(unique(snakes.sur$Start_Date)) #61 surveys
+
+snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Segment)) # snakes were found on 46 of them
+
+snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 101 snakes found
+
+# all parts are here, problem fixed
+
+rm(snakes.sur.zeros.dropped, missing_startdate)
+
 ```
 
 # Data summaries
@@ -608,8 +645,7 @@ enviro %>%
   group_by(Season, Station) %>%
     reframe(Accum_hrs = sum(Effort_hrs))
 
-# THIS IS WHAT I'VE FOUND (THERESE) 
-#Deciding on distance bins in distance sampling involves selecting cutpoints that adequately capture the shape of the detection function, typically ensuring more bins near the line (where detection probability changes rapidly) and fewer further away. The goal is to minimize bias from data rounding while ensuring enough observations per bin for accurate model fitting. 
+# Deciding on distance bins in distance sampling involves selecting cutpoints that adequately capture the shape of the detection function, typically ensuring more bins near the line (where detection probability changes rapidly) and fewer further away. The goal is to minimize bias from data rounding while ensuring enough observations per bin for accurate model fitting. 
 
 # Smaller bins closer to zero
 
@@ -656,12 +692,38 @@ snakes.sur <- snakes.sur %>%
 snakes.sur <- left_join(snakes.sur, temp_hum_df)
 ```
 
+```{r divide up bins broader}
+
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1", NA))
+
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 2, "1_2", Distance_bin_m))
+
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2_3", Distance_bin_m))
+
+#snakes.sur <- snakes.sur %>%
+  #mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 4, "3_4", Distance_bin_m))
+
+#snakes.sur <- snakes.sur %>%
+#  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4 & Distance_From_Trail_m <= 5, "4_5", Distance_bin_m))
+
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
+
+# join temp and humidity means to the snakes.sur data
+#snakes.sur <- left_join(snakes.sur, temp_hum_df)
+
+```
+
 ```{r format for unmarked}
 
 # isolate surveys for which no snakes were found
 zeros <- snakes.sur %>%
   filter(is.na(Snake_ID)) %>%
   select(Start_Date, Year, Station, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent)
+
 # get them into the format we want (tally doesn't actually matter here)
 z.tally.no.mammals <- zeros %>%
   group_by(Start_Date, Year, Station, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
@@ -694,6 +756,12 @@ z.tallies <- z.tallies %>%
 surveys.no.zeros <- snakes.sur %>%
   filter(!is.na(Snake_ID))
 
+length(surveys.no.zeros2$Snake_ID) # SK04 and SK05 are duplicated
+# remove the duplicate entries
+# OWEN to go back and figure out where/why and remove earlier
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
 # tally counts - df without zeros
 survey.tally <- surveys.no.zeros %>%
   group_by(Start_Date, Year, Station, Diet_Type, Segment, Seg_dist_m, Distance_bin_m, mean_temp_F, mean_humidity_percent) %>% tally()
@@ -725,6 +793,13 @@ Note I think it's a good idea to follow the methods in this paper: Hierarchical 
 # Seasons
 # Feedback from Morgan indicates that combining years is not a problem in our case. We may want to explore incorporating year as a factor though. 
 
+density_est_df$Year <- as.factor(density_est_df$Year)
+density_est_df$Diet_Type <- as.factor(density_est_df$Diet_Type)
+density_est_df$Seg_dist_m <- as.numeric(density_est_df$Seg_dist_m)
+density_est_df$Segment <- as.factor(density_est_df$Segment)
+density_est_df$Station <- as.factor(density_est_df$Station)
+
+
 # separate out the covariates
 covs <- density_est_df[,c("Station", "Year", "Diet_Type", "Segment", "Seg_dist_m")]
 
@@ -741,6 +816,7 @@ First compare models based on AIC without worrying about temperature and humidit
 ```{r density models no env covs}
 
 # Fit model 1, null model
+# since fixing the mistake that lost some observations, we now get an error regareing vmmin not being finite. Royle seems a little mystified by this too in a similar example https://groups.google.com/g/unmarked/c/XreznyG1xo4
 
 null <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
 
