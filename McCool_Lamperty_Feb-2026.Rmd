@@ -127,7 +127,11 @@ enviro$Start_Date <- mdy(enviro$Start_Date)
 
 segments_master$Start_Date<-mdy(segments_master$Start_Date)
 segments_master$End_Date<-mdy(segments_master$End_Date)
+
 # modify diet type to be binary = eats mammals, does not eat mammals
+unique(snakes.master$Diet_Type)
+# keep original too
+snakes.master$Diet_Type_3categories <- snakes.master$Diet_Type
 
 # mixed = "includes mammals"
 snakes.master <- snakes.master %>%
@@ -211,15 +215,16 @@ missing_startdate <- anti_join(segments_master, snakes.sur, by = "Start_Date")
 # okay so do we have distances for all segments snakes were found on?
 
 #missing_segs <- anti_join(segments_master, snakes.sur, by = "Segment")
+
 # 157 instances of segments being surveyed and no snakes were found?
 
-# also, in theory, segments master has all the cases that a survey occurred, and so I can remove the cases of surveys with no snakes found from the snakes.sur dataframe before merging (double check with owen that this sounds right)
+# also, in theory, segments master has all the cases that a survey occurred, and so I can remove the cases of surveys with no snakes found from the snakes.sur dataframe before merging (double check with Owen that this sounds right)
 
 snakes.sur.zeros.dropped <- snakes.sur %>%
  filter(!is.na(Snake_ID))
 
 snakes.sur.zeros.dropped <- snakes.sur.zeros.dropped %>%
-  select(Start_Date, Station, Segment, Snake_ID, Distance_From_Trail_m, Diet_Type, Family, Genus, Species, Common_Name)
+  select(Start_Date, Station, Segment, Snake_ID, Distance_From_Trail_m, Diet_Type, Diet_Type_3categories, Family, Genus, Species, Common_Name, Temperature_at_Time_of_Detection, Humidity_at_Time_of_Detection)
 
 snakes.sur <- full_join(segments_master, snakes.sur.zeros.dropped, relationship = "many-to-many")
 
@@ -327,17 +332,16 @@ smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group 
   geom_jitter(data = small.mamms.temp, 
               aes(x = Station, y = smammals.hr), 
               width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small Mammal Detections by Station") +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small Mammal Detections in Hunted\nand Unhunted Forest") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
     legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
       hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
 
 smamm.fig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
-ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 6)
+#ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 6)
 
 rm(smams.mean.se, smamm.fig)
-
 ```
 
 ### Smamm Model
@@ -433,7 +437,7 @@ und.fig <- ggplot(und.mean.se, aes(x=Station, y=mean, fill = Station, group = St
 
 und.fig
 
-ggsave(und.fig, file="understory-mean-se.png", width = 6,  height = 4)
+#ggsave(und.fig, file="understory-mean-se.png", width = 6,  height = 4)
 
 # rm(und.fig)
 ```
@@ -692,32 +696,32 @@ snakes.sur <- snakes.sur %>%
 snakes.sur <- left_join(snakes.sur, temp_hum_df)
 ```
 
-```{r divide up bins broader}
+```{r divide up bins broader, eval = FALSE}
 
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1", NA))
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1", NA))
 
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 2, "1_2", Distance_bin_m))
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 2, "1_2", Distance_bin_m))
 
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2_3", Distance_bin_m))
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2_3", Distance_bin_m))
 
-#snakes.sur <- snakes.sur %>%
-  #mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 4, "3_4", Distance_bin_m))
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 4, "3_4", Distance_bin_m))
 
-#snakes.sur <- snakes.sur %>%
-#  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4 & Distance_From_Trail_m <= 5, "4_5", Distance_bin_m))
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4 & Distance_From_Trail_m <= 5, "4_5", Distance_bin_m))
 
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
 
 # join temp and humidity means to the snakes.sur data
-#snakes.sur <- left_join(snakes.sur, temp_hum_df)
+snakes.sur <- left_join(snakes.sur, temp_hum_df)
 
 ```
 
-```{r format for unmarked}
+```{r format for unmarked 2 diet types}
 
 # isolate surveys for which no snakes were found
 zeros <- snakes.sur %>%
@@ -756,9 +760,9 @@ z.tallies <- z.tallies %>%
 surveys.no.zeros <- snakes.sur %>%
   filter(!is.na(Snake_ID))
 
-length(surveys.no.zeros2$Snake_ID) # SK04 and SK05 are duplicated
+length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
 # remove the duplicate entries
-# OWEN to go back and figure out where/why and remove earlier
+
 surveys.no.zeros <- surveys.no.zeros %>%
   filter(!duplicated(Snake_ID))
 
@@ -783,6 +787,80 @@ density_est_df[9:17][is.na(density_est_df[9:17])] <- 0
 rm(survey.tally, surveys.no.zeros, z.tallies, zeros)
 ```
 
+```{r format for unmarked 3 diet types}
+
+# isolate surveys for which no snakes were found
+zeros.3.diets <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent)
+
+# get them into the format we want (tally doesn't actually matter here)
+z.tally.no.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
+
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
+
+# no mammals
+z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
+
+# mostly mammals
+z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
+
+z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
+
+# mixed
+
+# mixed
+z.tally.mixed.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
+
+z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
+
+# stack them together
+z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+#clean
+rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies.3 <- z.tallies.3 %>%
+  select(!n)
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally.3 <- surveys.no.zeros %>%
+  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, Distance_bin_m, mean_temp_F, mean_humidity_percent) %>% tally()
+
+# pivot wider that wider
+density_est_df.3 <- survey.tally.3 %>% 
+  pivot_wider(names_from = Distance_bin_m,
+              values_from = n, 
+              values_fill = 0)
+
+# now, we can add the surveys and the segments with zero detections back
+
+density_est_df.3 <- full_join(z.tallies.3, density_est_df.3)
+
+# make NAs zeros - except the temp and humidty NAs
+density_est_df.3[9:17][is.na(density_est_df.3[9:17])] <- 0
+
+# clean
+rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
+```
+
+
 Note I think it's a good idea to follow the methods in this paper: Hierarchical distance sampling to estimate population sizes of common lizards across a desert ecoregion (in Zotero shared library)
 
 
@@ -803,11 +881,29 @@ density_est_df$Station <- as.factor(density_est_df$Station)
 # separate out the covariates
 covs <- density_est_df[,c("Station", "Year", "Diet_Type", "Segment", "Seg_dist_m")]
 
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:17]), siteCovs=data.frame(covs), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:17]), siteCovs=data.frame(covs), dist.breaks=c(1, 1.5, 2, 2.5, 3, 3.5, 5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
 hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
 ```
+
+```{r repeat with 3 diet cats}
+
+density_est_df.3$Year <- as.factor(density_est_df.3$Year)
+density_est_df.3$Diet_Type_3categories <- as.factor(density_est_df.3$Diet_Type_3categories)
+density_est_df.3$Seg_dist_m <- as.numeric(density_est_df.3$Seg_dist_m)
+density_est_df.3$Segment <- as.factor(density_est_df.3$Segment)
+density_est_df.3$Station <- as.factor(density_est_df.3$Station)
+
+# separate out the covariates
+covs.3 <- density_est_df.3[,c("Station", "Year", "Diet_Type_3categories", "Segment", "Seg_dist_m")]
+
+umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,9:14]), siteCovs=data.frame(covs.3), dist.breaks=c(1, 1.5, 2, 2.5, 3, 3.5, 5), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
+
+hist(umf.3, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
+
+```
+
 
 ### Mods without Env
 
@@ -847,7 +943,7 @@ aic_table.1 <- aictab(cand.set = mod.set.1, sort = TRUE)
 aic_table.1
 ```
 
-Lowest AIC model has fixed terms of year, station, and the interaction between station and diet type
+Year doesn't actually matter (much)! Only improves fit slightly. Our top fit model simpliest model actually matches our prediction: station as a fixed effect and the interaction term between station and feeding guild. 
 
 ```{r best model without env vars}
 
@@ -898,8 +994,7 @@ pb
 # from my not thorough understanding of this, the tests indicate or top model passes goodness of fit tests. 
 ```
 
-
-```{r extract predicted values without env vars}
+```{r with yr extract predicted values without env vars}
 
 new.data1 <- density_est_df %>%
   ungroup() %>%
@@ -917,10 +1012,10 @@ predictions1
 
 ```{r plot without env covs, warning=FALSE}
 
-p1<-ggplot(predictions1, aes(x=Station, y=Predicted, fill = Year, group = Station)) +
+p1<-ggplot(predictions1, aes(x=Station, y=Predicted, fill = Diet_Type, group = Station)) +
   geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by year and diet type") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5,face = "bold", size = 12)) + facet_wrap(~Diet_Type)
+      hjust = 0.5,face = "bold", size = 12)) + facet_wrap(~Year)
 p1
 ```
 
@@ -936,6 +1031,7 @@ pb2 # is okay based on these tests
 ```
 
 ```{r extract predictions without year}
+
 new.data2 <- density_est_df %>%
   ungroup() %>%
   dplyr::select(Station, Diet_Type) %>%
@@ -975,6 +1071,75 @@ Clean plots and the other models from above and some other misc things
 rm(new.data1, new.data2, null, p1, p2, p3, pb, pb2, Station, umf, covs, env_at_detection, enviro2, temp_hum_df, Year, Year_Station, Year_Station_StationXGuild, und.mean.se, under.hist, segs_expanded, segs, mod.set.1)
 
 ```
+
+### Mods with 3 diet types
+
+```{r density models three guilds}
+
+null.3 <- distsamp(~1 ~ 1, umf.3, unitsOut = "kmsq")
+
+# Mod 2
+Year.3 <- distsamp(~ 1 ~ Year, umf.3, unitsOut = "kmsq")
+
+# Mod 3
+
+Year_Station.3 <- distsamp(~1 ~ Year + Station, umf.3, unitsOut = "kmsq")
+
+# Mod 4
+Year_Station_StationXGuild.3 <- distsamp(~1 ~ Year + Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
+
+# Mod 5
+Station.3 <- distsamp(~1 ~ Station, umf.3, unitsOut = "kmsq")
+
+# Mod 7
+Station_StationXGuild.3 <-distsamp(~1 ~ Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
+
+# Make a table to compare models
+
+# put mods in a list
+mod.set.3 <- list(null.3 = null.3, Year = Year.3, Year_Station.3 = Year_Station.3, Year_Station_StationXGuild.3 = Year_Station_StationXGuild.3, Station_StationXGuild.3 = Station_StationXGuild.3, Station.3 = Station.3)
+
+# make table
+aic_table.3 <- aictab(cand.set = mod.set.3, sort = TRUE)
+
+aic_table.3
+```
+
+
+```{r goodness of fit three guilds}
+
+pb_3cats <- parboot(Station_StationXGuild.3, fitstats, nsim=25)
+pb_3cats
+# fine
+```
+
+
+```{r predicted values three guilds}
+
+Station_StationXGuild.3
+
+new.data3 <- density_est_df.3 %>%
+  ungroup() %>%
+  dplyr::select(Station, Diet_Type_3categories) %>%
+  distinct()
+  
+
+#Predict
+
+predictions3 <- predict(Station_StationXGuild.3, type="state", newdata=new.data3, appendData=TRUE)
+
+```
+
+```{r plot three guils, message=FALSE, warning=FALSE}
+
+p_3cats<-ggplot(predictions3, aes(x=Station, y=Predicted, fill = Diet_Type_3categories, group = Station)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("goldenrod1", "green4", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by year and diet type") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12)) + facet_wrap(~Diet_Type_3categories, scales = "free")
+
+p_3cats
+```
+
 
 ### Mods with env covs
 
@@ -1054,8 +1219,6 @@ mod.set.2 <- list(null = null2, Year = Year2, Year_Station = Year_Station2, Year
 aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
 
 aic_table.2
-
-summary(Temp_Yr_Stn_StnXGuild)
 ```
 
 Can explore changing baseline in model.
@@ -1125,7 +1288,7 @@ p1
 p2 <- predictions_temp %>%
   filter(Year == "2025") %>%
   ggplot(aes(x=temp_scaled, y=Predicted, fill = Diet_Type))  + geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE)) +
-geom_point(pch = 21, size = 2) + theme_bw() + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates and temperature") + scale_fill_manual(values = c("darkred", "lightgreen"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) 
+geom_point(pch = 21, size = 2) + theme_bw() + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("2025 Snake density estimates and temperature") + scale_fill_manual(values = c("darkred", "lightgreen"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) 
 
 p2
 ```
@@ -1349,7 +1512,7 @@ species.diversity = iNEXT(div.mat, q = c(0,1,2), datatype = "abundance", nboot =
 species.diversity.output <- species.diversity[["iNextEst"]][["coverage_based"]]
 
 div.vals <- species.diversity.output %>% 
-  filter(Assemblage == "TBS" & m == 68 | Assemblage == "YRS" & m == 68)
+  filter(Assemblage == "TBS" & m == 100 | Assemblage == "YRS" & m == 100)
 
 # plot diversity
 diversity.plot <- ggplot(data = div.vals, aes(x = Assemblage, y = qD, fill = as.factor(Order.q), shape = as.factor(Order.q))) + theme_light() + geom_pointrange(aes(ymin = qD.LCL, ymax = qD.UCL), position = position_dodge2(width = 0.35), color = "black", size = 0.6) + xlab(NULL) + ylab("Effective Number of Species") + scale_x_discrete(labels = c("Unhunted", "Hunted")) + scale_fill_manual(values = c("red", "goldenrod", "cornflowerblue"), labels = c("q = 0\n(richness)", "q = 1\n(exp. Shannon)", "q = 2\n(inv. Simpson)")) + coord_fixed(ratio = 0.1) + scale_shape_manual(values = c(21, 22, 23)) +
