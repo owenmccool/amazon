@@ -67,7 +67,7 @@ segs <- read.csv("Segment_Distances.csv")
 We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments.
 
 ```{r segment master list}
-
+ 
 segs_expanded <- enviro %>%
   select(!c(6,9,11:45)) %>%
   separate_rows(Order, sep = ",")
