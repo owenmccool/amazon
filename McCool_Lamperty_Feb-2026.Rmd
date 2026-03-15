@@ -286,18 +286,14 @@ sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station ==
 
 enviro %>%
   group_by(Station) %>%
-  summarise(mean_detections_per_hr = mean(Number_of_Small_Mammals_Spotted),
+  summarise(mean_detections_per_survey = mean(Number_of_Small_Mammals_Spotted),
             standard_deviation = sd(Number_of_Small_Mammals_Spotted))
 
 ```
 
-# Analysis
+# Small Mammals
 
-## Small Mammals
-
-### Figures
-
-#### Smamm Per hr boxplot
+## Smamm Per hr boxplot
 
 ```{r small mammal boxplot}
 
@@ -317,9 +313,10 @@ rm(smammals.plot)
 # can add dimension specifications with width = x and height = x
 ```
 
-#### Smamm Per hr mean and se
+## Smamm Per hr mean and se
 
-```{r se and mean}
+```{r smamm per hr se and mean}
+
 # another way to plot that makes judging significance easier NEEDS EXPLAINING
 smams.mean.se <- small.mamms.temp %>%
   group_by(Station) %>%
@@ -344,7 +341,7 @@ smamm.fig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 rm(smams.mean.se, smamm.fig)
 ```
 
-### Smamm Model
+## Smamm Model
 
 ```{r small mammal model}
 
@@ -370,14 +367,13 @@ Anova(smam.cont)
 ```
 
 
-
 ```{r clean env after smamm}
 rm(sim, small.mamms.temp, smam.cont)
 ```
 
-## Understory
+# Understory
 
-### Understory Set-Up
+## Understory Set-Up
 
 Get understory data reformatted. We took these readings every 15 min. First step will be looking at variation between stations. 
 
@@ -395,7 +391,7 @@ understory_long <- understory_long %>%
 
 ```
 
-### Und Figure
+## Und Figure
 
 Histogram per station
 
@@ -442,29 +438,9 @@ und.fig
 # rm(und.fig)
 ```
 
-### Und Model
+# Temperature
 
-NOTE THIS DOES NOT NEED TO BE REPORTED SO IM COMMENTING IT OUT
-
-```{r understory model}
-
-#und.mod <- glmmTMB(Understory_leaves ~ Station + (1|Parent_Trail_LongName), data = understory_long, family = nbinom2())
-
-#sim <- simulateResiduals(fittedModel = und.mod, plot = T)
-
-#summary(und.mod) # no difference between understory
-
-#testDispersion(und.mod, plot = F)
-#testZeroInflation(und.mod, plot = F)
-
-# could report in this format:
-#Anova(und.mod)
-
-```
-
-## Temperature
-
-### Temp Set-Up
+## Temp Set-Up
 
 Get temperature data reformatted. We took these readings every 30 min and also every time an individual was found. First step will be looking at variation between stations. 
 
@@ -491,7 +467,7 @@ temperature_long <- temperature_long %>%
   na.omit()
 ```
 
-### Temp Figure
+## Temp Figure
 
 Histogram per station & season
 
@@ -534,9 +510,9 @@ rm(temp.fig)
 rm(temp.mean.se, temperature.hist)
 ```
 
-## Humidity
+# Humidity
 
-### Hum Set-Up
+## Hum Set-Up
 
 Get temperature data reformatted. We took these readings every 30 min and also every time an individual was found. First step will be looking at variation between stations. 
 
@@ -558,7 +534,7 @@ length(humidity_long$Survey_Start_Date_Time)
 length(temperature_long$Survey_Start_Date_Time) 
 ```
 
-### Hum Figure
+## Hum Figure
 
 Histogram per station & season
 
@@ -597,12 +573,11 @@ hum.fig
 #rm(hum.fig)
 ```
 
-
 ```{r clean env after hum}
 rm(hum.fig, hum.mean.se, humidity.hist)
 ```
 
-## Handling Humidity and Temp
+# Handling Humidity and Temp
 
 We want to summarize humidity and temp in a way that allows us to incorporate it into our model. As of 2/23, I'm thinking the best way to do this is to take means per survey date.
 
@@ -631,7 +606,11 @@ temp_hum_df <- temp_hum_df %>%
 rm(temperature_long, humidity_long, temp_date_means, hum_date_means, understory_long)
 ```
 
-## Density estimates
+# Density estimates
+
+Note I think it's a good idea to follow the methods in this paper: Hierarchical distance sampling to estimate population sizes of common lizards across a desert ecoregion (in Zotero shared library)
+
+## Binning
 
 First, create distance bins. Also look at some things.
 
@@ -661,7 +640,9 @@ hist(snakes.sur$Distance_From_Trail_m, breaks = seq(0, 12, by = 0.5))
 
 ```
 
-Proceed with specifying bins and truncating the data to remove the 11.5m away detection.
+Proceed with specifying bins.
+
+The chunk below divides observations into smaller bins closer to the trail and larger bins farther away. 0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8.
 
 ```{r divide up bins} 
 
@@ -696,30 +677,36 @@ snakes.sur <- snakes.sur %>%
 snakes.sur <- left_join(snakes.sur, temp_hum_df)
 ```
 
+This verions of binning (chunk below) divides chunks up into 1 m intervals until 5m from trail, which is grouped into 1 bin of distances 5-8m from trail (and I threw the 11.5m away obs in that group too).
+
 ```{r divide up bins broader, eval = FALSE}
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1", NA))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1", NA))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 2, "1_2", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 2, "1_2", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2_3", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2_3", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 4, "3_4", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 4, "3_4", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4 & Distance_From_Trail_m <= 5, "4_5", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4 & Distance_From_Trail_m <= 5, "4_5", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
 
 # join temp and humidity means to the snakes.sur data
-snakes.sur <- left_join(snakes.sur, temp_hum_df)
+#snakes.sur <- left_join(snakes.sur, temp_hum_df)
 
 ```
+
+## Format with 0s for unmarked
+
+#### 2 Diet types
 
 ```{r format for unmarked 2 diet types}
 
@@ -781,11 +768,38 @@ density_est_df <- survey.tally %>%
 density_est_df <- full_join(z.tallies, density_est_df)
 
 # make NAs zeros - except the temp and humidty NAs
+# NOTE depending on how you divide up your bins, this needs to be modified so that the columns specified in the brackets on both sides of this function only encompass the NA's in the bins
 density_est_df[9:17][is.na(density_est_df[9:17])] <- 0
 
 # clean
 rm(survey.tally, surveys.no.zeros, z.tallies, zeros)
 ```
+
+```{r two diet types density estimation} 
+
+# Package things up into an unmarkedFrame 
+
+# Seasons
+
+# Feedback from Morgan indicates that combining years is not a problem in our case. We may want to explore incorporating year as a factor though. 
+
+density_est_df$Year <- as.factor(density_est_df$Year)
+density_est_df$Diet_Type <- as.factor(density_est_df$Diet_Type)
+density_est_df$Seg_dist_m <- as.numeric(density_est_df$Seg_dist_m)
+density_est_df$Segment <- as.factor(density_est_df$Segment)
+density_est_df$Station <- as.factor(density_est_df$Station)
+
+
+# separate out the covariates
+covs <- density_est_df[,c("Station", "Year", "Diet_Type", "Segment", "Seg_dist_m")]
+
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:17]), siteCovs=data.frame(covs), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
+
+hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
+
+```
+
+#### 3 Diet types
 
 ```{r format for unmarked 3 diet types}
 
@@ -860,34 +874,7 @@ density_est_df.3[9:17][is.na(density_est_df.3[9:17])] <- 0
 rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
 ```
 
-
-Note I think it's a good idea to follow the methods in this paper: Hierarchical distance sampling to estimate population sizes of common lizards across a desert ecoregion (in Zotero shared library)
-
-
-```{r density estimation} 
-
-# Package things up into an unmarkedFrame 
-
-# Seasons
-# Feedback from Morgan indicates that combining years is not a problem in our case. We may want to explore incorporating year as a factor though. 
-
-density_est_df$Year <- as.factor(density_est_df$Year)
-density_est_df$Diet_Type <- as.factor(density_est_df$Diet_Type)
-density_est_df$Seg_dist_m <- as.numeric(density_est_df$Seg_dist_m)
-density_est_df$Segment <- as.factor(density_est_df$Segment)
-density_est_df$Station <- as.factor(density_est_df$Station)
-
-
-# separate out the covariates
-covs <- density_est_df[,c("Station", "Year", "Diet_Type", "Segment", "Seg_dist_m")]
-
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:17]), siteCovs=data.frame(covs), dist.breaks=c(1, 1.5, 2, 2.5, 3, 3.5, 5), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
-
-hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
-
-```
-
-```{r repeat with 3 diet cats}
+```{r three diet types}
 
 density_est_df.3$Year <- as.factor(density_est_df.3$Year)
 density_est_df.3$Diet_Type_3categories <- as.factor(density_est_df.3$Diet_Type_3categories)
@@ -898,21 +885,19 @@ density_est_df.3$Station <- as.factor(density_est_df.3$Station)
 # separate out the covariates
 covs.3 <- density_est_df.3[,c("Station", "Year", "Diet_Type_3categories", "Segment", "Seg_dist_m")]
 
-umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,9:14]), siteCovs=data.frame(covs.3), dist.breaks=c(1, 1.5, 2, 2.5, 3, 3.5, 5), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
+umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,9:17]), siteCovs=data.frame(covs.3), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
 
 hist(umf.3, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
 ```
 
+## 2 Diet Types No Env Covs
 
-### Mods without Env
+First compare models based on AIC without worrying about temperature and humidity. This uses the 2 diet type categories of yes vs no mammals.
 
-First compare models based on AIC without worrying about temperature and humidity.
-
-```{r density models no env covs}
+```{r mods two diet types no env covs}
 
 # Fit model 1, null model
-# since fixing the mistake that lost some observations, we now get an error regareing vmmin not being finite. Royle seems a little mystified by this too in a similar example https://groups.google.com/g/unmarked/c/XreznyG1xo4
 
 null <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
 
@@ -932,10 +917,13 @@ Station <- distsamp(~1 ~ Station, umf, unitsOut = "kmsq")
 # Mod 7
 Station_StationXGuild <-distsamp(~1 ~ Station/Diet_Type, umf, unitsOut = "kmsq")
 
+# Mod 8
+StationXGuild <-distsamp(~1 ~ Station:Diet_Type, umf, unitsOut = "kmsq")
+
 # Make a table to compare models
 
 # put mods in a list
-mod.set.1 <- list(null = null, Year = Year, Year_Station = Year_Station, Year_Station_StationXGuild = Year_Station_StationXGuild, Station_StationXGuild = Station_StationXGuild, Station = Station)
+mod.set.1 <- list(null = null, Year = Year, Year_Station = Year_Station, Year_Station_StationXGuild = Year_Station_StationXGuild, Station_StationXGuild = Station_StationXGuild, Station = Station, StationXGuild = StationXGuild)
 
 # make table
 aic_table.1 <- aictab(cand.set = mod.set.1, sort = TRUE)
@@ -943,9 +931,9 @@ aic_table.1 <- aictab(cand.set = mod.set.1, sort = TRUE)
 aic_table.1
 ```
 
-Year doesn't actually matter (much)! Only improves fit slightly. Our top fit model simpliest model actually matches our prediction: station as a fixed effect and the interaction term between station and feeding guild. 
+Year doesn't actually matter (much)! Only improves fit slightly. Our top fit model simplest model actually matches our prediction: station as a fixed effect and the interaction term between station and feeding guild. 
 
-```{r best model without env vars}
+```{r top mods two diet types no env covs}
 
 summary(Year_Station_StationXGuild)
 summary(Station_StationXGuild)
@@ -955,13 +943,15 @@ summary(Station_StationXGuild)
 coef(Year_Station_StationXGuild)
 ```
 
-```{r goodness of fit without env covs}
+### GOF two diet types
+
+Goodness of fit tests
+
+```{r gof top mod two diet types no env covs}
 
 # using this resource: https://www.montana.edu/screel/teaching/bioe-440r-521/bioe-440-distance-sampling.html
 
 # Goodness of fit test: good fit if results of these tests show p > 0.05. First, fit a model: use your best-supported model (Lowest AIC). Then check GOF for that model.
-
-Year_Station_StationXGuild
 
 # Function returning three fit-statistics.
 
@@ -985,14 +975,16 @@ fitstats <- function(fm) {
 
 }
 
+# slow so commenting out after checking
 
+#pb <- parboot(Station_StationXGuild, fitstats, nsim=25)
 
-pb <- parboot(Year_Station_StationXGuild, fitstats, nsim=25, report=1)
-
-pb
+#pb
 
 # from my not thorough understanding of this, the tests indicate or top model passes goodness of fit tests. 
 ```
+
+### Predicted vals with year
 
 ```{r with yr extract predicted values without env vars}
 
@@ -1001,12 +993,9 @@ new.data1 <- density_est_df %>%
   dplyr::select(Station, Year, Diet_Type) %>%
   distinct()
   
-
 #Predict
 
 predictions1 <- predict(Year_Station_StationXGuild, type="state", newdata=new.data1, appendData=TRUE)
-
-predictions1  
 
 ```
 
@@ -1021,14 +1010,7 @@ p1
 
 Repeat without year because of the added difficulty that brings to interpretation AND it's not a hypothesis we're testing. We don't expect snakes to vary between years and in the second year, effort was higher, which I believe is reflected by the smaller error bars for 2025.
 
-```{r assess mod fit without year}
-# this model only has station and the station x diet type interaction. 
-
-pb2 <- parboot(Station_StationXGuild, fitstats, nsim=25, report=1)
-
-pb2 # is okay based on these tests
-
-```
+### Predicted vals without year
 
 ```{r extract predictions without year}
 
@@ -1041,9 +1023,8 @@ new.data2 <- density_est_df %>%
 
 predictions2 <- predict(Station_StationXGuild, type="state", newdata=new.data2, appendData=TRUE)
 
-predictions2
-
 ```
+
 Plot predictions from model without Year included
 
 ```{r plot without year}
@@ -1057,24 +1038,23 @@ p2
 
 # without connector line
 
-p3<-ggplot(predictions2, aes(x=Station, y=Predicted, fill = Diet_Type, group = Diet_Type)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type") + labs(fill = "Diet type") + 
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5,face = "bold", size = 12))
+#p3<-ggplot(predictions2, aes(x=Station, y=Predicted, fill = Diet_Type, group = Diet_Type)) +
+ # geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type") + labs(fill = "Diet type") + 
+ # scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+  #    hjust = 0.5,face = "bold", size = 12))
 
-p3
+#p3
 ```
 
 Clean plots and the other models from above and some other misc things
 
 ```{r clean plots and mods part one}
-rm(new.data1, new.data2, null, p1, p2, p3, pb, pb2, Station, umf, covs, env_at_detection, enviro2, temp_hum_df, Year, Year_Station, Year_Station_StationXGuild, und.mean.se, under.hist, segs_expanded, segs, mod.set.1)
-
+rm(new.data1, new.data2, null, p1, p3, pb, pb2, Station, umf, covs, env_at_detection, enviro2, temp_hum_df, Year, Year_Station, Year_Station_StationXGuild, und.mean.se, under.hist, segs_expanded, segs, mod.set.1)
 ```
 
-### Mods with 3 diet types
+## 3 Diet Types No Env Covs
 
-```{r density models three guilds}
+```{r mods three diet types no env covs}
 
 null.3 <- distsamp(~1 ~ 1, umf.3, unitsOut = "kmsq")
 
@@ -1094,10 +1074,13 @@ Station.3 <- distsamp(~1 ~ Station, umf.3, unitsOut = "kmsq")
 # Mod 7
 Station_StationXGuild.3 <-distsamp(~1 ~ Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
 
+# Mod 8
+StationXGuild.3 <-distsamp(~1 ~ Station:Diet_Type_3categories, umf.3, unitsOut = "kmsq")
+
 # Make a table to compare models
 
 # put mods in a list
-mod.set.3 <- list(null.3 = null.3, Year = Year.3, Year_Station.3 = Year_Station.3, Year_Station_StationXGuild.3 = Year_Station_StationXGuild.3, Station_StationXGuild.3 = Station_StationXGuild.3, Station.3 = Station.3)
+mod.set.3 <- list(null.3 = null.3, Year = Year.3, Year_Station.3 = Year_Station.3, Year_Station_StationXGuild.3 = Year_Station_StationXGuild.3, Station_StationXGuild.3 = Station_StationXGuild.3, Station.3 = Station.3, StationXGuild.3 = StationXGuild.3)
 
 # make table
 aic_table.3 <- aictab(cand.set = mod.set.3, sort = TRUE)
@@ -1105,14 +1088,16 @@ aic_table.3 <- aictab(cand.set = mod.set.3, sort = TRUE)
 aic_table.3
 ```
 
+### GOF 3 diet types
 
 ```{r goodness of fit three guilds}
-
-pb_3cats <- parboot(Station_StationXGuild.3, fitstats, nsim=25)
-pb_3cats
+# slow so commenting out
+#pb_3cats <- parboot(Station_StationXGuild.3, fitstats, nsim=25)
+#pb_3cats
 # fine
 ```
 
+### Predicted vals 3 diet types no env covs
 
 ```{r predicted values three guilds}
 
@@ -1128,20 +1113,22 @@ new.data3 <- density_est_df.3 %>%
 
 predictions3 <- predict(Station_StationXGuild.3, type="state", newdata=new.data3, appendData=TRUE)
 
+
 ```
 
-```{r plot three guils, message=FALSE, warning=FALSE}
+```{r plot three guilds, message=FALSE, warning=FALSE}
 
 p_3cats<-ggplot(predictions3, aes(x=Station, y=Predicted, fill = Diet_Type_3categories, group = Station)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("goldenrod1", "green4", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by year and diet type") +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("goldenrod1", "green4", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
       hjust = 0.5,face = "bold", size = 12)) + facet_wrap(~Diet_Type_3categories, scales = "free")
 
 p_3cats
 ```
 
+Appears to be elevated numbers in hunted forest in the guild that is mostly mammal consumers.
 
-### Mods with env covs
+## Env Covs Exploration
 
 Let's look at how humidity and temperature affect model AIC values. 
 
@@ -1153,7 +1140,7 @@ Let's look at how humidity and temperature affect model AIC values.
 
 # make a df that excludes all surveys associated with the NA readings of temp and humidity
 
-density_est_df.shortened <- density_est_df %>%
+density_est_df.shortened <- density_est_df.3 %>%
   na.omit()
 
 # scale and center continuous covs
@@ -1161,7 +1148,7 @@ density_est_df.shortened$temp_scaled <-as.numeric(scale(density_est_df.shortened
 
 density_est_df.shortened$hum_scaled <-as.numeric(scale(density_est_df.shortened$mean_humidity_percent, center = TRUE))
 
-covs.shortened <- density_est_df.shortened[,c("Station", "Diet_Type", "Year", "Segment", "Seg_dist_m", "temp_scaled", "hum_scaled")]
+covs.shortened <- density_est_df.shortened[,c("Station", "Diet_Type_3categories", "Year", "Segment", "Seg_dist_m", "temp_scaled", "hum_scaled")]
 
 umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:17]), siteCovs=data.frame(covs.shortened), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs.shortened$Seg_dist_m)
 ```
@@ -1181,34 +1168,34 @@ Year2 <- distsamp(~ 1 ~ Year, umf.shortened, unitsOut = "kmsq")
 Year_Station2 <- distsamp(~1 ~ Year + Station, umf.shortened, unitsOut = "kmsq")
 
 # Mod 4
-Year_Station_StationXGuild2 <- distsamp(~1 ~ Year + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+Year_Station_StationXGuild2 <- distsamp(~1 ~ Year + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 5
 
 Station2 <- distsamp(~1 ~ Station, umf.shortened, unitsOut = "kmsq")
 
 # Mod 7
-Station_StationXGuild2 <-distsamp(~1 ~ Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+Station_StationXGuild2 <-distsamp(~1 ~ Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 8
 # Substitute temperature for year
-Temp_Station_StationXGuild <- distsamp(~1 ~ temp_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+Temp_Station_StationXGuild <- distsamp(~1 ~ temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 9
 # Substitute humidity for year
-Humid_Station_StationXGuild <- distsamp(~1 ~ hum_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+Humid_Station_StationXGuild <- distsamp(~1 ~ hum_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 10
 # Temperature and year
-Temp_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + temp_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+Temp_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 11
 # Humidity and year
-Humid_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+Humid_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 12
 # Humidity, Temp, Year (and Station and Station x Diet type)
-Humid_Yr_Temp_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + temp_scaled + Station/Diet_Type, umf.shortened, unitsOut = "kmsq")
+Humid_Yr_Temp_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Make a table to compare models
 
@@ -1221,159 +1208,45 @@ aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
 aic_table.2
 ```
 
-Can explore changing baseline in model.
+Luckily, it doesn't look like the env covs matter. They make the model perform worse based on AIC.
 
+### Predicted vals top mod based on df with env covs
 
-So.... we can look at *Temp_Yr_Stn_StnXGuild* (top mod based on AIC), which has a lower AIC than the model that only includes Year, Station, and the Station x Guild interaction (dAIC = 2.95 between those two models). That difference in AIC values indicates that Temperature could be an important covariate to consider. However, when year is not used (which I'm like 99% sure is what we want for testing our specific hypotheses which have nothing to do with differences between years, between which sampling effort differed), then **temperature does not improve model fit** and actually makes it a tad worse: *Station_StationXGuild* AIC = 700.86, *Temp_Station_StationXGuild* = 701.39 (dAIC = 0.53) (all of which perform better than the null by a lot). 
+Check out predictions based on top model for the shortened dataframe for which we have complete environmental data on.
 
-Assuming the three models above pass GOF tests, we probably want to report all 3 of them in the supplementary materials, along with the top model from the non-shortened dataset that didn't consider env covs (the section above this one) which includes year. This would be to show that we checked and confirmed results were relatively consistent, but we I think it probably makes sense to stick with reporting the results from the Station_StationXGuild model from the first set of tests in the main paper (so the mod that incorporates all data collected, rather than the one that has shortened data to accommodate for the NAs for the missing temp and humidity data on some surveys).
+```{r mod predictions station stationxguild}
 
-
-Okay moving on, look at GOF (Goodness of fit)
-
-```{r GOF env covs and shortened df mods}
-
-# GOF for top model from above (Temp_Yr_Stn_StnXGuild)
-Temp_Yr_Stn_StnXGuild_GOF <- parboot(Temp_Yr_Stn_StnXGuild, fitstats, nsim=25, report=1)
-
-Temp_Yr_Stn_StnXGuild_GOF
-# again, based on my not great understanding of this, it passes
-
-# GOF for Station_StationXGuild
-Station_StationXGuild_GOF <- parboot(Station_StationXGuild, fitstats, nsim=25, report=1)
-
-Station_StationXGuild_GOF # passes. I think something is up with the ChiSq part of this though for all the GOF tests I've run with this function tbh
-
-# clean
-rm(Station_StationXGuild_GOF, Temp_Yr_Stn_StnXGuild_GOF)
-
-# one last GOF test using the temp and station and stationxguild model without year (which doesn't perform as well as the model that leaves both temp and year out)
-
-bp<-Temp_Station_StationXGuild_GOF <- parboot(Temp_Station_StationXGuild, fitstats, nsim=25, report=1)
-
-bp
-
-```
-
-Model predictions - first looking at *Temp_Yr_Stn_StnXGuild*
-
-```{r mod predictions temp}
-# new data frame for prediction extraction, first, look at trend with temperature because I'm curious
-new.data.temp.continuous <- density_est_df.shortened %>%
+new.data.env <-density_est_df.shortened %>% # isolate covariates in new df
   ungroup() %>%
-  dplyr::select(Station, Diet_Type, Year, temp_scaled) %>%
+  dplyr::select(Station, Diet_Type_3categories) %>%
   distinct()
-
-
-#Predict
-
-predictions_temp <- predict(Temp_Yr_Stn_StnXGuild, type="state", newdata=new.data.temp.continuous, appendData=TRUE)
-
-predictions_temp 
-```
-
-Plot trend with temp based on model with year (which has 2024 predictions that are wack)
-
-```{r temp trend model with year}
-
-# trend exists in both guilds, fewer detections when hotter (not what I'd expect but I guess it's always kinda hot there)
-
-p1 <-ggplot(predictions_temp, aes(x=temp_scaled, y=Predicted, fill = Diet_Type))  + geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE)) +
-geom_point(pch = 21, size = 2) + theme_bw() + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates and temperature") + scale_fill_manual(values = c("darkred", "lightgreen"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) 
-
-p1
-
-# omit 2024 data
-
-p2 <- predictions_temp %>%
-  filter(Year == "2025") %>%
-  ggplot(aes(x=temp_scaled, y=Predicted, fill = Diet_Type))  + geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE)) +
-geom_point(pch = 21, size = 2) + theme_bw() + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("2025 Snake density estimates and temperature") + scale_fill_manual(values = c("darkred", "lightgreen"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) 
-
-p2
-```
-
-Okay cool well I'm satisfied. It appears that temperature has a slight negative effect on detections. Now I guess we need to check to make sure our results are still the same when temperature is included in the model.
-
-
-```{r mod predictions yr station stationxguild}
-
-# new data frame, hold temp constant at mean
-temp_mean <- mean(density_est_df.shortened$temp_scaled) # get mean temp (scaled)
-
-new.data.temp.constant <-density_est_df.shortened %>% # isolate covariates in new df
-  ungroup() %>%
-  dplyr::select(Station, Diet_Type, Year) %>%
-  distinct()
-
-new.data.temp.constant$temp_scaled <- temp_mean # insert mean for temp (needs to have same name as cov when entered in umf, hence 'temp_scaled')
 
 #Predict with temp held constant at mean
 
-predictions_temp.constant <- predict(Temp_Yr_Stn_StnXGuild, type="state", newdata=new.data.temp.constant, appendData=TRUE)
+predictions_shortened.df <- predict(Station_StationXGuild.3, type="state", newdata=new.data.env, appendData=TRUE)
 
-predictions_temp.constant 
 ```
 
 Plot
 
 ```{r plot with temp held constant}
 
-ggplot(predictions_temp.constant, aes(x=Station, y=Predicted, fill = Diet_Type, group = Diet_Type)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type\n using model that accounts for temperature") + labs(fill = "Diet type") + 
+ggplot(predictions_shortened.df, aes(x=Station, y=Predicted, fill = Diet_Type_3categories, group = Diet_Type_3categories)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3", "black")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type\n using model that accounts for temperature") + labs(fill = "Diet type") + 
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5,face = "bold", size = 12)) + geom_line(linetype = "dashed", position = position_dodge(width = 0.5)) + facet_wrap(~Year, scales = "free")
+      hjust = 0.5,face = "bold", size = 12)) + geom_line(linetype = "dashed", position = position_dodge(width = 0.5))
 
 ```
-
 
 Okay great things are looking consistent. Now lets do this with the model that accounts for temperature but not for year (which... technically does not perform better based on AIC when compared to the model that omits temperature and year).
 
-What to report?
-Morgan says betas and 95% CIs, or SE (for comparison) - everything log likelihood.
-
-
-
-```{r mod predictions no year yes temp}
-
-# new data frame, hold temp constant at mean
-temp_mean <- mean(density_est_df.shortened$temp_scaled) # get mean temp (scaled)
-
-new.data.temp.constant.no.yr <-density_est_df.shortened %>% # isolate covariates in new df
-  ungroup() %>%
-  dplyr::select(Station, Diet_Type) %>%
-  distinct()
-
-new.data.temp.constant.no.yr$temp_scaled <- temp_mean # insert mean for temp (needs to have same name as cov when entered in umf, hence 'temp_scaled')
-
-#Predict with temp held constant at mean
-
-predictions_temp.constant.no.yr <- predict(Temp_Station_StationXGuild, type="state", newdata=new.data.temp.constant.no.yr, appendData=TRUE)
-
-```
-
-And plot it
-
-```{r plot no year yes temp}
-
-ggplot(predictions_temp.constant.no.yr, aes(x=Station, y=Predicted, fill = Diet_Type, group = Diet_Type)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3"), labels = c("Mammal eater", "Non-mammal eater")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type\n using model that accounts for temperature") + labs(fill = "Diet type") + 
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5,face = "bold", size = 12)) + geom_line(linetype = "dashed", position = position_dodge(width = 0.5)) 
-
-```
-
-Okay I feel pretty confident we can say even when year and temperature are controlled for, we find the same trends with our data. 
-
 ```{r clean some}
-
-rm(null2, p1, p2, predictions_temp, predictions_temp.constant, predictions_temp.constant.no.yr, predictions1, predictions2, new.data.temp.constant, new.data.temp.continuous, new.data.temp.constant.no.yr, Station_StationXGuild, Station_StationXGuild2, Station2, Temp_Station_StationXGuild, Temp_Yr_Stn_StnXGuild, umf.shortened, Year2, mod.set.2, Year_Station2, Year_Station_StationXGuild2, Temp_Station_StationXGuild_GOF, Humid_Station_StationXGuild, Humid_Yr_Stn_StnXGuild, Humid_Yr_Temp_Stn_StnXGuild, density_est_df.shortened, aic_table.1, aic_table.2, bp, density_est_df, covs.shortened, temp_mean)
-
+rm(aic_table.1, aic_table.2, covs.shortened, density_est_df, density_est_df.shortened, Humid_Station_StationXGuild, Humid_Yr_Stn_StnXGuild, Humid_Yr_Temp_Stn_StnXGuild, mod.set.2, new.data.env, null2, p2, predictions_shortened.df, predictions1, predictions2, Station_StationXGuild, Station_StationXGuild2, Station2, Temp_Station_StationXGuild, Temp_Yr_Stn_StnXGuild, umf.shortened, Year_Station_StationXGuild2, Year_Station2, Year2)
 ```
 
 # Community composition
 
-I have tried NMDS about a hundred different ways (aggregated by 7 days, 10 days, 14 days, 20, a month, a year; species level, genus level, sub family, family level; all data from all detection methods and only the survey detections). Nothing works (continually get a warning stress is basically 0, you-dont-have enough-data message).
+## Pie Charts
 
 Below I mess around with some basic community composition visualizations.
 
@@ -1388,9 +1261,9 @@ raw_count <- snakes.master %>%
 
 # subfamily level may help
 # create this column and populate it:
-
+snakes.master$Subfamily <- NA
 snakes.master <- snakes.master %>%
-  mutate(Subfamily = ifelse(Genus == "Siphlophis" | Genus == "Imantodes" | Genus == "Dipsas" | Genus == "Drepanoides" | Genus == "Oxyrhopus" | Genus == "Leptodeira" | Genus == "Hydrops" | Genus == "Helicops" | Genus == "Atractus" | Genus == "Erythrolamprus" | Genus == "Taeniophallus" | Genus == "Pseudoboa", "Dipsadinae", 
+  dplyr::mutate(Subfamily = ifelse(Genus == "Siphlophis" | Genus == "Imantodes" | Genus == "Dipsas" | Genus == "Drepanoides" | Genus == "Oxyrhopus" | Genus == "Leptodeira" | Genus == "Hydrops" | Genus == "Helicops" | Genus == "Atractus" | Genus == "Erythrolamprus" | Genus == "Taeniophallus" | Genus == "Pseudoboa", "Dipsadinae", 
                             ifelse(Genus == "Epicrates" | Genus == "Corallus" | Genus == "Eunectes", "Boinae",
                                    ifelse(Genus == "Chironius" | Genus == "Drymobius" | Genus == "Tantilla" | Genus == "Drymarchon" | Genus == "Oxybelis" | Genus == "Spilotes" | Genus == "Dendrophidion" | Genus =="Leptophis", "Colubrinae",
                                           ifelse(Genus == "Bothrops" | Genus == "Bothrocophias", "Crotalinae",
@@ -1427,13 +1300,13 @@ snakes.master <- snakes.master %>%
 #Bothrocophias = Crotalinae
 
 # make an edge list of n times an individual was seen at each station for each subfamily group
-edgelist <- snakes.master %>%
+sub.fam.edgelist <- snakes.master %>%
   group_by(Station, Subfamily) %>%
   tally() %>%
   na.omit() 
 
 # piechart
-ggplot(edgelist, aes(x="", y= n, fill=Subfamily)) +
+ggplot(sub.fam.edgelist, aes(x="", y= n, fill=Subfamily)) +
   geom_bar(stat="identity", width=0.5, color="black") +
   coord_polar("y", start=0) +
   theme_void() + facet_wrap(~Station) + # remove background, grid, numeric labels
@@ -1478,6 +1351,58 @@ ggplot(surveys.genus, aes(x="", y= n, fill=Genus)) +
   coord_polar("y", start=0) +
   theme_void() + facet_wrap(~Station) 
 ```
+
+
+## All records community composition
+
+### Jaccard PERMANOVA 
+
+```{r jaccard permanova}
+
+# going to re-run this since some snakes were missing previously
+snakes.master$ID <- paste(snakes.master$Station, snakes.master$Date, snakes.master$Snake_ID, sep = "//")
+
+edgelist.full <- snakes.master %>%
+  filter(Genus != "unknown") %>%
+  group_by(Station, Species, Date, ID) %>%
+  tally() %>%
+  na.omit()
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+snake.occ.mat <- edgelist.full %>% 
+  pivot_wider(names_from = Species, #makes the column into the rownames
+              values_from = n, 
+              values_fill = 0) %>% #will fill spaces with no snakes as 0
+  column_to_rownames(var = "ID") #will make this new combo the unique identifier as rownames
+
+community <- snake.occ.mat[, c(3:42)] #made matrix from all data columns with n snake data
+
+predictors <- snake.occ.mat[, c(1,2)] #separating non-snake stuff (station and zone)
+
+j.dis.mat <- vegdist(community, method = "jaccard") #jaccard only accounts for presence absence 
+
+pnova.j <- adonis2(j.dis.mat ~ predictors$Station) #adonis looks at specific differences between groups, our group factor is station
+
+# look at results
+print(pnova.j) # marginally sig/nonsig
+```
+
+### Jaccard NMDS
+
+```{r jaccard nmds visual}
+
+```
+
+## Survey records community composition
+
+### Jaccard PERMANOVA
+
+### Jaccard NMDS
+
+### Horn-Morisita PERMANOVA
+
+### Horn-Morisita NMDS
 
 # Diversity
 
@@ -1541,3 +1466,55 @@ ggiNEXT(species.diversity, type=1, facet.var="Order.q", grey=TRUE)
 ```
 
 Right so no difference there.
+
+# Raw detection rates over distance
+
+```{r raw detection rates}
+
+# 3 diet types
+detection_rates <- snakes.sur %>%
+  filter(!is.na(Snake_ID)) %>%
+  group_by(Station, Diet_Type_3categories, Start_Date) %>%
+  summarize(meters_surveyed = sum(Seg_dist_m),
+            individuals_found = n_distinct(Snake_ID))
+
+# Owen spot check the above please
+
+detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
+
+# summarize and visualize
+detections.mean.se <- detection_rates %>%
+  group_by(Station, Diet_Type_3categories) %>%
+  summarise(mean = mean(n_per_500m),
+            sd = sd(n_per_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+ggplot(detections.mean.se, aes(x=Station, y=mean, fill = Diet_Type_3categories)) +
+  geom_jitter(data = detection_rates, 
+              aes(x = Station, y = individuals_found), 
+              width = 0.15, size = 1.5, alpha = 0.5) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Detections/500m") + ggtitle("Snake Detections per 500m by Diet Type") + facet_wrap(~Diet_Type_3categories, scales = "free")
+
+# total raw detections
+detection_rates2 <- snakes.sur %>%
+  filter(!is.na(Snake_ID)) %>%
+  group_by(Station, Start_Date) %>%
+  summarize(meters_surveyed = sum(Seg_dist_m),
+            individuals_found = n_distinct(Snake_ID))
+
+# Owen spot check the above please
+
+detection_rates2$n_per_500m <- (detection_rates2$individuals_found/detection_rates2$meters_surveyed)*500
+
+# summarize total n
+detection_rates2 %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_per_500m),
+            sd = sd(n_per_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+# Unhunted forest: M = 1.13 snakes/500m surveyed, SD = 1.07, +/- SE = 0.22 
+# Hunted forest: M = 1.04 snakes/500m surveyed, SD = 0.56, =/- SE = 0.12
+```
