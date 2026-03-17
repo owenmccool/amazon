@@ -1479,7 +1479,7 @@ detection_rates <- snakes.sur %>%
             individuals_found = n_distinct(Snake_ID))
 
 # Owen spot check the above please
-
+sum(detection_rates$individuals_found)
 detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
 
 # summarize and visualize
