@@ -644,7 +644,7 @@ Proceed with specifying bins.
 
 The chunk below divides observations into smaller bins closer to the trail and larger bins farther away. 0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8.
 
-```{r divide up bins} 
+```{r divide up bins, eval=FALSE} 
 
 snakes.sur <- snakes.sur %>%
   mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 0.25, "0_0.25", NA))
@@ -703,6 +703,31 @@ This verions of binning (chunk below) divides chunks up into 1 m intervals until
 #snakes.sur <- left_join(snakes.sur, temp_hum_df)
 
 ```
+
+What I'm reading indicates with sparse data, larger bins are better. I'm trying a version here with much larger bins.
+
+This version is 0, 2, 4, 6, 8
+
+```{r divide up bins even broader}
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 2, "0_2", NA))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 4, "2_4", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4 & Distance_From_Trail_m <= 6, "4_6", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 6, "6_8", Distance_bin_m))
+
+# join temp and humidity means to the snakes.sur data
+snakes.sur <- left_join(snakes.sur, temp_hum_df)
+
+```
+
+
 
 ## Format with 0s for unmarked
 
@@ -768,8 +793,13 @@ density_est_df <- survey.tally %>%
 density_est_df <- full_join(z.tallies, density_est_df)
 
 # make NAs zeros - except the temp and humidty NAs
-# NOTE depending on how you divide up your bins, this needs to be modified so that the columns specified in the brackets on both sides of this function only encompass the NA's in the bins
-density_est_df[9:17][is.na(density_est_df[9:17])] <- 0
+density_est_df <- density_est_df %>%
+  mutate(
+    across(
+      .cols = -(c(mean_humidity_percent)),
+      .fns = ~replace_na(.x, 0)
+    )
+  )
 
 # clean
 rm(survey.tally, surveys.no.zeros, z.tallies, zeros)
@@ -793,7 +823,7 @@ density_est_df$Station <- as.factor(density_est_df$Station)
 # separate out the covariates
 covs <- density_est_df[,c("Station", "Year", "Diet_Type", "Segment", "Seg_dist_m")]
 
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:17]), siteCovs=data.frame(covs), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:ncol(density_est_df)]), siteCovs=data.frame(covs), dist.breaks=c( 0, 2, 4, 6, 8), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
 hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
@@ -868,7 +898,13 @@ density_est_df.3 <- survey.tally.3 %>%
 density_est_df.3 <- full_join(z.tallies.3, density_est_df.3)
 
 # make NAs zeros - except the temp and humidty NAs
-density_est_df.3[9:17][is.na(density_est_df.3[9:17])] <- 0
+density_est_df.3 <- density_est_df.3 %>%
+  mutate(
+    across(
+      .cols = -(c(mean_humidity_percent)),
+      .fns = ~replace_na(.x, 0)
+    )
+  )
 
 # clean
 rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
@@ -885,7 +921,7 @@ density_est_df.3$Station <- as.factor(density_est_df.3$Station)
 # separate out the covariates
 covs.3 <- density_est_df.3[,c("Station", "Year", "Diet_Type_3categories", "Segment", "Seg_dist_m")]
 
-umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,9:17]), siteCovs=data.frame(covs.3), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
+umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,9:ncol(density_est_df.3)]), siteCovs=data.frame(covs.3), dist.breaks=c(0, 2, 4, 6, 8), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
 
 hist(umf.3, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
@@ -900,25 +936,30 @@ First compare models based on AIC without worrying about temperature and humidit
 # Fit model 1, null model
 
 null <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
+summary(null)
+
+# add diet type as detection covariate since mammal eaters are bigger and seen farther away more easily than smaller non mammal eating snakes are at the same distances from transects
+Diet_Type.null<- distsamp(~Diet_Type ~ 1, umf, unitsOut = "kmsq")
+summary(Diet_Type.null)
 
 # Mod 2
-Year <- distsamp(~ 1 ~ Year, umf, unitsOut = "kmsq")
+Year <- distsamp(~ Diet_Type ~ Year, umf, unitsOut = "kmsq")
 
 # Mod 3
 
-Year_Station <- distsamp(~1 ~ Year + Station, umf, unitsOut = "kmsq")
+Year_Station <- distsamp(~Diet_Type ~ Year + Station, umf, unitsOut = "kmsq")
 
 # Mod 4
-Year_Station_StationXGuild <- distsamp(~1 ~ Year + Station/Diet_Type, umf, unitsOut = "kmsq")
+Year_Station_StationXGuild <- distsamp(~Diet_Type ~ Year + Station/Diet_Type, umf, unitsOut = "kmsq")
 
 # Mod 5
-Station <- distsamp(~1 ~ Station, umf, unitsOut = "kmsq")
+Station <- distsamp(~Diet_Type ~ Station, umf, unitsOut = "kmsq")
 
 # Mod 7
-Station_StationXGuild <-distsamp(~1 ~ Station/Diet_Type, umf, unitsOut = "kmsq")
+Station_StationXGuild <-distsamp(~Diet_Type ~ Station/Diet_Type, umf, unitsOut = "kmsq")
 
 # Mod 8
-StationXGuild <-distsamp(~1 ~ Station:Diet_Type, umf, unitsOut = "kmsq")
+StationXGuild <-distsamp(~Diet_Type ~ Station:Diet_Type, umf, unitsOut = "kmsq")
 
 # Make a table to compare models
 
@@ -1049,7 +1090,7 @@ p2
 Clean plots and the other models from above and some other misc things
 
 ```{r clean plots and mods part one}
-rm(new.data1, new.data2, null, p1, p3, pb, pb2, Station, umf, covs, env_at_detection, enviro2, temp_hum_df, Year, Year_Station, Year_Station_StationXGuild, und.mean.se, under.hist, segs_expanded, segs, mod.set.1)
+rm(new.data1, new.data2, null, Station, umf, covs, env_at_detection, enviro2, temp_hum_df, Year, Year_Station, Year_Station_StationXGuild, und.mean.se, under.hist, segs_expanded, segs, mod.set.1)
 ```
 
 ## 3 Diet Types No Env Covs
@@ -1058,29 +1099,31 @@ rm(new.data1, new.data2, null, p1, p3, pb, pb2, Station, umf, covs, env_at_detec
 
 null.3 <- distsamp(~1 ~ 1, umf.3, unitsOut = "kmsq")
 
+diet_type_null.3  <- distsamp(~Diet_Type_3categories ~ 1, umf.3, unitsOut = "kmsq")
+
 # Mod 2
-Year.3 <- distsamp(~ 1 ~ Year, umf.3, unitsOut = "kmsq")
+Year.3 <- distsamp(~ Diet_Type_3categories ~ Year, umf.3, unitsOut = "kmsq")
 
 # Mod 3
 
-Year_Station.3 <- distsamp(~1 ~ Year + Station, umf.3, unitsOut = "kmsq")
+Year_Station.3 <- distsamp(~Diet_Type_3categories ~ Year + Station, umf.3, unitsOut = "kmsq")
 
 # Mod 4
-Year_Station_StationXGuild.3 <- distsamp(~1 ~ Year + Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
+Year_Station_StationXGuild.3 <- distsamp(~Diet_Type_3categories ~ Year + Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
 
 # Mod 5
-Station.3 <- distsamp(~1 ~ Station, umf.3, unitsOut = "kmsq")
+Station.3 <- distsamp(~Diet_Type_3categories ~ Station, umf.3, unitsOut = "kmsq")
 
 # Mod 7
-Station_StationXGuild.3 <-distsamp(~1 ~ Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
+Station_StationXGuild.3 <-distsamp(~Diet_Type_3categories ~ Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
 
 # Mod 8
-StationXGuild.3 <-distsamp(~1 ~ Station:Diet_Type_3categories, umf.3, unitsOut = "kmsq")
+StationXGuild.3 <-distsamp(~Diet_Type_3categories ~ Station:Diet_Type_3categories, umf.3, unitsOut = "kmsq")
 
 # Make a table to compare models
 
 # put mods in a list
-mod.set.3 <- list(null.3 = null.3, Year = Year.3, Year_Station.3 = Year_Station.3, Year_Station_StationXGuild.3 = Year_Station_StationXGuild.3, Station_StationXGuild.3 = Station_StationXGuild.3, Station.3 = Station.3, StationXGuild.3 = StationXGuild.3)
+mod.set.3 <- list(null.3 = null.3, diet_type_null.3 = diet_type_null.3, Year = Year.3, Year_Station.3 = Year_Station.3, Year_Station_StationXGuild.3 = Year_Station_StationXGuild.3, Station_StationXGuild.3 = Station_StationXGuild.3, Station.3 = Station.3, StationXGuild.3 = StationXGuild.3)
 
 # make table
 aic_table.3 <- aictab(cand.set = mod.set.3, sort = TRUE)
@@ -1113,6 +1156,13 @@ new.data3 <- density_est_df.3 %>%
 
 predictions3 <- predict(Station_StationXGuild.3, type="state", newdata=new.data3, appendData=TRUE)
 
+predictions.det <- predict(Station_StationXGuild.3, type="det", newdata=new.data3, appendData=TRUE)
+```
+
+
+```{r det with guild}
+
+#ggplot(predictions.det, aes(x=Diet_Type_3categories, y=Predicted, fill = Diet_Type_3categories)) + geom_point(pch = 21, size = 3) + theme_bw() + xlab("") + ggtitle("Snake detection probability by diet type")
 
 ```
 
@@ -1244,6 +1294,11 @@ Okay great things are looking consistent. Now lets do this with the model that a
 rm(aic_table.1, aic_table.2, covs.shortened, density_est_df, density_est_df.shortened, Humid_Station_StationXGuild, Humid_Yr_Stn_StnXGuild, Humid_Yr_Temp_Stn_StnXGuild, mod.set.2, new.data.env, null2, p2, predictions_shortened.df, predictions1, predictions2, Station_StationXGuild, Station_StationXGuild2, Station2, Temp_Station_StationXGuild, Temp_Yr_Stn_StnXGuild, umf.shortened, Year_Station_StationXGuild2, Year_Station2, Year2)
 ```
 
+
+## Detection Probability
+
+Think about re-creating models with a detection covariate that reflects Family or Diet Type.
+
 # Community composition
 
 ## Pie Charts
@@ -1347,6 +1402,20 @@ surveys.genus <- snakes.master %>%
 
 # pie chart
 ggplot(surveys.genus, aes(x="", y= n, fill=Genus)) +
+  geom_bar(stat="identity", width=0.5, color="black") +
+  coord_polar("y", start=0) +
+  theme_void() + facet_wrap(~Station) 
+
+# family
+
+surveys.family <- snakes.master %>%
+  filter(Method_of_Detection == "Found on survey") %>%
+  group_by(Station, Family) %>%
+  tally() %>%
+  na.omit() 
+
+# pie chart
+ggplot(surveys.family, aes(x="", y= n, fill=Family)) +
   geom_bar(stat="identity", width=0.5, color="black") +
   coord_polar("y", start=0) +
   theme_void() + facet_wrap(~Station) 
@@ -1471,50 +1540,89 @@ Right so no difference there.
 
 ```{r raw detection rates}
 
-# 3 diet types
-detection_rates <- snakes.sur %>%
-  filter(!is.na(Snake_ID)) %>%
+# isolate surveys for which no snakes were found
+zeros.3.diets <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m)
+
+# get them into the format we want (tally doesn't actually matter here)
+z.tally.no.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
+
+# no mammals
+z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
+
+# mostly mammals
+z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
+
+# mixed
+
+# mixed
+z.tally.mixed.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date,Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
+
+# stack them together
+z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+#clean
+rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies.3 <- z.tallies.3 %>%
+  select(!n)
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally.3 <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+# now, we can add the surveys and the segments with zero detections back
+
+raw_detection_df <- full_join(z.tallies.3, survey.tally.3)
+
+# make NAs zeros
+raw_detection_df <- raw_detection_df %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+# I did this fast and it should be checked
+
+detection_rates <- raw_detection_df %>%
   group_by(Station, Diet_Type_3categories, Start_Date) %>%
   summarize(meters_surveyed = sum(Seg_dist_m),
-            individuals_found = n_distinct(Snake_ID))
+            individuals_found = sum(n))
 
 # Owen spot check the above please
 
-detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
+detection_rates$n_per_1000m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*10000
 
 # summarize and visualize
 detections.mean.se <- detection_rates %>%
   group_by(Station, Diet_Type_3categories) %>%
-  summarise(mean = mean(n_per_500m),
-            sd = sd(n_per_500m),
+  summarise(mean = mean(n_per_1000m),
+            sd = sd(n_per_1000m),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
 ggplot(detections.mean.se, aes(x=Station, y=mean, fill = Diet_Type_3categories)) +
-  geom_jitter(data = detection_rates, 
-              aes(x = Station, y = individuals_found), 
-              width = 0.15, size = 1.5, alpha = 0.5) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Detections/500m") + ggtitle("Snake Detections per 500m by Diet Type") + facet_wrap(~Diet_Type_3categories, scales = "free")
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Detections/1km") + ggtitle("Snake Detections per 1km by Diet Type") + facet_wrap(~Diet_Type_3categories, scales = "free")
 
-# total raw detections
-detection_rates2 <- snakes.sur %>%
-  filter(!is.na(Snake_ID)) %>%
-  group_by(Station, Start_Date) %>%
-  summarize(meters_surveyed = sum(Seg_dist_m),
-            individuals_found = n_distinct(Snake_ID))
-
-# Owen spot check the above please
-
-detection_rates2$n_per_500m <- (detection_rates2$individuals_found/detection_rates2$meters_surveyed)*500
-
-# summarize total n
-detection_rates2 %>%
-  group_by(Station) %>%
-  summarise(mean = mean(n_per_500m),
-            sd = sd(n_per_500m),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-# Unhunted forest: M = 1.13 snakes/500m surveyed, SD = 1.07, +/- SE = 0.22 
-# Hunted forest: M = 1.04 snakes/500m surveyed, SD = 0.56, =/- SE = 0.12
+# need to also report raw overall detections regardless of diet type per station 
 ```
