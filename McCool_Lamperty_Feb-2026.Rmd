@@ -646,35 +646,35 @@ The chunk below divides observations into smaller bins closer to the trail and l
 
 ```{r divide up bins, eval=FALSE} 
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 0.25, "0_0.25", NA))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 0.25, "0_0.25", NA))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.25 & Distance_From_Trail_m <= 0.5, "0.25_0.5", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.25 & Distance_From_Trail_m <= 0.5, "0.25_0.5", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.5 & Distance_From_Trail_m <= 1, "0.5_1", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.5 & Distance_From_Trail_m <= 1, "0.5_1", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 1.5, "1_1.5", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 1.5, "1_1.5", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1.5 & Distance_From_Trail_m <= 2, "1.5_2", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1.5 & Distance_From_Trail_m <= 2, "1.5_2", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 2.5, "2_2.5", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 2.5, "2_2.5", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2.5 & Distance_From_Trail_m <=3.5, "2.5_3.5", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2.5 & Distance_From_Trail_m <=3.5, "2.5_3.5", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3.5 & Distance_From_Trail_m <=5, "3.5_5", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3.5 & Distance_From_Trail_m <=5, "3.5_5", Distance_bin_m))
 
-snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
+#snakes.sur <- snakes.sur %>%
+ # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
 
 # join temp and humidity means to the snakes.sur data
-snakes.sur <- left_join(snakes.sur, temp_hum_df)
+#snakes.sur <- left_join(snakes.sur, temp_hum_df)
 ```
 
 This verions of binning (chunk below) divides chunks up into 1 m intervals until 5m from trail, which is grouped into 1 bin of distances 5-8m from trail (and I threw the 11.5m away obs in that group too).
@@ -727,8 +727,6 @@ snakes.sur <- left_join(snakes.sur, temp_hum_df)
 
 ```
 
-
-
 ## Format with 0s for unmarked
 
 #### 2 Diet types
@@ -738,18 +736,18 @@ snakes.sur <- left_join(snakes.sur, temp_hum_df)
 # isolate surveys for which no snakes were found
 zeros <- snakes.sur %>%
   filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Year, Station, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent)
+  select(Start_Date, Year, Station, Family, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent)
 
 # get them into the format we want (tally doesn't actually matter here)
 z.tally.no.mammals <- zeros %>%
-  group_by(Start_Date, Year, Station, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
+  group_by(Start_Date, Year, Station, Family, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 # for the nights when 0 snakes were found, make a dataframe of instances that specifies zero non-mammal eaters were found specifically
 z.tally.no.mammals$Diet_Type <- "no_mammals"
 
 # repeat with making a df of instances when zero mammal eating snakes were found
 z.tally.yes.mammals <- zeros %>%
-  group_by(Start_Date, Year, Station, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
+  group_by(Start_Date, Year, Station, Family, Diet_Type, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 # make all diet types = no mammals
 
@@ -780,7 +778,7 @@ surveys.no.zeros <- surveys.no.zeros %>%
 
 # tally counts - df without zeros
 survey.tally <- surveys.no.zeros %>%
-  group_by(Start_Date, Year, Station, Diet_Type, Segment, Seg_dist_m, Distance_bin_m, mean_temp_F, mean_humidity_percent) %>% tally()
+  group_by(Start_Date, Year, Station, Family, Diet_Type, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
 
 # pivot wider that wider
 density_est_df <- survey.tally %>% 
@@ -818,12 +816,13 @@ density_est_df$Diet_Type <- as.factor(density_est_df$Diet_Type)
 density_est_df$Seg_dist_m <- as.numeric(density_est_df$Seg_dist_m)
 density_est_df$Segment <- as.factor(density_est_df$Segment)
 density_est_df$Station <- as.factor(density_est_df$Station)
+density_est_df$Family <- as.factor(density_est_df$Family)
 
 
 # separate out the covariates
-covs <- density_est_df[,c("Station", "Year", "Diet_Type", "Segment", "Seg_dist_m")]
+covs <- density_est_df[,c("Station", "Year", "Family", "Diet_Type", "Segment", "Seg_dist_m")]
 
-umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,9:ncol(density_est_df)]), siteCovs=data.frame(covs), dist.breaks=c( 0, 2, 4, 6, 8), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
+umf <- unmarkedFrameDS(y=as.matrix(density_est_df[,10:ncol(density_est_df)]), siteCovs=data.frame(covs), dist.breaks=c( 0, 2, 4, 6, 8), unitsIn="m", survey="line", tlength=covs$Seg_dist_m)
 
 hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
@@ -836,11 +835,11 @@ hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 # isolate surveys for which no snakes were found
 zeros.3.diets <- snakes.sur %>%
   filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent)
+  select(Start_Date, Year, Station, Family, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent)
 
 # get them into the format we want (tally doesn't actually matter here)
 z.tally.no.mammals.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
+  group_by(Start_Date, Year, Station, Family, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 # for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
 
@@ -849,7 +848,7 @@ z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
 
 # mostly mammals
 z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
+  group_by(Start_Date, Year, Station, Family, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
 
@@ -857,7 +856,7 @@ z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
 
 # mixed
 z.tally.mixed.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
+  group_by(Start_Date, Year, Station, Family, Diet_Type_3categories, Segment, Seg_dist_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
 
@@ -885,7 +884,7 @@ surveys.no.zeros <- surveys.no.zeros %>%
 
 # tally counts - df without zeros
 survey.tally.3 <- surveys.no.zeros %>%
-  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, Distance_bin_m, mean_temp_F, mean_humidity_percent) %>% tally()
+  group_by(Start_Date, Year, Station, Family, Diet_Type_3categories, Segment, Seg_dist_m, Distance_bin_m, mean_temp_F, mean_humidity_percent) %>% tally()
 
 # pivot wider that wider
 density_est_df.3 <- survey.tally.3 %>% 
@@ -917,17 +916,57 @@ density_est_df.3$Diet_Type_3categories <- as.factor(density_est_df.3$Diet_Type_3
 density_est_df.3$Seg_dist_m <- as.numeric(density_est_df.3$Seg_dist_m)
 density_est_df.3$Segment <- as.factor(density_est_df.3$Segment)
 density_est_df.3$Station <- as.factor(density_est_df.3$Station)
+density_est_df.3$Family <- as.factor(density_est_df.3$Family)
 
 # separate out the covariates
-covs.3 <- density_est_df.3[,c("Station", "Year", "Diet_Type_3categories", "Segment", "Seg_dist_m")]
+covs.3 <- density_est_df.3[,c("Station", "Year", "Family", "Diet_Type_3categories", "Segment", "Seg_dist_m")]
 
-umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,9:ncol(density_est_df.3)]), siteCovs=data.frame(covs.3), dist.breaks=c(0, 2, 4, 6, 8), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
+umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,10:ncol(density_est_df.3)]), siteCovs=data.frame(covs.3), dist.breaks=c(0, 2, 4, 6, 8), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
 
 hist(umf.3, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
 ```
 
-## 2 Diet Types No Env Covs
+#### Family level
+
+```{r format for unmarked based on fams}
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+# SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally <- surveys.no.zeros %>%
+  filter(Family != "Viperidae") %>%
+filter(Family != "Elapidae") %>%
+  group_by(Start_Date, Year, Station, Family, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
+
+# generate all possible combinations based on family to get zeros
+
+df_long <- survey.tally %>%
+  as_tibble() %>%
+  complete(Family, Distance_bin_m, nesting(Start_Date, Year, Station, Segment, Seg_dist_m), fill = list(n = 0))
+
+# also, which families eat what?
+snakes.sur %>%
+  group_by(Family) %>%
+  reframe(unique(Diet_Type)) # colubridae is only possibility for mixed in our data?
+
+# pivot wider that wider
+density_fam_df <- df_long %>% 
+  pivot_wider(names_from = Distance_bin_m,
+              values_from = n, 
+              values_fill = 0)
+```
+
+
+## Model 2 Diet Types No Env Covs
 
 First compare models based on AIC without worrying about temperature and humidity. This uses the 2 diet type categories of yes vs no mammals.
 
@@ -939,7 +978,7 @@ null <- distsamp(~1 ~ 1, umf, unitsOut = "kmsq")
 summary(null)
 
 # add diet type as detection covariate since mammal eaters are bigger and seen farther away more easily than smaller non mammal eating snakes are at the same distances from transects
-Diet_Type.null<- distsamp(~Diet_Type ~ 1, umf, unitsOut = "kmsq")
+Diet_Type.null<- distsamp(~Family ~ 1, umf, unitsOut = "kmsq")
 summary(Diet_Type.null)
 
 # Mod 2
@@ -1093,7 +1132,7 @@ Clean plots and the other models from above and some other misc things
 rm(new.data1, new.data2, null, Station, umf, covs, env_at_detection, enviro2, temp_hum_df, Year, Year_Station, Year_Station_StationXGuild, und.mean.se, under.hist, segs_expanded, segs, mod.set.1)
 ```
 
-## 3 Diet Types No Env Covs
+## Model 3 Diet Types No Env Covs
 
 ```{r mods three diet types no env covs}
 
@@ -1178,9 +1217,81 @@ p_3cats
 
 Appears to be elevated numbers in hunted forest in the guild that is mostly mammal consumers.
 
+
+## Model family level density
+
+```{r model at fam level}
+# separate out the covariates
+
+# model not running bc of sparse data at fam level - removed elapidae, which only had 1 detection, and Viperidae which only had 2
+
+covs.fam <- density_fam_df[,c("Station", "Year", "Family", "Segment", "Seg_dist_m")]
+
+umf.fam <- unmarkedFrameDS(y=as.matrix(density_fam_df[,7:ncol(density_fam_df)]), siteCovs=data.frame(covs.fam), dist.breaks=c( 0,2,4,6, 8), unitsIn="m", survey="line", tlength=covs.fam$Seg_dist_m)
+
+# run models
+# null
+null.fam <- distsamp(~1 ~ 1, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
+summary(null.fam)
+
+# family as detection covariate, no density covariate
+fam.null  <- distsamp(~Family ~ 1, umf.fam, unitsOut = "kmsq",keyfun = "uniform")
+summary(fam.null)
+
+# add year as density covariate
+year <- distsamp(~ 1 ~ Year, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
+summary(year)
+
+# add station as density covariate
+station <- distsamp(~1 ~ Station, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
+summary(station)
+
+# add station and station x family interaction term 
+
+station_stationXfam <- distsamp(~1 ~ Station/Family, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
+
+summary(station_stationXfam)
+# best mod by far
+```
+
+
+
+### Predicted vals fam
+
+```{r predicted values three guilds}
+
+new.data.fam <- density_fam_df %>%
+  ungroup() %>%
+  dplyr::select(Station, Family) %>%
+  distinct()
+  
+
+#Predict
+
+predictions.fam <- predict(station_stationXfam, type="state", newdata=new.data.fam, appendData=TRUE)
+
+```
+
+
+
+```{r plot fam, message=FALSE, warning=FALSE}
+
+p_3cats<-ggplot(predictions.fam, aes(x=Station, y=Predicted, fill = Family, group = Station)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("goldenrod1", "green4", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12)) 
+
+p_3cats
+```
+
+Appears to be elevated numbers in hunted forest in the family that is mostly mammal consumers.
+
+
 ## Env Covs Exploration
 
 Let's look at how humidity and temperature affect model AIC values. 
+
+This is commented out bc it didnt improve model fit based on AIC and when plotted, no trends existed with temp or humidity.
 
 ```{r density est mods hum and temp}
 
@@ -1190,17 +1301,17 @@ Let's look at how humidity and temperature affect model AIC values.
 
 # make a df that excludes all surveys associated with the NA readings of temp and humidity
 
-density_est_df.shortened <- density_est_df.3 %>%
-  na.omit()
+#density_est_df.shortened <- density_est_df.3 %>%
+ # na.omit()
 
 # scale and center continuous covs
-density_est_df.shortened$temp_scaled <-as.numeric(scale(density_est_df.shortened$mean_temp_F, center = TRUE))
+#density_est_df.shortened$temp_scaled <-as.numeric(scale(density_est_df.shortened$mean_temp_F, center = TRUE))
 
-density_est_df.shortened$hum_scaled <-as.numeric(scale(density_est_df.shortened$mean_humidity_percent, center = TRUE))
+#density_est_df.shortened$hum_scaled <-as.numeric(scale(density_est_df.shortened$mean_humidity_percent, center = TRUE))
 
-covs.shortened <- density_est_df.shortened[,c("Station", "Diet_Type_3categories", "Year", "Segment", "Seg_dist_m", "temp_scaled", "hum_scaled")]
+#covs.shortened <- density_est_df.shortened[,c("Station", "Diet_Type_3categories", "Year", "Segment", "Seg_dist_m", "temp_scaled", "hum_scaled")]
 
-umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:17]), siteCovs=data.frame(covs.shortened), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs.shortened$Seg_dist_m)
+#umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:17]), siteCovs=data.frame(covs.shortened), dist.breaks=c(0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=covs.shortened$Seg_dist_m)
 ```
 
 ```{r now structure and compare models}
@@ -1209,53 +1320,53 @@ umf.shortened <- unmarkedFrameDS(y=as.matrix(density_est_df.shortened[,9:17]), s
 
 # Fit model 1, null model
 
-null2 <- distsamp(~1 ~ 1, umf.shortened, unitsOut = "kmsq")
+#null2 <- distsamp(~1 ~ 1, umf.shortened, unitsOut = "kmsq")
 
 # Mod 2
-Year2 <- distsamp(~ 1 ~ Year, umf.shortened, unitsOut = "kmsq")
+#Year2 <- distsamp(~ 1 ~ Year, umf.shortened, unitsOut = "kmsq")
 
 # Mod 3
-Year_Station2 <- distsamp(~1 ~ Year + Station, umf.shortened, unitsOut = "kmsq")
+#Year_Station2 <- distsamp(~1 ~ Year + Station, umf.shortened, unitsOut = "kmsq")
 
 # Mod 4
-Year_Station_StationXGuild2 <- distsamp(~1 ~ Year + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
+#Year_Station_StationXGuild2 <- distsamp(~1 ~ Year + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 5
 
-Station2 <- distsamp(~1 ~ Station, umf.shortened, unitsOut = "kmsq")
+#Station2 <- distsamp(~1 ~ Station, umf.shortened, unitsOut = "kmsq")
 
 # Mod 7
-Station_StationXGuild2 <-distsamp(~1 ~ Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
+#Station_StationXGuild2 <-distsamp(~1 ~ Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 8
 # Substitute temperature for year
-Temp_Station_StationXGuild <- distsamp(~1 ~ temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
+#Temp_Station_StationXGuild <- distsamp(~1 ~ temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 9
 # Substitute humidity for year
-Humid_Station_StationXGuild <- distsamp(~1 ~ hum_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
+#Humid_Station_StationXGuild <- distsamp(~1 ~ hum_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 10
 # Temperature and year
-Temp_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
+#Temp_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 11
 # Humidity and year
-Humid_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
+#Humid_Yr_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Mod 12
 # Humidity, Temp, Year (and Station and Station x Diet type)
-Humid_Yr_Temp_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
+#Humid_Yr_Temp_Stn_StnXGuild <- distsamp(~1 ~ Year + hum_scaled + temp_scaled + Station/Diet_Type_3categories, umf.shortened, unitsOut = "kmsq")
 
 # Make a table to compare models
 
 # put mods in a list
-mod.set.2 <- list(null = null2, Year = Year2, Year_Station = Year_Station2, Year_Station_StationXGuild = Year_Station_StationXGuild2, Station_StationXGuild = Station_StationXGuild2, Station = Station2, Temp_Station_StationXGuild = Temp_Station_StationXGuild, Humid_Station_StationXGuild = Humid_Station_StationXGuild, Temp_Yr_Stn_StnXGuild = Temp_Yr_Stn_StnXGuild, Humid_Yr_Temp_Stn_StnXGuild = Humid_Yr_Temp_Stn_StnXGuild)
+#mod.set.2 <- list(null = null2, Year = Year2, Year_Station = Year_Station2, Year_Station_StationXGuild = Year_Station_StationXGuild2, Station_StationXGuild = Station_StationXGuild2, Station = Station2, Temp_Station_StationXGuild = Temp_Station_StationXGuild, Humid_Station_StationXGuild = Humid_Station_StationXGuild, Temp_Yr_Stn_StnXGuild = Temp_Yr_Stn_StnXGuild, Humid_Yr_Temp_Stn_StnXGuild = Humid_Yr_Temp_Stn_StnXGuild)
 
 # make table
-aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
+#aic_table.2 <- aictab(cand.set = mod.set.2, sort = TRUE)
 
-aic_table.2
+#aic_table.2
 ```
 
 Luckily, it doesn't look like the env covs matter. They make the model perform worse based on AIC.
@@ -1266,14 +1377,14 @@ Check out predictions based on top model for the shortened dataframe for which w
 
 ```{r mod predictions station stationxguild}
 
-new.data.env <-density_est_df.shortened %>% # isolate covariates in new df
-  ungroup() %>%
-  dplyr::select(Station, Diet_Type_3categories) %>%
-  distinct()
+#new.data.env <-density_est_df.shortened %>% # isolate covariates in new df
+ # ungroup() %>%
+  #dplyr::select(Station, Diet_Type_3categories) %>%
+  #distinct()
 
 #Predict with temp held constant at mean
 
-predictions_shortened.df <- predict(Station_StationXGuild.3, type="state", newdata=new.data.env, appendData=TRUE)
+#predictions_shortened.df <- predict(Station_StationXGuild.3, type="state", newdata=new.data.env, appendData=TRUE)
 
 ```
 
@@ -1281,23 +1392,16 @@ Plot
 
 ```{r plot with temp held constant}
 
-ggplot(predictions_shortened.df, aes(x=Station, y=Predicted, fill = Diet_Type_3categories, group = Diet_Type_3categories)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3", "black")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type\n using model that accounts for temperature") + labs(fill = "Diet type") + 
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5,face = "bold", size = 12)) + geom_line(linetype = "dashed", position = position_dodge(width = 0.5))
+#ggplot(predictions_shortened.df, aes(x=Station, y=Predicted, fill = Diet_Type_3categories, group = Diet_Type_3categories)) +
+ # geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = 0.25, position = position_dodge(width = 0.5)) + geom_point(pch = 21, size = 3, position = position_dodge(width = 0.5)) + theme_bw() + scale_fill_manual(values = c("blue4", "goldenrod3", "black")) + xlab("")  + theme(legend.title = element_text("Diet type")) + scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type\n using model that accounts for temperature") + labs(fill = "Diet type") + 
+ # scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+   #   hjust = 0.5,face = "bold", size = 12)) + geom_line(linetype = "dashed", position = position_dodge(width = 0.5))
 
 ```
 
 Okay great things are looking consistent. Now lets do this with the model that accounts for temperature but not for year (which... technically does not perform better based on AIC when compared to the model that omits temperature and year).
 
-```{r clean some}
-rm(aic_table.1, aic_table.2, covs.shortened, density_est_df, density_est_df.shortened, Humid_Station_StationXGuild, Humid_Yr_Stn_StnXGuild, Humid_Yr_Temp_Stn_StnXGuild, mod.set.2, new.data.env, null2, p2, predictions_shortened.df, predictions1, predictions2, Station_StationXGuild, Station_StationXGuild2, Station2, Temp_Station_StationXGuild, Temp_Yr_Stn_StnXGuild, umf.shortened, Year_Station_StationXGuild2, Year_Station2, Year2)
-```
 
-
-## Detection Probability
-
-Think about re-creating models with a detection covariate that reflects Family or Diet Type.
 
 # Community composition
 
