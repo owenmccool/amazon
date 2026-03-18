@@ -1207,13 +1207,29 @@ predictions.det <- predict(Station_StationXGuild.3, type="det", newdata=new.data
 ```
 
 ```{r plot three guilds, message=FALSE, warning=FALSE}
+predictions3$Diet_Type_3categories <- factor(
+  predictions3$Diet_Type_3categories,
+  levels = c("no_mammals", "mixed", "mostly_mammals", 
+  labels = c("No Mammals", "Mixed", "Mostly Mammals"))
+) #make sure that the order goes nomamm > mixed > mostly mamm
 
 p_3cats<-ggplot(predictions3, aes(x=Station, y=Predicted, fill = Diet_Type_3categories, group = Station)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("goldenrod1", "green4", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5,face = "bold", size = 12)) + facet_wrap(~Diet_Type_3categories, scales = "free")
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 4) + theme_bw() + scale_fill_manual(values = c("goldenrod1", "green4", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake Density Estimates by Dietary Guild") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(text = element_text(family = "Tahoma")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12, margin = margin(b = 10))) + scale_fill_manual(
+  name = "Diet Type",
+  values = c("goldenrod1", "green4", "black"),
+  labels = c("No mammals", "Mixed", "Mostly mammals")
+) + facet_wrap(~Diet_Type_3categories, scales = "free", labeller = labeller(Diet_Type_3categories = c(
+    no_mammals = "No Mammals",
+    mixed = "Mixed",
+    mostly_mammals = "Mostly Mammals"
+  ))
+)
 
 p_3cats
+
+#ggsave(p_3cats, file="snk_dens_3diet.png", width = 8, height = 5)
 ```
 
 Appears to be elevated numbers in hunted forest in the guild that is mostly mammal consumers.
