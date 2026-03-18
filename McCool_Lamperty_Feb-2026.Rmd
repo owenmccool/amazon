@@ -236,7 +236,8 @@ snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Segment)) # sna
 
 snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 101 snakes found
 
-# all parts are here, problem fixed
+# all parts are here, problem fixed 
+# NOTE TO THERESE: SOMEHOW IN SNAKES.SUR, SK04 AND SK05 GET DUPLICATED BUT IT DOESN'T SEEM TO CAUSE ERRORS LATER ON DOWN THE LINE. EG, THE DENSITY SECTION HAS EXACTLY 101 SNAKES WHICH IS THE CORRECT AMOUNT SO I'M NOT SURE WHAT'S GOING WRONG HERE 
 
 rm(snakes.sur.zeros.dropped, missing_startdate)
 
