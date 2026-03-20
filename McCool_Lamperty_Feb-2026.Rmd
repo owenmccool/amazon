@@ -1293,12 +1293,14 @@ predictions.fam <- predict(station_stationXfam, type="state", newdata=new.data.f
 
 ```{r plot fam, message=FALSE, warning=FALSE}
 
-p_3cats<-ggplot(predictions.fam, aes(x=Station, y=Predicted, fill = Family, group = Station)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("goldenrod1", "green4", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake density estimates by diet type") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+p_3cats_fam<-ggplot(predictions.fam, aes(x=Station, y=Predicted, fill = Family, group = Station)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("purple2","goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake Density Estimates by Family") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(text = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
       hjust = 0.5,face = "bold", size = 12)) 
 
-p_3cats
+p_3cats_fam
+
+#ggsave(p_3cats_fam, file="snk_dens_3diet_fam.png", width = 8, height = 5)
 ```
 
 Appears to be elevated numbers in hunted forest in the family that is mostly mammal consumers.
