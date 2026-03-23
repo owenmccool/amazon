@@ -1113,10 +1113,11 @@ summary(Station.3)
 StationXGuild.3 <- distsamp(~1 ~ Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
 summary(StationXGuild.3)
 
+
 # Make a table to compare models
 
 # put mods in a list
-mod.set.3diets <- list(null.3 = null.3, Year.3 = Year.3, StationXGuild.3 = StationXGuild.3)
+mod.set.3diets <- list(null.3 = null.3, Year.3 = Year.3, StationXGuild.3 = StationXGuild.3, Station.3 = Station.3)
 
 # make table
 aic_table.3 <- aictab(cand.set = mod.set.3diets, sort = TRUE)
@@ -1212,6 +1213,14 @@ station_stationXfam <- distsamp(~1 ~ Station/Family, umf.fam, unitsOut = "kmsq",
 
 summary(station_stationXfam)
 # best mod by far
+
+# put mods in a list
+mod.set.family <- list(null.fam = null.fam, fam.null = fam.null, year = year, station = station, station_stationXfam = station_stationXfam)
+
+# make table
+aic_table.fam <- aictab(cand.set = mod.set.family, sort = TRUE)
+
+aic_table.fam
 ```
 
 
