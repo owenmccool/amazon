@@ -1733,13 +1733,13 @@ detection_rates <- raw_detection_df %>%
             individuals_found = sum(n))
 
 # Owen spot check the above please
-<<<<<<< HEAD
+#<<<<<<< HEAD
 sum(detection_rates$individuals_found)
 detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
-=======
+#=======
 
 detection_rates$n_per_1000m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*10000
->>>>>>> 3fe2a654d8463f9ef6755ca229a37f936b0984e5
+#>>>>>>> 3fe2a654d8463f9ef6755ca229a37f936b0984e5
 
 # summarize and visualize
 detections.mean.se <- detection_rates %>%
