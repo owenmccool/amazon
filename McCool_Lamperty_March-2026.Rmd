@@ -774,8 +774,7 @@ density_est_df.3 <- full_join(z.tallies.3, density_est_df.3)
 
 # make NAs zeros - except the temp and humidty NAs
 
-density_est_df.3 <- density_est_df.3 %>%
-  mutate(across(c(5_8,), ~ replace_na(., 0)))
+density_est_df.3 <- density_est_df.3 %>%mutate_all(~replace(., is.na(.), 0))
 
 # clean
 rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
@@ -792,7 +791,7 @@ density_est_df.3$Station <- as.factor(density_est_df.3$Station)
 # separate out the covariates
 covs.3 <- density_est_df.3[,c("Station", "Year", "Diet_Type_3categories", "Segment", "Seg_dist_m")]
 
-umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,9:ncol(density_est_df.3)]), siteCovs=data.frame(covs.3), dist.breaks=c(0, 2, 4, 6, 8), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
+umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,7:ncol(density_est_df.3)]), siteCovs=data.frame(covs.3), dist.breaks=c(0, 1, 2, 3, 4, 5, 8), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
 
 hist(umf.3, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
@@ -836,12 +835,11 @@ fitstats <- function(fm) {
 
 ```{r mods three diet types no env covs}
 
-null.3 <- distsamp(~1 ~ 1, umf.3, unitsOut = "kmsq", keyfun = "uniform")
+null.3 <- distsamp(~1 ~ 1, umf.3, unitsOut = "kmsq")
 summary(null.3)
 
-Diet_det <- distsamp(~ Diet_Type_3categories ~ 1, umf.3, keyfun = "uniform", unitsOut = "kmsq")
-summary(Diet_det)
-summary(Diet_det) # diet type as detection covariate improves model
+Diet_det <- distsamp(~ Diet_Type_3categories ~ 1, umf.3, unitsOut = "kmsq")
+summary(Diet_det)# diet type as detection covariate improves model
 
 Year.3 <- distsamp(~ Diet_Type_3categories ~ Year, umf.3, unitsOut = "kmsq")
 summary(Year.3)
@@ -856,7 +854,7 @@ summary(StationXGuild.3)
 # Make a table to compare models
 
 # put mods in a list
-mod.set.3diets <- list(null.3 = null.3, Year.3 = Year.3, StationXGuild.3 = StationXGuild.3, Station.3 = Station.3)
+mod.set.3diets <- list(null.3 = null.3, Year.3 = Year.3, StationXGuild.3 = StationXGuild.3, Station.3 = Station.3, Diet_det = Diet_det)
 
 # make table
 aic_table.3 <- aictab(cand.set = mod.set.3diets, sort = TRUE)
@@ -867,8 +865,8 @@ aic_table.3
 ### GOF 3 diet types
 
 ```{r goodness of fit three guilds}
-pb_3cats <- parboot(Station_StationXGuild.3, fitstats, nsim=1000)
-pb_3cats
+#pb_3cats <- parboot(StationXGuild.3, fitstats, nsim=1000)
+#pb_3cats
 # fine
 ```
 
@@ -880,7 +878,6 @@ new.data3 <- density_est_df.3 %>%
   ungroup() %>%
   dplyr::select(Station, Diet_Type_3categories) %>%
   distinct()
-  
 
 #Predict
 
@@ -912,6 +909,8 @@ p_3cats<-ggplot(predictions3, aes(x=Station, y=Predicted, fill = Diet_Type_3cate
 p_3cats
 
 #ggsave(p_3cats, file="snk_dens_3diet.png", width = 8, height = 5)
+
+
 ```
 
 Appears to be elevated numbers in hunted forest in the guild that is mostly mammal consumers.
@@ -921,6 +920,18 @@ Appears to be elevated numbers in hunted forest in the guild that is mostly mamm
 The two most detected families are Boidae and Colubridae. Limitting the analysis to these 2 families allows the models to run without error with Family as a covariate. Including all families detected creates model issues with uncertainty because the other families were only detected 1 or 2 times. 
 
 ```{r format for unmarked based on fams}
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 2, "0_2", NA))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 5, "3_5", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
 
 # also isolate surveys that DID have snakes detected
 surveys.no.zeros <- snakes.sur %>%
@@ -965,28 +976,28 @@ density_fam_df <- df_long %>%
 
 covs.fam <- density_fam_df[,c("Station", "Year", "Family", "Segment", "Seg_dist_m")]
 
-umf.fam <- unmarkedFrameDS(y=as.matrix(density_fam_df[,7:ncol(density_fam_df)]), siteCovs=data.frame(covs.fam), dist.breaks=c( 0,2,4,6, 8), unitsIn="m", survey="line", tlength=covs.fam$Seg_dist_m)
+umf.fam <- unmarkedFrameDS(y=as.matrix(density_fam_df[,7:ncol(density_fam_df)]), siteCovs=data.frame(covs.fam), dist.breaks=c( 0,2,3,5,8), unitsIn="m", survey="line", tlength=covs.fam$Seg_dist_m)
 
 # run models
 # null
-null.fam <- distsamp(~1 ~ 1, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
+null.fam <- distsamp(~1 ~ 1, umf.fam, unitsOut = "kmsq")
 summary(null.fam)
 
 # family as detection covariate, no density covariate
-fam.null  <- distsamp(~Family ~ 1, umf.fam, unitsOut = "kmsq",keyfun = "uniform")
+fam.null  <- distsamp(~Family ~ 1, umf.fam, unitsOut = "kmsq")
 summary(fam.null)
 
 # add year as density covariate
-year <- distsamp(~ 1 ~ Year, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
+year <- distsamp(~ Family ~ Year, umf.fam, unitsOut = "kmsq")
 summary(year)
 
 # add station as density covariate
-station <- distsamp(~1 ~ Station, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
+station <- distsamp(~Family ~ Station, umf.fam, unitsOut = "kmsq")
 summary(station)
 
 # add station and station x family interaction term 
 
-station_stationXfam <- distsamp(~1 ~ Station/Family, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
+station_stationXfam <- distsamp(~1~ Station/Family, umf.fam, unitsOut = "kmsq")
 
 summary(station_stationXfam)
 # best mod by far
