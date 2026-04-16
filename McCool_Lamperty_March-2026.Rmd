@@ -860,6 +860,7 @@ mod.set.3diets <- list(null.3 = null.3, Year.3 = Year.3, StationXGuild.3 = Stati
 aic_table.3 <- aictab(cand.set = mod.set.3diets, sort = TRUE)
 
 aic_table.3
+
 ```
 
 ### GOF 3 diet types
@@ -922,16 +923,16 @@ The two most detected families are Boidae and Colubridae. Limitting the analysis
 ```{r format for unmarked based on fams}
 
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 2, "0_2", NA))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1", NA))
 
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 2, "2", Distance_bin_m))
 
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 5, "3_5", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 4, "2_4", Distance_bin_m))
 
 snakes.sur <- snakes.sur %>%
-  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4, "4_8", Distance_bin_m))
 
 # also isolate surveys that DID have snakes detected
 surveys.no.zeros <- snakes.sur %>%
@@ -976,7 +977,7 @@ density_fam_df <- df_long %>%
 
 covs.fam <- density_fam_df[,c("Station", "Year", "Family", "Segment", "Seg_dist_m")]
 
-umf.fam <- unmarkedFrameDS(y=as.matrix(density_fam_df[,7:ncol(density_fam_df)]), siteCovs=data.frame(covs.fam), dist.breaks=c( 0,2,3,5,8), unitsIn="m", survey="line", tlength=covs.fam$Seg_dist_m)
+umf.fam <- unmarkedFrameDS(y=as.matrix(density_fam_df[,7:ncol(density_fam_df)]), siteCovs=data.frame(covs.fam), dist.breaks=c( 0,1,2,4,8), unitsIn="m", survey="line", tlength=covs.fam$Seg_dist_m)
 
 # run models
 # null
@@ -997,7 +998,7 @@ summary(station)
 
 # add station and station x family interaction term 
 
-station_stationXfam <- distsamp(~1~ Station/Family, umf.fam, unitsOut = "kmsq")
+station_stationXfam <- distsamp(~Family~ Station/Family, umf.fam, unitsOut = "kmsq")
 
 summary(station_stationXfam)
 # best mod by far
@@ -1024,6 +1025,7 @@ new.data.fam <- density_fam_df %>%
 #Predict
 
 predictions.fam <- predict(station_stationXfam, type="state", newdata=new.data.fam, appendData=TRUE)
+
 
 ```
 
