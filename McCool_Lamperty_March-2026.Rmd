@@ -57,9 +57,30 @@ Snakes were given a classification as to whether they were small mammal consumer
 This data was cleaned some in initial steps in 2024-2025 (see archived code). Note that temp and humidity data was removed for 4 surveys at YRS that took place after July 11, 2025, during which the team lost confidence in the data collection instrument. 
 
 ```{r data read in}
-snakes.master <- read.csv(file = "snake.master.csv")
-enviro <- read.csv(file = "enviro.csv")
-segs <- read.csv("Segment_Distances.csv")
+
+#1. all snake records
+snakes.master <- read.csv(file = "Data/snake.master.csv")
+
+#2. environmental data, which also has rodent encounters
+enviro <- read.csv(file = "Data/enviro.csv")
+
+#3. segment data, has lengths of segments
+segs <- read.csv("Data/Segment_Distances.csv")
+
+#4. amphibian and lizard data collected in 2025
+amph_lz=read.csv("Data/Field_Season_2_datasheets(amphibians_and_lizards).csv")
+
+#5. corresponding amph_lz env data
+env=read.csv("Data/Field_Season_2_datasheets(Environment_Sheet).csv")
+
+#6. this may be the same as 'segs' above
+seg_dist=read.csv("Data/Field_Season_2_datasheets(Segment_Distances).csv")
+
+#7. amphibian 2024 data
+amph_2024 <- read.csv("Data/2024_amphibians.csv")
+
+#8. lizard 2024 data
+liz_2024 <- read.csv("Data/2024_lizards.csv")
 ```
 
 ## Data prep
@@ -241,6 +262,226 @@ snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 10
 
 rm(snakes.sur.zeros.dropped, missing_startdate)
 
+```
+
+### 2024 amphibian and lizard data
+
+```{r clean 2024 amph lz data}
+# Start with amphibians
+amph_2024 <- amph_2024[-2,]
+colnames(amph_2024) <- amph_2024[1,]
+amph_2024 <- amph_2024[-1,]
+
+amph_2024 <- amph_2024 %>%
+  rename(Time_Found = Time_Found_)
+amph_2024 <- amph_2024 %>%
+  mutate(Survey_Type = "Night", 
+         X = NA, 
+         X.1 = NA, 
+         Size = NA,
+         Diet_Type = NA,
+         Primary_Diet_Component = NA)
+
+
+# Now for lizards
+liz_2024 <- liz_2024[-2,]
+colnames(liz_2024) <- liz_2024[1,]
+liz_2024 <- liz_2024[-1,]
+
+liz_2024 <- liz_2024 %>%
+  rename(Time_Found = Time_Found_)
+liz_2024 <- liz_2024 %>%
+  mutate(Survey_Type = "Night", 
+         X = NA, 
+         X.1 = NA, 
+         Size = NA,
+         Diet_Type = NA,
+         Primary_Diet_Component = NA)
+
+```
+
+```{r organize and clean species data, warning=FALSE}
+
+amph_lz=amph_lz %>%
+  separate(Species,into=c("Genus","Species")) #turn Species column into Genus and Species columns
+
+# replace unknown family with NA
+amph_lz <- amph_lz %>%
+  mutate(Family = ifelse(Family == "weird" | Family == "mystery" | Family == "weird ground frog in valley, looked like big head x treefrog" | Family == "unknown", NA, Family))
+
+# replace blank Genus and Unknown Genus entries with NA
+amph_lz <- amph_lz %>%
+  mutate(Genus = ifelse(Genus == "" | Genus == "Unknown", NA, Genus))
+
+amph_lz$Species= na_if(amph_lz$Species, "spp") #replace "spp" with NA
+
+# Check to make sure  column names are the same
+colnames(amph_2024)
+colnames(amph_lz)
+
+colnames(liz_2024)
+colnames(amph_lz)
+
+# MERGE ALL DATA INTO AMPH_LZ
+
+amph_lz <- rbind(amph_lz, amph_2024, liz_2024)
+
+rm(amph_2024)
+rm(liz_2024)
+
+rm_trail_spaces <- function(column) {
+  clean_column <- trimws(column)
+  return(clean_column)
+}
+
+# Get rid of duplicate stuff
+
+amph_lz$Gross_ID <- rm_trail_spaces(amph_lz$Gross_ID)
+amph_lz$Genus <- rm_trail_spaces(amph_lz$Genus)
+amph_lz$Survey_Type <- rm_trail_spaces(amph_lz$Survey_Type)
+amph_lz$Station <- rm_trail_spaces(amph_lz$Station)
+amph_lz$Weather <- rm_trail_spaces(amph_lz$Weather)
+amph_lz$Animal_ID <- rm_trail_spaces(amph_lz$Animal_ID)
+
+## WHAT'S GOING ON WITH FG594? (I think we confirmed nothing is going on with it?)
+
+```
+
+```{r more prep and cleaning}
+colnames(amph_lz)
+
+amph_lz$Start_Date_Start_Time=paste(amph_lz$Date,amph_lz$Survey_Start_Time,sep=" ")
+amph_lz$End_Date_End_Time=paste(amph_lz$Date,amph_lz$Survey_End_Time,sep=" ")
+
+amph_lz$Start_Date_Start_Time=mdy_hm(amph_lz$Start_Date_Start_Time)
+amph_lz$End_Date_End_Time=mdy_hm(amph_lz$End_Date_End_Time)
+
+#### Date ####
+
+amph_lz$Date=mdy(amph_lz$Date)
+
+#### Survey_Type ####
+amph_lz$Survey_Type=trimws(amph_lz$Survey_Type)
+
+#### Survey_hr ####
+amph_lz$Survey_hr=difftime(amph_lz$End_Date_End_Time,amph_lz$Start_Date_Start_Time,units="hours")
+
+#### Gross_ID () ####
+amph_lz$Gross_ID=trimws(amph_lz$Gross_ID)
+
+#### Genus ####
+amph_lz %>%
+  distinct(Genus) %>% arrange(Genus)
+
+#### Time_Found ####
+amph_lz$Time_Found=hm(amph_lz$Time_Found)
+
+```
+
+We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments.
+
+```{r segment master list}
+
+# env should have every segment ever surveyed ... and each time it was surveyed
+segs_survey_record <- env %>%
+  select(c(1,2,3,5)) %>%
+  separate_rows(Order, sep = ",")
+
+# and fix the names in segs_expanded to match and to be easy to understand
+segs_survey_record <- segs_survey_record %>%
+  rename(Segment = Order)
+
+# there's just one where there is a hyphen separating two segments that need to be in separate rows
+#segs_survey_record <- segs_survey_record %>%
+ # mutate(Segment = ifelse(Segment == "NUMA-02-CHIO-03", 
+  #                        "NUMA-02, CHIO-03", Segment)) %>%
+  #separate_rows(Segment, sep = ",")
+
+# remove all the spaces
+segs_survey_record <- segs_survey_record %>%
+  mutate(Segment = trimws(Segment))
+
+# fix one case where there is just a space between two segments that need to be in separate rows
+segs_survey_record <- segs_survey_record %>%
+  separate_rows(Segment, sep = " ")
+
+# get ready to add the meters per segment. Need names to match
+seg_dist <- seg_dist %>%
+  rename(Segment = SEGMENT) %>%
+  rename(Parent_Trail = PARENT.TRAIL) %>%
+  rename(Seg_dist_m = DISTANCE_.M.) %>%
+  select(!Parent_Trail)
+
+# first, do we have distances for all segments named in the segs_survey_record df?
+
+# one typo - 	
+#CEIBA-01 should be CEIB-01
+segs_survey_record <- segs_survey_record %>%
+  mutate(Segment = ifelse(Segment == "CEIBA-01", "CEIB-01", Segment))
+
+segs_survey_record_with_distances_added <- left_join(segs_survey_record, seg_dist)
+
+```
+
+```{r join segments and survey info to df}
+
+# reduce down to the columns we're interested in right now
+amph_lz_segs <- amph_lz %>%
+  select(Date, Station, Segment, Animal_ID, Distance_From_Trail_m, Gross_ID, Family, Genus, Species, Common_Name, Survey_Type, Habitat_Type, Height_of_Individual)
+
+# fix date name to match
+amph_lz_segs <- amph_lz_segs %>%
+  rename(Start_Date = Date)
+
+# make seg master date a date object
+segs_survey_record_with_distances_added$Start_Date <- mdy(segs_survey_record_with_distances_added$Date)
+
+segs_survey_record_with_distances_added <- segs_survey_record_with_distances_added %>%
+  select(-Date)
+
+# Find segs in segments master that are not in amph_lz
+segs_in_master_not_surveys <- anti_join(segs_survey_record_with_distances_added, amph_lz_segs, by = "Segment")
+# ok so 16 times a seg was surveyed without anything being found. Seems beleivable.
+unique(segs_in_master_not_surveys$Segment)
+# Jacob please double check this makes sense
+
+# vice versa
+# should be 0
+segs_in_surveys_not_master <- anti_join(amph_lz_segs, segs_survey_record_with_distances_added, by = "Segment")
+
+# great, add that information to the survey data
+amph_lz_segs <- left_join(segs_survey_record_with_distances_added, amph_lz_segs)
+
+# make sure nothing disappeared
+amph_lz_segs %>% group_by(Station, Gross_ID) %>% 
+  summarize(total_found = n_distinct(Animal_ID),
+            species_found = n_distinct(Species))
+
+# seems ok. NA is when no individuals were found on a segment I believe
+```
+
+Review what we have...
+amph_lz: all 2024 and 2025 frog, lizard, and salamander data w/seg name (not length) and env data
+
+amph_lz_segs: all 2025 frog, lizard, and salamander data with segments and their lengths
+
+env: 2025, already have what we need from it so can remove
+
+enviro: 2024 and 2025 survey enviro data, though I think it lacks the daytime surveys from 2025
+
+seg_dist and segs are the same (just names of each segment ever surveyed and it's length and which station it was at), but segs has 'parent trail' column
+
+segments_master: record of every time a segment was surveyed and corresponding segment data
+
+*T - stopping here April 16, 2026*. Next steps would be getting all amph and lz data for both years into a dataframe with the segments with 0 detections too. Then run:
+
+-NMDS and adonis
+-calculate detection rates per 500m
+-run Hill number analysis (iNEXT package)
+-investigate data with and without the rain events at YRS
+
+```{r clean env}
+rm(env)
 ```
 
 # Data summaries
