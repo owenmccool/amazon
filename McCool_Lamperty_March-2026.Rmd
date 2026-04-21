@@ -132,7 +132,8 @@ segs_expanded <- segs_expanded %>%
 # okay this looks more promising, try to join again
 segments_master <- left_join(segs_expanded, segs)
 
-# beautiful
+# T note 4/21/2026 - check for duplicated entries - I think that CHIO-03 from 2024 is in here 2x
+
 ```
 
 Okay now other little things with the datasets
@@ -227,15 +228,15 @@ snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Segment)) # sna
 
 snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 101 snakes found
 
-length(unique(snakes.sur$Start_Date)) #60, what date is in segments master but not in snakes.sur?
+length(unique(snakes.sur$Start_Date)) #60, what date is in segments master but not in snakes.sur? (it must be the duplicated one from start of season one)
 
 missing_startdate <- anti_join(segments_master, snakes.sur, by = "Start_Date")
  
-# MAPO-01 MAPO-02 HARP-01 on 2024-06-21 is in segments master but not snakes.sur. Do we know why?
+# FLAG 1: MAPO-01 MAPO-02 HARP-01 on 2024-06-21 are in segments master but not in the record of surveys that were pulled from snake.master dataframe. Can we confirm that these surveys happened? Was there just no enviro data that went with them?
 
 # okay so do we have distances for all segments snakes were found on?
 
-#missing_segs <- anti_join(segments_master, snakes.sur, by = "Segment")
+missing_segs <- anti_join(segments_master, snakes.sur, by = "Segment")
 
 # 157 instances of segments being surveyed and no snakes were found?
 
@@ -257,8 +258,9 @@ snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Segment)) # sna
 
 snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 101 snakes found
 
-# all parts are here, problem fixed 
-# NOTE TO THERESE: SOMEHOW IN SNAKES.SUR, SK04 AND SK05 GET DUPLICATED BUT IT DOESN'T SEEM TO CAUSE ERRORS LATER ON DOWN THE LINE. EG, THE DENSITY SECTION HAS EXACTLY 101 SNAKES WHICH IS THE CORRECT AMOUNT SO I'M NOT SURE WHAT'S GOING WRONG HERE 
+# FLAG 2: NOTE TO THERESE: SOMEHOW IN SNAKES.SUR, SK04 AND SK05 GET DUPLICATED BUT IT DOESN'T SEEM TO CAUSE ERRORS LATER ON DOWN THE LINE. EG, THE DENSITY SECTION HAS EXACTLY 101 SNAKES WHICH IS THE CORRECT AMOUNT SO I'M NOT SURE WHAT'S GOING WRONG HERE 
+
+# *reply 4/21/2026 T: I think that I caught that and removed those duplicates at some point in the code. We could (and should) remove them earlier on though - just do that either in the raw datafile if it's truly an error or maybe here.
 
 rm(snakes.sur.zeros.dropped, missing_startdate)
 
@@ -343,7 +345,6 @@ amph_lz$Station <- rm_trail_spaces(amph_lz$Station)
 amph_lz$Weather <- rm_trail_spaces(amph_lz$Weather)
 amph_lz$Animal_ID <- rm_trail_spaces(amph_lz$Animal_ID)
 
-## WHAT'S GOING ON WITH FG594? (I think we confirmed nothing is going on with it?)
 
 ```
 
@@ -433,23 +434,20 @@ amph_lz_segs <- amph_lz %>%
 amph_lz_segs <- amph_lz_segs %>%
   rename(Start_Date = Date)
 
-# make seg master date a date object
-segs_survey_record_with_distances_added$Start_Date <- mdy(segs_survey_record_with_distances_added$Date)
-
-segs_survey_record_with_distances_added <- segs_survey_record_with_distances_added %>%
-  select(-Date)
-
 # Find segs in segments master that are not in amph_lz
-segs_in_master_not_surveys <- anti_join(segs_survey_record_with_distances_added, amph_lz_segs, by = "Segment")
-# ok so 16 times a seg was surveyed without anything being found. Seems beleivable.
-unique(segs_in_master_not_surveys$Segment)
-# Jacob please double check this makes sense
+segs_in_master_not_surveys <- anti_join(segments_master, amph_lz_segs, by = "Segment")
+
+# Owen/Jacob we should do a check here, does it seem believable that 8 segments in 2025 had 0 specimens found, and that 6 segments in 2024 had 0 specimens found?
 
 # vice versa
 # should be 0
-segs_in_surveys_not_master <- anti_join(amph_lz_segs, segs_survey_record_with_distances_added, by = "Segment")
+segs_in_surveys_not_master <- anti_join(amph_lz_segs, segments_master, by = "Segment")
 
-# great, add that information to the survey data
+#FLAG 3: Few things missing, all of which are afternoon surveys: 2024-06-05, TCHO-02 and MATA-01 afternoon. Also - 2025-06-23 HARP-04, -03, -02 and GUAC-04. We just need the corresponding segment length for these and the habitat type.
+
+# T - 4/21/2026, stopping here - once we get the above seg data in, proceed with joining that info to the lizard/frog/salamander data 
+
+# add that information to the survey data
 amph_lz_segs <- left_join(segs_survey_record_with_distances_added, amph_lz_segs)
 
 # make sure nothing disappeared
@@ -457,32 +455,9 @@ amph_lz_segs %>% group_by(Station, Gross_ID) %>%
   summarize(total_found = n_distinct(Animal_ID),
             species_found = n_distinct(Species))
 
-# seems ok. NA is when no individuals were found on a segment I believe
 ```
 
-Review what we have...
-amph_lz: all 2024 and 2025 frog, lizard, and salamander data w/seg name (not length) and env data
-
-amph_lz_segs: all 2025 frog, lizard, and salamander data with segments and their lengths
-
-env: 2025, already have what we need from it so can remove
-
-enviro: 2024 and 2025 survey enviro data, though I think it lacks the daytime surveys from 2025
-
-seg_dist and segs are the same (just names of each segment ever surveyed and it's length and which station it was at), but segs has 'parent trail' column
-
-segments_master: record of every time a segment was surveyed and corresponding segment data
-
-*T - stopping here April 16, 2026*. Next steps would be getting all amph and lz data for both years into a dataframe with the segments with 0 detections too. Then run:
-
--NMDS and adonis
--calculate detection rates per 500m
--run Hill number analysis (iNEXT package)
--investigate data with and without the rain events at YRS
-
-```{r clean env}
-rm(env)
-```
+*Stopped in the above chunk (see 4/21/2026 note and all FLAG comments)*
 
 # Data summaries
 
