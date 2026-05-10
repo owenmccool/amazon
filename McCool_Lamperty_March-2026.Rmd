@@ -443,9 +443,79 @@ segs_in_master_not_surveys <- anti_join(segments_master, amph_lz_segs, by = "Seg
 # should be 0
 segs_in_surveys_not_master <- anti_join(amph_lz_segs, segments_master, by = "Segment")
 
-#FLAG 3: Few things missing, all of which are afternoon surveys: 2024-06-05, TCHO-02 and MATA-01 afternoon. Also - 2025-06-23 HARP-04, -03, -02 and GUAC-04. We just need the corresponding segment length for these and the habitat type.
+#Few things missing, all of which are afternoon surveys: 2024-06-05, TCHO-02 and MATA-01 afternoon. Also - 2025-06-23 HARP-05, -04, -03, -02 and GUAC-04. We just need the corresponding segment length for these and the habitat type.
 
-# T - 4/21/2026, stopping here - once we get the above seg data in, proceed with joining that info to the lizard/frog/salamander data 
+# these exist in Jacob's segment length dataset, pull that in here:
+JV_segs<-read.csv("Data/Field_Season_2_Datasheets(Segment_Distances).csv")
+
+# isolate missing segment data
+missing_segs <- JV_segs %>%
+  filter(SEGMENT == "TCHO-02" | SEGMENT == "MATA-01" | SEGMENT == "HARP-05" | SEGMENT == "HARP-04" | SEGMENT == "HARP-03" | SEGMENT == "HARP-02" | SEGMENT == "GUAC-04")
+
+# remove JV_segs
+rm(JV_segs)
+
+# fix names
+missing_segs <- missing_segs %>%
+  rename(Segment = SEGMENT) %>%
+  rename(Parent_Trail = PARENT.TRAIL) %>%
+  rename(Seg_dist_m = DISTANCE_.M.)
+
+# pull the info for each survey that is missing
+JV_survs <- read.csv("Data/Field_Season_2_Datasheets(Environment_Sheet).csv")
+
+# Isolate missing surveys: 
+
+# *afternoon 2024-06-05, TCHO-02 and MATA-01* 
+    # *actually this must've been an experimental afternoon survey in 2024. We did not end up incorporating afternoon surveys that year, so I think we can remove this.
+
+# just need: afternoon 2025-06-23 afternoon missing segments
+
+# fix dates
+JV_survs$Date <- mdy(JV_survs$Date)
+
+# isolate ones we want to add
+JV_survs <- JV_survs %>%
+  filter(Date == "2025-06-23" & Survey_Type =="Afternoon")
+
+# need column with segments surveyed to have each survey in it's own row
+JV_survs_subset <- JV_survs %>%
+  select(c(1,2,3,5)) %>%
+  separate_rows(Order, sep = ",")
+
+# and fix the names to be consistent (order = segment)
+JV_survs_subset<- JV_survs_subset %>%
+  rename(Segment = Order)
+
+# remove all the spaces
+JV_survs_subset <- JV_survs_subset %>%
+  mutate(Segment = trimws(Segment))
+
+# add in the segment length data
+missing_segs <- left_join(JV_survs_subset, missing_segs)
+
+# other columns/data I'd want:
+JV_missing_survs_data <- JV_survs %>%
+  select(!c(3:6, 19:23, 29:32, 38:41, 45:47))
+
+# add Start_Date, End_Date, Station, Parent_Trail w/seg distances
+missing_data <- left_join(JV_missing_survs_data, missing_segs)
+
+# add start and end date with correct names
+missing_data$End_Date <- missing_data$Date
+missing_data <- missing_data %>%
+  rename(Start_Date = Date)
+
+# take just what we want for segments master
+missing_data_no_enviro <- missing_data %>%
+  select(!c(5,7:27))
+
+# add to master df for segment length data
+segments_master <- full_join(segments_master, missing_data_no_enviro)
+
+# T - 5/20/2026 - ok that's in there (so no segments exist in records without lengths) but the broader issue is (maybe) that actually all afternoon surveys need to be brought in.. not totally sure I may have already done that
+
+# STOPPING HERE
 
 # add that information to the survey data
 amph_lz_segs <- left_join(segs_survey_record_with_distances_added, amph_lz_segs)
