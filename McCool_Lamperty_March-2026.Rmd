@@ -63,24 +63,31 @@ snakes.master <- read.csv(file = "Data/snake.master.csv")
 
 #2. environmental data, which also has rodent encounters
 enviro <- read.csv(file = "Data/enviro.csv")
+# 2024 and 2025; enviro = df from Owen's snake project only
 
 #3. segment data, has lengths of segments
 segs <- read.csv("Data/Segment_Distances.csv")
+# segs from Owen's snake project only
 
 #4. amphibian and lizard data collected in 2025
 amph_lz=read.csv("Data/Field_Season_2_datasheets(amphibians_and_lizards).csv")
+# amphibian and lizard data from 2025 (Jacob's project)
 
 #5. corresponding amph_lz env data
 env=read.csv("Data/Field_Season_2_datasheets(Environment_Sheet).csv")
+# environmental data from 2025 (Jacob's project)
 
 #6. this may be the same as 'segs' above
-seg_dist=read.csv("Data/Field_Season_2_datasheets(Segment_Distances).csv")
+#seg_dist=read.csv("Data/Field_Season_2_datasheets(Segment_Distances).csv")
+# commenting out because I do think it's the exact same
 
 #7. amphibian 2024 data
 amph_2024 <- read.csv("Data/2024_amphibians.csv")
+# Owen added this 2024 amphibian data in
 
 #8. lizard 2024 data
 liz_2024 <- read.csv("Data/2024_lizards.csv")
+# Owen also added in 2024 lizard data
 ```
 
 ## Data prep
@@ -135,6 +142,8 @@ segments_master <- left_join(segs_expanded, segs)
 # T note 4/21/2026 - check for duplicated entries - I think that CHIO-03 from 2024 is in here 2x
 
 ```
+
+**segments_master** at this point is only snake data - records of every survey that was conducted and used in the snake study (2024-25). So this doesn't include the afternoon surveys for other herps.
 
 Okay now other little things with the datasets
 
@@ -260,9 +269,9 @@ snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 10
 
 # FLAG 2: NOTE TO THERESE: SOMEHOW IN SNAKES.SUR, SK04 AND SK05 GET DUPLICATED BUT IT DOESN'T SEEM TO CAUSE ERRORS LATER ON DOWN THE LINE. EG, THE DENSITY SECTION HAS EXACTLY 101 SNAKES WHICH IS THE CORRECT AMOUNT SO I'M NOT SURE WHAT'S GOING WRONG HERE 
 
-# *reply 4/21/2026 T: I think that I caught that and removed those duplicates at some point in the code. We could (and should) remove them earlier on though - just do that either in the raw datafile if it's truly an error or maybe here.
+# FLAG reply 4/21/2026 T: I think that I caught that and removed those duplicates at some point in the code. We could (and should) remove them earlier on though - just do that either in the raw datafile if it's truly an error or maybe here.
 
-rm(snakes.sur.zeros.dropped, missing_startdate)
+rm(snakes.sur.zeros.dropped, missing_startdate, missing_segs, segs_expanded)
 
 ```
 
@@ -379,17 +388,19 @@ amph_lz$Time_Found=hm(amph_lz$Time_Found)
 
 ```
 
-We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments.
+We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments - this has to be done with the amphibian and lizard data too.
 
-```{r segment master list}
+```{r amph lzs segment master list}
+# add survey type column to segments master
+segments_master$Survey_Type <- "Night"
 
 # env should have every segment ever surveyed ... and each time it was surveyed
-segs_survey_record <- env %>%
+segs_survey_record_2025_JV <- env %>%
   select(c(1,2,3,5)) %>%
   separate_rows(Order, sep = ",")
 
 # and fix the names in segs_expanded to match and to be easy to understand
-segs_survey_record <- segs_survey_record %>%
+segs_survey_record_2025_JV <- segs_survey_record_2025_JV %>%
   rename(Segment = Order)
 
 # there's just one where there is a hyphen separating two segments that need to be in separate rows
@@ -399,32 +410,34 @@ segs_survey_record <- segs_survey_record %>%
   #separate_rows(Segment, sep = ",")
 
 # remove all the spaces
-segs_survey_record <- segs_survey_record %>%
+segs_survey_record_2025_JV <- segs_survey_record_2025_JV %>%
   mutate(Segment = trimws(Segment))
 
 # fix one case where there is just a space between two segments that need to be in separate rows
-segs_survey_record <- segs_survey_record %>%
+segs_survey_record_2025_JV <- segs_survey_record_2025_JV %>%
   separate_rows(Segment, sep = " ")
 
 # get ready to add the meters per segment. Need names to match
-seg_dist <- seg_dist %>%
-  rename(Segment = SEGMENT) %>%
-  rename(Parent_Trail = PARENT.TRAIL) %>%
-  rename(Seg_dist_m = DISTANCE_.M.) %>%
-  select(!Parent_Trail)
+#segs <- segs %>%
+ # rename(Segment = SEGMENT) %>%
+  #rename(Parent_Trail = PARENT.TRAIL) %>%
+  #rename(Seg_dist_m = DISTANCE_.M.) %>%
+  #select(!Parent_Trail)
+
+# commenting out and can probably remove
 
 # first, do we have distances for all segments named in the segs_survey_record df?
 
 # one typo - 	
 #CEIBA-01 should be CEIB-01
-segs_survey_record <- segs_survey_record %>%
+segs_survey_record_2025_JV <- segs_survey_record_2025_JV %>%
   mutate(Segment = ifelse(Segment == "CEIBA-01", "CEIB-01", Segment))
 
-segs_survey_record_with_distances_added <- left_join(segs_survey_record, seg_dist)
+segs_survey_record_2025_JV <- left_join(segs_survey_record_2025_JV, segs)
 
 ```
 
-```{r join segments and survey info to df}
+```{r amph lzs join segments and survey info to df}
 
 # reduce down to the columns we're interested in right now
 amph_lz_segs <- amph_lz %>%
@@ -437,10 +450,12 @@ amph_lz_segs <- amph_lz_segs %>%
 # Find segs in segments master that are not in amph_lz
 segs_in_master_not_surveys <- anti_join(segments_master, amph_lz_segs, by = "Segment")
 
-# Owen/Jacob we should do a check here, does it seem believable that 8 segments in 2025 had 0 specimens found, and that 6 segments in 2024 had 0 specimens found?
+# FLAG: Owen/Jacob we should do a check here, does it seem believable that 8 segments in 2025 had 0 specimens found, and that 6 segments in 2024 had 0 specimens found?
 
 # vice versa
-# should be 0
+
+# should be 7 - every instance of a specimen found should have corresponding segment info, with the exception of the afternoon 2024 records that we are omitting
+
 segs_in_surveys_not_master <- anti_join(amph_lz_segs, segments_master, by = "Segment")
 
 #Few things missing, all of which are afternoon surveys: 2024-06-05, TCHO-02 and MATA-01 afternoon. Also - 2025-06-23 HARP-05, -04, -03, -02 and GUAC-04. We just need the corresponding segment length for these and the habitat type.
@@ -476,64 +491,54 @@ JV_survs$Date <- mdy(JV_survs$Date)
 
 # isolate ones we want to add
 JV_survs <- JV_survs %>%
-  filter(Date == "2025-06-23" & Survey_Type =="Afternoon")
+  filter(Date == "2025-06-23" | Date == "2025-06-30" | Date == "2025-06-26" & Survey_Type =="Afternoon")
 
 # need column with segments surveyed to have each survey in it's own row
-JV_survs_subset <- JV_survs %>%
-  select(c(1,2,3,5)) %>%
+JV_survs <- JV_survs %>%
   separate_rows(Order, sep = ",")
 
 # and fix the names to be consistent (order = segment)
-JV_survs_subset<- JV_survs_subset %>%
+JV_survs<- JV_survs %>%
   rename(Segment = Order)
 
 # remove all the spaces
-JV_survs_subset <- JV_survs_subset %>%
+JV_survs <- JV_survs %>%
   mutate(Segment = trimws(Segment))
 
 # add in the segment length data
-missing_segs <- left_join(JV_survs_subset, missing_segs)
+missing_segs <- left_join(JV_survs, missing_segs)
 
-# other columns/data I'd want:
-JV_missing_survs_data <- JV_survs %>%
-  select(!c(3:6, 19:23, 29:32, 38:41, 45:47))
-
-# add Start_Date, End_Date, Station, Parent_Trail w/seg distances
-missing_data <- left_join(JV_missing_survs_data, missing_segs)
+# clean up
 
 # add start and end date with correct names
-missing_data$End_Date <- missing_data$Date
-missing_data <- missing_data %>%
-  rename(Start_Date = Date)
+missing_segs$End_Date <- missing_segs$Date
+
+missing_segs <- missing_segs %>%
+  rename(Start_Date = Date) %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
 
 # take just what we want for segments master
-missing_data_no_enviro <- missing_data %>%
-  select(!c(5,7:27))
+missing_segs <- missing_segs %>%
+  select(!c(6,9,11:47))
 
 # add to master df for segment length data
-segments_master <- full_join(segments_master, missing_data_no_enviro)
+segments_master <- full_join(segments_master, missing_segs)
 
 # T - 5/20/2026 - ok that's in there (so no segments exist in records without lengths) but the broader issue is (maybe) that actually all afternoon surveys need to be brought in.. not totally sure I may have already done that
 
-# STOPPING HERE
-
-# add that information to the survey data
-amph_lz_segs <- left_join(segs_survey_record_with_distances_added, amph_lz_segs)
-
-# make sure nothing disappeared
-amph_lz_segs %>% group_by(Station, Gross_ID) %>% 
-  summarize(total_found = n_distinct(Animal_ID),
-            species_found = n_distinct(Species))
-
 ```
-
-*Stopped in the above chunk (see 4/21/2026 note and all FLAG comments)*
 
 # Data summaries
 
 ## Sampling Time and Distance
 
 ```{r survey samp effort}
+
+# FLAG: I'm assuming that everything in the data that was a "night" survey was also a snake survey. Is that right? Also, do we want to include small mammals spotted from the daytime surveys as well? Detection probability is lower in the day, and rodent species are primarily nocturnal, but not exclusively so we should discuss
+
+# NOTE 5/11/2026 THIS HASNT BEEN DONE YET, STOPPING HERE
+# pull out all non-night surveys from 2025 and add those to enviro
+
 
 # pull out mean and standard deviation overall and for each station
 mean(enviro$Effort_hrs)
@@ -655,6 +660,45 @@ Anova(smam.cont)
 ```{r clean env after smamm}
 rm(sim, small.mamms.temp, smam.cont)
 ```
+
+
+```{r amph lz raw detection rates}
+
+# isolate surveys for which nothing found
+
+# get them into the format we want (tally)
+
+# for the nights when 0 were found, make a dataframe of instances that specifies zero found for each gross ID
+
+# stack them together (rbind)
+
+#clean
+
+# also isolate surveys that DID have detections (filter nas out for animal ID)
+
+# tally counts - df without zeros
+
+# now, we can add the surveys and the segments with zero detections back (full_join)
+
+# make NAs zeros
+amph_lz_raw_detection_df <- amph_lz_raw_detection_df %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+# I did this fast and it should be checked
+
+detection_rates <- raw_detection_df %>%
+  group_by(Station, Gross_ID, Survey_Type, Start_Date) %>%
+  summarize(meters_surveyed = sum(Seg_dist_m),
+            individuals_found = sum(n))
+
+# get per 500 m detection rate
+
+
+# summarize and visualize
+
+```
+
+
 
 # Understory
 
