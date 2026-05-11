@@ -491,7 +491,7 @@ JV_survs$Date <- mdy(JV_survs$Date)
 
 # isolate ones we want to add
 JV_survs <- JV_survs %>%
-  filter(Date == "2025-06-23" | Date == "2025-06-30" | Date == "2025-06-26" & Survey_Type =="Afternoon")
+  filter(Date == "2025-06-23" | Date == "2025-06-30" | Date == "2025-06-26")
 
 # need column with segments surveyed to have each survey in it's own row
 JV_survs <- JV_survs %>%
@@ -509,6 +509,7 @@ JV_survs <- JV_survs %>%
 missing_segs <- left_join(JV_survs, missing_segs)
 
 # clean up
+rm(JV_survs)
 
 # add start and end date with correct names
 missing_segs$End_Date <- missing_segs$Date
@@ -524,50 +525,88 @@ missing_segs <- missing_segs %>%
 # add to master df for segment length data
 segments_master <- full_join(segments_master, missing_segs)
 
-# T - 5/20/2026 - ok that's in there (so no segments exist in records without lengths) but the broader issue is (maybe) that actually all afternoon surveys need to be brought in.. not totally sure I may have already done that
+# also pull out afternoons and add them to segments master (just omit the one morning)
+afternoons <- env %>%
+  filter(Survey_Type == "Afternoon") %>%
+  separate_rows(Order, sep = ",") %>%
+  mutate(Order = trimws(Order)) %>%
+  rename(Segment = Order)
 
+# add start and end date with correct names
+afternoons$End_Date <- afternoons$Date
+
+afternoons <- afternoons %>%
+  rename(Start_Date = Date) %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
+
+# add in the segment length data
+afternoons <- left_join(afternoons, segs)
+
+# take just what we want for segments master
+afternoons <- afternoons %>%
+  select(!c(6,9,11:47))
+afternoons$Start_Date <- mdy(afternoons$Start_Date)
+afternoons$End_Date <- mdy(afternoons$End_Date)
+
+# add to master df for segment length data
+segments_master <- full_join(segments_master, afternoons)
+
+# clean
+rm(afternoons, missing_segs, segs_in_master_not_surveys, segs_in_surveys_not_master)
 ```
 
 # Data summaries
 
 ## Sampling Time and Distance
 
-```{r survey samp effort}
+```{r get effort fixed}
 
-# FLAG: I'm assuming that everything in the data that was a "night" survey was also a snake survey. Is that right? Also, do we want to include small mammals spotted from the daytime surveys as well? Detection probability is lower in the day, and rodent species are primarily nocturnal, but not exclusively so we should discuss
+segments_master$Start_Date_Start_Time=paste(segments_master$Start_Date, segments_master$Survey_Start_Time, sep=" ")
 
-# NOTE 5/11/2026 THIS HASNT BEEN DONE YET, STOPPING HERE
-# pull out all non-night surveys from 2025 and add those to enviro
+segments_master$Start_Date_Start_Time=ymd_hm(segments_master$Start_Date_Start_Time)
 
+segments_master$End_Date_End_Time=paste(segments_master$End_Date, segments_master$Survey_End_Time, sep=" ")
 
-# pull out mean and standard deviation overall and for each station
-mean(enviro$Effort_hrs)
-sd(enviro$Effort_hrs)
+segments_master$End_Date_End_Time=ymd_hm(segments_master$End_Date_End_Time)
 
-# per station - this will give output at bottom of code chunk and should be reported in the Results or Methods section
-enviro %>%
-  group_by(Station) %>%
-  summarise(mean_duration = mean(Effort_hrs),
-            standard_deviation = sd(Effort_hrs))
+segs <- segs %>%
+  select(Segment, Seg_dist_m)
 
-#Also want to see what the distance effort is
+segments_master <- segments_master %>%
+  select(!c(Parent_Trail_LongName, Parent_Trail))
 
-class(enviro$Meters) #says it is a character and can't be summed, we need to convert it
-enviro$Meters <- as.numeric(enviro$Meters) #now they are numbers
+segments_master <- inner_join(segments_master, segs, by = "Segment")
 
-sum(enviro$Meters[enviro$Station == "TBS"]) # 73,864 meters at TBS
-sum(enviro$Meters[enviro$Station == "YRS"]) # 76,915 meters at YRS
+segments_master <- segments_master %>%
+  rename(Seg_dist_m = Seg_dist_m.y) %>%
+  select(!Seg_dist_m.x)
+```
 
-# per night meters
-enviro %>%
-  group_by(Station) %>%
-  summarise(mean_m_per_night = mean(Meters),
-            standard_deviation = sd(Meters))
+```{r mean efforts}
+
+segments_master$Effort_hrs <- difftime(segments_master$End_Date_End_Time, segments_master$Start_Date_Start_Time, units="hours")
+
+# mean and sd search effort per station per survey type
+segments_master %>%
+  group_by(Station, Survey_Type) %>%
+  summarize(mean_search_time_hrs = mean(Effort_hrs),
+            sd = sd(Effort_hrs))
+# mean and sd meters searched per station per survey type
+segments_master %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  summarize(total_meters_surveyed = sum(Seg_dist_m)) %>%
+  group_by(Station, Survey_Type) %>%
+            summarize(mean_m = mean(total_meters_surveyed),
+            sd = sd(total_meters_surveyed))
+
 ```
 
 ## Small mammals
 
 ```{r summarize small mammal numbers}
+
+# T stopping here 5/11/2026
+
 #Raw mammal counts
 
 sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station == "YRS"])
