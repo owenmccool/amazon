@@ -622,6 +622,8 @@ amph_lz_raw_detection_df <- amph_lz_raw_detection_df %>%
 
 # I did this fast and it should be checked
 
+## FLAG: OWEN CAN'T RUN THIS LINE 
+
 detection_rates <- raw_detection_df %>%
   group_by(Station, Gross_ID, Survey_Type, Start_Date) %>%
   summarize(meters_surveyed = sum(Seg_dist_m),
