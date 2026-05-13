@@ -70,16 +70,15 @@ segs <- read.csv("Data/Segment_Distances.csv")
 # segs from Owen's snake project only
 
 #4. amphibian and lizard data collected in 2025
-amph_lz=read.csv("Data/Field_Season_2_datasheets(amphibians_and_lizards).csv")
+amph_lz_2025=read.csv("Data/Field_Season_2_datasheets(amphibians_and_lizards).csv")
 # amphibian and lizard data from 2025 (Jacob's project)
 
 #5. corresponding amph_lz env data
 env=read.csv("Data/Field_Season_2_datasheets(Environment_Sheet).csv")
 # environmental data from 2025 (Jacob's project)
 
-#6. this may be the same as 'segs' above
-#seg_dist=read.csv("Data/Field_Season_2_datasheets(Segment_Distances).csv")
-# commenting out because I do think it's the exact same
+#6. segment distances from 2025 data; we only need the 2025 afternoon data from here
+seg_dist_25=read.csv("Data/Field_Season_2_datasheets(Segment_Distances).csv")
 
 #7. amphibian 2024 data
 amph_2024 <- read.csv("Data/2024_amphibians.csv")
@@ -90,11 +89,13 @@ liz_2024 <- read.csv("Data/2024_lizards.csv")
 # Owen also added in 2024 lizard data
 ```
 
-## Data prep
+# Data prep
 
 We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments.
 
-```{r segment master list}
+## Nighttime segments 2024-2025
+
+```{r nighttime segments}
  
 segs_expanded <- enviro %>%
   select(!c(6,9,11:45)) %>%
@@ -145,9 +146,11 @@ segments_master <- left_join(segs_expanded, segs)
 
 **segments_master** at this point is only snake data - records of every survey that was conducted and used in the snake study (2024-25). So this doesn't include the afternoon surveys for other herps.
 
-Okay now other little things with the datasets
+## Nightime 24-25 smamm
 
-```{r df prepping}
+Also date and search time and snake diet categories.
+
+```{r snake and smamm df prepping}
 
 # make dates dates
 snakes.master$Start_Date <- mdy(snakes.master$Start_Date)
@@ -202,30 +205,28 @@ enviro$Survey_End_Date_Time <-mdy_hm(enviro$Survey_End_Date_Time)
 
 # subset data - just want the n small mammmals and keep the date column to join by
 
-small.mamms.temp <- enviro %>%
+small.mamms.df <- enviro %>%
   select(Station, Start_Date, Number_of_Small_Mammals_Spotted, Parent_Trail_LongName) #creating temporary dataframe with just these parameters
 
-small.mamms.temp$Number_of_Small_Mammals_Spotted <-  as.numeric(small.mamms.temp$Number_of_Small_Mammals_Spotted) #changing the n small mammals to a number from a character (idk why it was a character)
-class(small.mamms.temp$Number_of_Small_Mammals_Spotted) #looks correct now
+small.mamms.df$Number_of_Small_Mammals_Spotted <-  as.numeric(small.mamms.df$Number_of_Small_Mammals_Spotted) #changing the n small mammals to a number from a character (idk why it was a character)
 
 # isolate effort hours per survey
 effort <- enviro %>%
   select(Start_Date, Effort_hrs)
 
 # join effort to small mamms
-small.mamms.temp <- left_join(small.mamms.temp, effort)
+small.mamms.df <- left_join(small.mamms.df, effort)
 
 # clean 
 rm(effort)
 
 # get rate of n mammals per hour
-small.mamms.temp$smammals.hr <- small.mamms.temp$Number_of_Small_Mammals_Spotted/small.mamms.temp$Effort_hrs
-
-# small mammal dataframe done
+small.mamms.df$smammals.hr <- small.mamms.df$Number_of_Small_Mammals_Spotted/small.mamms.df$Effort_hrs
 
 # add segment lengths to snake sur df
 snakes.sur <- snakes.sur %>%
   rename(Segment = Location)
+
 ```
 
 ```{r check and fix tricky join}
@@ -275,7 +276,13 @@ rm(snakes.sur.zeros.dropped, missing_startdate, missing_segs, segs_expanded)
 
 ```
 
-### 2024 amphibian and lizard data
+**enviro** = 2024-2025 env, smamm, and survey records, nighttime only
+
+**small.mamms.df** = 2024-2025 small mammal records tallied up with search effort (hrs), nighttime only
+
+**segments_master** = 2024-25 nighttime surveys - each segment surveyed with corresponding date and time and length
+
+## 2024 amphibian and lizard data
 
 ```{r clean 2024 amph lz data}
 # Start with amphibians
@@ -311,41 +318,35 @@ liz_2024 <- liz_2024 %>%
 
 ```
 
+## 2025 amphibian and lizard data
+
 ```{r organize and clean species data, warning=FALSE}
 
-amph_lz=amph_lz %>%
+amph_lz_2025 = amph_lz_2025 %>%
   separate(Species,into=c("Genus","Species")) #turn Species column into Genus and Species columns
 
 # replace unknown family with NA
-amph_lz <- amph_lz %>%
+amph_lz_2025 <- amph_lz_2025 %>%
   mutate(Family = ifelse(Family == "weird" | Family == "mystery" | Family == "weird ground frog in valley, looked like big head x treefrog" | Family == "unknown", NA, Family))
 
 # replace blank Genus and Unknown Genus entries with NA
-amph_lz <- amph_lz %>%
+amph_lz_2025 <- amph_lz_2025 %>%
   mutate(Genus = ifelse(Genus == "" | Genus == "Unknown", NA, Genus))
 
-amph_lz$Species= na_if(amph_lz$Species, "spp") #replace "spp" with NA
+amph_lz_2025$Species= na_if(amph_lz_2025$Species, "spp") #replace "spp" with NA
 
-# Check to make sure  column names are the same
-colnames(amph_2024)
-colnames(amph_lz)
+# Merge 2024-2025 amphibian and lizard data
+amph_lz <- rbind(amph_lz_2025, amph_2024, liz_2024)
 
-colnames(liz_2024)
-colnames(amph_lz)
-
-# MERGE ALL DATA INTO AMPH_LZ
-
-amph_lz <- rbind(amph_lz, amph_2024, liz_2024)
-
-rm(amph_2024)
-rm(liz_2024)
+# clean
+rm(amph_2024, liz_2024, amph_lz_2025)
 
 rm_trail_spaces <- function(column) {
   clean_column <- trimws(column)
   return(clean_column)
 }
 
-# Get rid of duplicate stuff
+# Get rid of trailing spaces
 
 amph_lz$Gross_ID <- rm_trail_spaces(amph_lz$Gross_ID)
 amph_lz$Genus <- rm_trail_spaces(amph_lz$Genus)
@@ -353,12 +354,11 @@ amph_lz$Survey_Type <- rm_trail_spaces(amph_lz$Survey_Type)
 amph_lz$Station <- rm_trail_spaces(amph_lz$Station)
 amph_lz$Weather <- rm_trail_spaces(amph_lz$Weather)
 amph_lz$Animal_ID <- rm_trail_spaces(amph_lz$Animal_ID)
-
-
 ```
 
-```{r more prep and cleaning}
-colnames(amph_lz)
+**amph_lz** has all 2024-2025 records of amphibian and lizard detections, afternoon and night surveys included
+
+```{r amph lz date and other cleaning}
 
 amph_lz$Start_Date_Start_Time=paste(amph_lz$Date,amph_lz$Survey_Start_Time,sep=" ")
 amph_lz$End_Date_End_Time=paste(amph_lz$Date,amph_lz$Survey_End_Time,sep=" ")
@@ -388,171 +388,80 @@ amph_lz$Time_Found=hm(amph_lz$Time_Found)
 
 ```
 
-We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments - this has to be done with the amphibian and lizard data too.
+For the 2025 afternoon surveys, we need records of each time a segment was surveyed in the afternoon and how long that segment was (there's not complete overlap btwn nightime and afternoon segments)
 
-```{r amph lzs segment master list}
+```{r amph lz 2025 afternoon segs}
 # add survey type column to segments master
 segments_master$Survey_Type <- "Night"
 
-# env should have every segment ever surveyed ... and each time it was surveyed
-segs_survey_record_2025_JV <- env %>%
-  select(c(1,2,3,5)) %>%
-  separate_rows(Order, sep = ",")
-
-# and fix the names in segs_expanded to match and to be easy to understand
-segs_survey_record_2025_JV <- segs_survey_record_2025_JV %>%
-  rename(Segment = Order)
-
-# there's just one where there is a hyphen separating two segments that need to be in separate rows
-#segs_survey_record <- segs_survey_record %>%
- # mutate(Segment = ifelse(Segment == "NUMA-02-CHIO-03", 
-  #                        "NUMA-02, CHIO-03", Segment)) %>%
-  #separate_rows(Segment, sep = ",")
-
-# remove all the spaces
-segs_survey_record_2025_JV <- segs_survey_record_2025_JV %>%
-  mutate(Segment = trimws(Segment))
-
-# fix one case where there is just a space between two segments that need to be in separate rows
-segs_survey_record_2025_JV <- segs_survey_record_2025_JV %>%
-  separate_rows(Segment, sep = " ")
-
-# get ready to add the meters per segment. Need names to match
-#segs <- segs %>%
- # rename(Segment = SEGMENT) %>%
-  #rename(Parent_Trail = PARENT.TRAIL) %>%
-  #rename(Seg_dist_m = DISTANCE_.M.) %>%
-  #select(!Parent_Trail)
-
-# commenting out and can probably remove
-
-# first, do we have distances for all segments named in the segs_survey_record df?
-
-# one typo - 	
-#CEIBA-01 should be CEIB-01
-segs_survey_record_2025_JV <- segs_survey_record_2025_JV %>%
-  mutate(Segment = ifelse(Segment == "CEIBA-01", "CEIB-01", Segment))
-
-segs_survey_record_2025_JV <- left_join(segs_survey_record_2025_JV, segs)
-
-```
-
-```{r amph lzs join segments and survey info to df}
-
-# reduce down to the columns we're interested in right now
-amph_lz_segs <- amph_lz %>%
-  select(Date, Station, Segment, Animal_ID, Distance_From_Trail_m, Gross_ID, Family, Genus, Species, Common_Name, Survey_Type, Habitat_Type, Height_of_Individual)
-
-# fix date name to match
-amph_lz_segs <- amph_lz_segs %>%
-  rename(Start_Date = Date)
-
-# Find segs in segments master that are not in amph_lz
-segs_in_master_not_surveys <- anti_join(segments_master, amph_lz_segs, by = "Segment")
-
-# FLAG: Owen/Jacob we should do a check here, does it seem believable that 8 segments in 2025 had 0 specimens found, and that 6 segments in 2024 had 0 specimens found?
-
-# vice versa
-
-# should be 7 - every instance of a specimen found should have corresponding segment info, with the exception of the afternoon 2024 records that we are omitting
-
-segs_in_surveys_not_master <- anti_join(amph_lz_segs, segments_master, by = "Segment")
-
-#Few things missing, all of which are afternoon surveys: 2024-06-05, TCHO-02 and MATA-01 afternoon. Also - 2025-06-23 HARP-05, -04, -03, -02 and GUAC-04. We just need the corresponding segment length for these and the habitat type.
-
-# these exist in Jacob's segment length dataset, pull that in here:
-JV_segs<-read.csv("Data/Field_Season_2_Datasheets(Segment_Distances).csv")
-
-# isolate missing segment data
-missing_segs <- JV_segs %>%
-  filter(SEGMENT == "TCHO-02" | SEGMENT == "MATA-01" | SEGMENT == "HARP-05" | SEGMENT == "HARP-04" | SEGMENT == "HARP-03" | SEGMENT == "HARP-02" | SEGMENT == "GUAC-04")
-
-# remove JV_segs
-rm(JV_segs)
-
-# fix names
-missing_segs <- missing_segs %>%
-  rename(Segment = SEGMENT) %>%
-  rename(Parent_Trail = PARENT.TRAIL) %>%
-  rename(Seg_dist_m = DISTANCE_.M.)
-
-# pull the info for each survey that is missing
-JV_survs <- read.csv("Data/Field_Season_2_Datasheets(Environment_Sheet).csv")
-
-# Isolate missing surveys: 
-
-# *afternoon 2024-06-05, TCHO-02 and MATA-01* 
-    # *actually this must've been an experimental afternoon survey in 2024. We did not end up incorporating afternoon surveys that year, so I think we can remove this.
-
-# just need: afternoon 2025-06-23 afternoon missing segments
-
-# fix dates
-JV_survs$Date <- mdy(JV_survs$Date)
-
-# isolate ones we want to add
-JV_survs <- JV_survs %>%
-  filter(Date == "2025-06-23" | Date == "2025-06-30" | Date == "2025-06-26")
-
-# need column with segments surveyed to have each survey in it's own row
-JV_survs <- JV_survs %>%
-  separate_rows(Order, sep = ",")
-
-# and fix the names to be consistent (order = segment)
-JV_survs<- JV_survs %>%
-  rename(Segment = Order)
-
-# remove all the spaces
-JV_survs <- JV_survs %>%
-  mutate(Segment = trimws(Segment))
-
-# add in the segment length data
-missing_segs <- left_join(JV_survs, missing_segs)
-
-# clean up
-rm(JV_survs)
-
-# add start and end date with correct names
-missing_segs$End_Date <- missing_segs$Date
-
-missing_segs <- missing_segs %>%
-  rename(Start_Date = Date) %>%
-  rename(Parent_Trail_LongName = Trail_Walked)
-
-# take just what we want for segments master
-missing_segs <- missing_segs %>%
-  select(!c(6,9,11:47))
-
-# add to master df for segment length data
-segments_master <- full_join(segments_master, missing_segs)
-
-# also pull out afternoons and add them to segments master (just omit the one morning)
-afternoons <- env %>%
+# pull out afternoon surveys from 2025
+afternoon_2025 <- env %>%
   filter(Survey_Type == "Afternoon") %>%
-  separate_rows(Order, sep = ",") %>%
-  mutate(Order = trimws(Order)) %>%
+  select(c(1,2,3,5,7,8)) %>%
+  separate_rows(Order, sep = ",")
+
+# and fix the names to match and to be easy to understand
+afternoon_2025 <- afternoon_2025 %>%
   rename(Segment = Order)
 
-# add start and end date with correct names
-afternoons$End_Date <- afternoons$Date
+# remove all the spaces
+afternoon_2025 <- afternoon_2025 %>%
+  mutate(Segment = trimws(Segment))
 
-afternoons <- afternoons %>%
-  rename(Start_Date = Date) %>%
-  rename(Parent_Trail_LongName = Trail_Walked)
+# do this for seg_dist_25 as well and fix names 
+seg_dist_25 <- seg_dist_25 %>%
+  mutate(SEGMENT = trimws(SEGMENT)) %>%
+  rename(Segment = SEGMENT) %>%
+  rename(Seg_dist_m = DISTANCE_.M.) %>%
+  rename(Parent_Trail=PARENT.TRAIL)
 
-# add in the segment length data
-afternoons <- left_join(afternoons, segs)
+# add segment length
+afternoon_2025 <- left_join(afternoon_2025, seg_dist_25)
 
-# take just what we want for segments master
-afternoons <- afternoons %>%
-  select(!c(6,9,11:47))
-afternoons$Start_Date <- mdy(afternoons$Start_Date)
-afternoons$End_Date <- mdy(afternoons$End_Date)
-
-# add to master df for segment length data
-segments_master <- full_join(segments_master, afternoons)
+# start date and end date to facilitate join later
+afternoon_2025$Start_Date <- mdy(afternoon_2025$Date)
+afternoon_2025$End_Date <- mdy(afternoon_2025$Date)
+afternoon_2025 <- afternoon_2025 %>%
+  select(-Date)
 
 # clean
-rm(afternoons, missing_segs, segs_in_master_not_surveys, segs_in_surveys_not_master)
+rm(seg_dist_25)
+```
+**afternoon_2025** should have records of all afternoon segments ever surveyed, lengths of segments included
+
+## Afternoon smamms
+
+```{r afternoon smamm}
+small.mamms.afternoon <- env %>%
+  filter(Survey_Type == "Afternoon") %>%
+  select(Station, Date, Number_of_Small_Mammals_Spotted)
+
+#ah ok we only ever saw one smamm in the afternoon. Gonna disregard the afternoon smamm data.
+
+rm(small.mamms.afternoon)
+```
+
+## Merge night and afternoon
+
+```{r join night and afternoon surv and seg data}
+all_surv_records <- full_join(segments_master, afternoon_2025)
+
+# is this really everything?
+
+# Segments in snakes.sur but not in all surv records?
+anti_join(snakes.sur, all_surv_records, by = "Segment") # looks good
+
+# and with the amph lz data?
+anti_join(amph_lz, all_surv_records, by = "Segment") # looks good
+
+# clean
+rm(afternoon_2025, segments_master, segs)
+
+# rename env and enviro to be less confusing
+env_2025 <- env
+env_24_25_nights <- enviro
+
+rm(env, enviro)
 ```
 
 # Data summaries
@@ -561,38 +470,26 @@ rm(afternoons, missing_segs, segs_in_master_not_surveys, segs_in_surveys_not_mas
 
 ```{r get effort fixed}
 
-segments_master$Start_Date_Start_Time=paste(segments_master$Start_Date, segments_master$Survey_Start_Time, sep=" ")
+all_surv_records$Start_Date_Start_Time=paste(all_surv_records$Start_Date, all_surv_records$Survey_Start_Time, sep=" ")
 
-segments_master$Start_Date_Start_Time=ymd_hm(segments_master$Start_Date_Start_Time)
+all_surv_records$Start_Date_Start_Time=ymd_hm(all_surv_records$Start_Date_Start_Time)
 
-segments_master$End_Date_End_Time=paste(segments_master$End_Date, segments_master$Survey_End_Time, sep=" ")
+all_surv_records$End_Date_End_Time=paste(all_surv_records$End_Date, all_surv_records$Survey_End_Time, sep=" ")
 
-segments_master$End_Date_End_Time=ymd_hm(segments_master$End_Date_End_Time)
-
-segs <- segs %>%
-  select(Segment, Seg_dist_m)
-
-segments_master <- segments_master %>%
-  select(!c(Parent_Trail_LongName, Parent_Trail))
-
-segments_master <- inner_join(segments_master, segs, by = "Segment")
-
-segments_master <- segments_master %>%
-  rename(Seg_dist_m = Seg_dist_m.y) %>%
-  select(!Seg_dist_m.x)
+all_surv_records$End_Date_End_Time=ymd_hm(all_surv_records$End_Date_End_Time)
 ```
 
 ```{r mean efforts}
 
-segments_master$Effort_hrs <- difftime(segments_master$End_Date_End_Time, segments_master$Start_Date_Start_Time, units="hours")
+all_surv_records$Effort_hrs <- difftime(all_surv_records$End_Date_End_Time, all_surv_records$Start_Date_Start_Time, units="hours")
 
 # mean and sd search effort per station per survey type
-segments_master %>%
+all_surv_records %>%
   group_by(Station, Survey_Type) %>%
   summarize(mean_search_time_hrs = mean(Effort_hrs),
             sd = sd(Effort_hrs))
 # mean and sd meters searched per station per survey type
-segments_master %>%
+all_surv_records %>%
   group_by(Station, Start_Date, Survey_Type) %>%
   summarize(total_meters_surveyed = sum(Seg_dist_m)) %>%
   group_by(Station, Survey_Type) %>%
@@ -605,17 +502,15 @@ segments_master %>%
 
 ```{r summarize small mammal numbers}
 
-# T stopping here 5/11/2026
-
 #Raw mammal counts
 
-sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station == "YRS"])
+sum(small.mamms.df$Number_of_Small_Mammals_Spotted[small.mamms.df$Station == "YRS"])
 
-sum(small.mamms.temp$Number_of_Small_Mammals_Spotted[small.mamms.temp$Station == "TBS"])
+sum(small.mamms.df$Number_of_Small_Mammals_Spotted[small.mamms.df$Station == "TBS"])
 
 # I think this is good to report (total numbers) but maybe also with mean and sd of n encountered per survey at each station:
 
-enviro %>%
+env_24_25_nights %>%
   group_by(Station) %>%
   summarise(mean_detections_per_survey = mean(Number_of_Small_Mammals_Spotted),
             standard_deviation = sd(Number_of_Small_Mammals_Spotted))
@@ -630,7 +525,7 @@ enviro %>%
 
 # make a boxplot!
 
-smammals.plot <- ggplot(data = small.mamms.temp, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
+smammals.plot <- ggplot(data = small.mamms.df, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
   theme(legend.title=element_blank()) + ylab("N Small Mammals Detected Per Hour") + ggtitle("Small Mammal Detection Rates by Station") 
 
 smammals.plot #view the plot
@@ -649,7 +544,7 @@ rm(smammals.plot)
 ```{r smamm per hr se and mean}
 
 # another way to plot that makes judging significance easier NEEDS EXPLAINING
-smams.mean.se <- small.mamms.temp %>%
+smams.mean.se <- small.mamms.df %>%
   group_by(Station) %>%
   summarise(mean = mean(smammals.hr),
             sd = sd(smammals.hr),
@@ -657,7 +552,7 @@ smams.mean.se <- small.mamms.temp %>%
   mutate(se = sd / sqrt(n))
 
 smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
-  geom_jitter(data = small.mamms.temp, 
+  geom_jitter(data = small.mamms.df, 
               aes(x = Station, y = smammals.hr), 
               width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small Mammal Detections in Hunted\nand Unhunted Forest") +
@@ -680,7 +575,7 @@ rm(smams.mean.se, smamm.fig)
 
 # Model as continuous response variable rather than raw count data
 
-smam.cont <- glmmTMB(smammals.hr ~ Station + (1|Parent_Trail_LongName), data = small.mamms.temp, family = tweedie(link = "log"))
+smam.cont <- glmmTMB(smammals.hr ~ Station + (1|Parent_Trail_LongName), data = small.mamms.df, family = tweedie(link = "log"))
 
 sim <- simulateResiduals(fittedModel = smam.cont, plot = T)
 
@@ -697,13 +592,15 @@ Anova(smam.cont)
 
 
 ```{r clean env after smamm}
-rm(sim, small.mamms.temp, smam.cont)
+rm(sim, smam.cont)
 ```
 
+# Amph Lz Detections
 
 ```{r amph lz raw detection rates}
 
 # isolate surveys for which nothing found
+
 
 # get them into the format we want (tally)
 
