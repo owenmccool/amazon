@@ -639,9 +639,13 @@ rm(sim, smam.cont)
 # Amph Lz Detections
 
 ```{r amph lz raw detection rates}
-
+# remove the one morning survey
+amph_lz <- amph_lz %>%
+  filter(Survey_Type != "Morning")
+  
 #add segment distance data
 segments <- all_surv_records %>%
+  filter(Survey_Type != "Morning") %>%
   select(Segment, Seg_dist_m) %>%
   distinct()
 
@@ -650,18 +654,16 @@ amph_lz <- left_join(amph_lz, segments)
 amph_lz_counts <- amph_lz %>%
   group_by(Start_Date, Station, Segment, Seg_dist_m, Survey_Type, Gross_ID) %>% tally()
 
-zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no speciment was found on a segment should be added in with zeros for each gross ID tally
-
-# 5/14/2026 STOPPING HERE FOR NOW - CODE BELOW INCOMPLETE
+zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
 
 amph_lz_wide <- amph_lz_counts %>%
   pivot_wider(
-    names_from = Gross_ID, 
+    names_from = c(Survey_Type, Gross_ID), 
     values_from = n, 
     values_fill = 0)
 
 # get per 500 m detection rate
-
+amph_lz_wide$n_500m <- amph_lz_wide$
 
 # summarize and visualize
 
