@@ -374,7 +374,7 @@ amph_lz$Date=mdy(amph_lz$Date)
 amph_lz$Survey_Type=trimws(amph_lz$Survey_Type)
 
 #### Survey_hr ####
-amph_lz$Survey_hr=difftime(amph_lz$End_Date_End_Time,amph_lz$Start_Date_Start_Time,units="hours")
+amph_lz$Effort_hrs=difftime(amph_lz$End_Date_End_Time,amph_lz$Start_Date_Start_Time,units="hours")
 
 #### Gross_ID () ####
 amph_lz$Gross_ID=trimws(amph_lz$Gross_ID)
@@ -444,15 +444,55 @@ rm(small.mamms.afternoon)
 ## Merge night and afternoon
 
 ```{r join night and afternoon surv and seg data}
+
 all_surv_records <- full_join(segments_master, afternoon_2025)
 
-# is this really everything?
+# is every segment accounted for?
 
 # Segments in snakes.sur but not in all surv records?
 anti_join(snakes.sur, all_surv_records, by = "Segment") # looks good
 
 # and with the amph lz data?
 anti_join(amph_lz, all_surv_records, by = "Segment") # looks good
+
+# and with the amph lz data?
+anti_join(all_surv_records, amph_lz, by = "Segment") # looks good
+
+# is every survey accounted for?
+# double check to make sure that all_surv_records isn't missing any survey dates on segments
+
+# date name fixes real quick so they match
+amph_lz$Start_Date <- amph_lz$Date
+amph_lz$End_Date <- amph_lz$Date
+
+missing<-anti_join(amph_lz, all_surv_records, by =c("Start_Date", "Segment"))
+
+# dang there are still a few records missing
+# try to put those into all_surv_records (except the morning survey, we don't need that)
+
+missing <- missing %>%
+  filter(Survey_Type != "Morning") %>%
+  select(c(Start_Date, End_Date, Station, Segment, Survey_Start_Time, Survey_End_Time, Surveyors, Survey_Type))
+
+# ugh handful of segments didn't have any length info in all_surv_records, so I'm just going to manually add in their lengths here
+
+missing <- missing %>%
+  mutate(Seg_dist_m = NA) %>%
+  mutate(Seg_dist_m = ifelse(Segment == "TCHO-02", 830, Seg_dist_m))
+
+missing <- missing %>%
+  mutate(Seg_dist_m = ifelse(Segment == "TORR-01", 900, Seg_dist_m))
+
+missing <- missing %>%
+  mutate(Seg_dist_m = ifelse(Segment == "GUAC-01", 230, Seg_dist_m))
+
+missing <- missing %>%
+  mutate(Seg_dist_m = ifelse(Segment == "MATA-01", 1030, Seg_dist_m))
+
+missing$Seg_dist_m <- as.integer(missing$Seg_dist_m)
+
+# merge with the all_surv_records
+all_surv_records <- full_join(all_surv_records, missing)
 
 # clean
 rm(afternoon_2025, segments_master, segs)
@@ -488,6 +528,7 @@ all_surv_records %>%
   group_by(Station, Survey_Type) %>%
   summarize(mean_search_time_hrs = mean(Effort_hrs),
             sd = sd(Effort_hrs))
+
 # mean and sd meters searched per station per survey type
 all_surv_records %>%
   group_by(Station, Start_Date, Survey_Type) %>%
@@ -599,35 +640,25 @@ rm(sim, smam.cont)
 
 ```{r amph lz raw detection rates}
 
-# isolate surveys for which nothing found
+#add segment distance data
+segments <- all_surv_records %>%
+  select(Segment, Seg_dist_m) %>%
+  distinct()
 
+amph_lz <- left_join(amph_lz, segments)
 
-# get them into the format we want (tally)
+amph_lz_counts <- amph_lz %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Survey_Type, Gross_ID) %>% tally()
 
-# for the nights when 0 were found, make a dataframe of instances that specifies zero found for each gross ID
+zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no speciment was found on a segment should be added in with zeros for each gross ID tally
 
-# stack them together (rbind)
+# 5/14/2026 STOPPING HERE FOR NOW - CODE BELOW INCOMPLETE
 
-#clean
-
-# also isolate surveys that DID have detections (filter nas out for animal ID)
-
-# tally counts - df without zeros
-
-# now, we can add the surveys and the segments with zero detections back (full_join)
-
-# make NAs zeros
-amph_lz_raw_detection_df <- amph_lz_raw_detection_df %>%
-  mutate(n = ifelse(is.na(n), 0, n))
-
-# I did this fast and it should be checked
-
-## FLAG: OWEN CAN'T RUN THIS LINE 
-
-detection_rates <- raw_detection_df %>%
-  group_by(Station, Gross_ID, Survey_Type, Start_Date) %>%
-  summarize(meters_surveyed = sum(Seg_dist_m),
-            individuals_found = sum(n))
+amph_lz_wide <- amph_lz_counts %>%
+  pivot_wider(
+    names_from = Gross_ID, 
+    values_from = n, 
+    values_fill = 0)
 
 # get per 500 m detection rate
 
