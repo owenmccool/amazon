@@ -736,7 +736,7 @@ amph_lz.mean.se <- rbind(lz.mean.se, sal.mean.se, frg.mean.se)
 ```
 
 Plots - preliminary quick and dirty 
-Frogs
+## Frogs
 
 ```{r frogs detection rates}
 
@@ -795,6 +795,53 @@ frogs.survey.level.means.se <- frogs.survey.level %>%
   mutate(se = sd / sqrt(n))
 
 ggplot(frogs.survey.level.means.se, aes(x=Station, y=mean_n_500m, fill = Station)) +
+  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + facet_wrap(~Year)
+
+```
+
+## Lizards
+
+```{r lizard detection rates}
+
+liz_detections <- amph_lz_wide %>%
+  select(-c(Frog, Salamander, n_frg_500m, n_sal_500m))
+
+# just plot the detections per 500m for frogs
+# note this needs to be done on log scale probs if we look at n per 500m estimates based on individual segment lengths rather than per survey total m surveyed lengths, because the values vary from like 0 to 20
+# FLAG: THERESE does this log scale still need to be done for lizards?
+
+# not log transformed
+ggplot(liz_detections, aes(x=Station, y=mean_n_500m, color = Station, group = Station)) + 
+  geom_jitter(aes(x = Station, y = n_lz_500m), width = 0.1, alpha =0.75, size = 2) + theme_classic()
+
+# log transformed
+ggplot(liz_detections, aes(x=Station, y=log(mean_n_500m), color = Station, group = Station)) +
+  geom_jitter(aes(x = Station, y = log(n_lz_500m)), width = 0.1, alpha =0.75, size = 2) + theme_classic()
+```
+
+```{r lizard mean se}
+
+ggplot(lz.mean.se, aes(x=Station, y=mean_n_500m, fill = Station, group = Station)) +
+  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank()) 
+
+```
+
+
+```{r lizard mean se per year}
+# quick and dirty
+temp <- amph_lz_wide
+temp$Year<- factor(format(temp$Start_Date, "%Y"))
+
+temp <- temp %>%
+  group_by(Station, Year) %>%
+  summarise(mean_n_500m = mean(n_lz_500m),
+            sd = sd(n_lz_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+ggplot(temp, aes(x=Station, y=mean_n_500m, fill = Station)) +
   geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + facet_wrap(~Year)
 
 ```
