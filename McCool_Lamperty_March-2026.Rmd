@@ -652,24 +652,152 @@ segments <- all_surv_records %>%
 amph_lz <- left_join(amph_lz, segments)
 
 amph_lz_counts <- amph_lz %>%
-  group_by(Start_Date, Station, Segment, Seg_dist_m, Survey_Type, Gross_ID) %>% tally()
+  group_by(Start_Date, Survey_Start_Time, Survey_End_Time, Station, Segment, Seg_dist_m, Survey_Type, Gross_ID) %>% tally()
 
 zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
 
 amph_lz_wide <- amph_lz_counts %>%
   pivot_wider(
-    names_from = c(Survey_Type, Gross_ID), 
+    names_from = c(Gross_ID), 
     values_from = n, 
     values_fill = 0)
 
-# get per 500 m detection rate
-amph_lz_wide$n_500m <- amph_lz_wide$
+# prep to add in the zeros, pull out columns I want
+zeros <- zeros %>%
+  select(Start_Date, Survey_Start_Time, Survey_End_Time, Station, Segment, Seg_dist_m, Survey_Type)
 
-# summarize and visualize
+#bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
+amph_lz_wide <- rbind(amph_lz_wide, zeros)
+
+#clean
+rm(zeros, missing)
+
+# get per 500 m detection rates - NOTE WE MAY WANT TO DO THIS PER SURVEY DISTANCE RATHER THAN PER SEGMENT DISTANCE
+
+# make NA cases (from when I added in the zeros) to zero
+amph_lz_wide[is.na(amph_lz_wide)] <- 0
+
+# lizards
+amph_lz_wide$n_lz_500m <- (amph_lz_wide$Lizard/amph_lz_wide$Seg_dist_m)*500
+# salamanders
+amph_lz_wide$n_sal_500m <- (amph_lz_wide$Salamander/amph_lz_wide$Seg_dist_m)*500
+#frogs
+amph_lz_wide$n_frg_500m <- (amph_lz_wide$Frog/amph_lz_wide$Seg_dist_m)*500
+
+# frogs broader grouping - just to see what it looks like per survey
+frogs.survey.level <- amph_lz_wide %>%
+  select(-Lizard, -Salamander) %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  summarise(n_frogs = sum(Frog),
+  total_meters = sum(Seg_dist_m))
+
+# make NA cases (from when I added in the zeros) to zero
+# make NAs zeros
+amph_lz_wide[is.na(amph_lz_wide)] <- 0
+
+#clean
+rm(amph_lz_counts)
+```
+
+Summarize and visualize this herp detection rate data
+
+```{r summaries lz frg sal}
+
+lz.mean.se <- amph_lz_wide %>%
+  group_by(Station) %>%
+  summarise(mean_n_500m = mean(n_lz_500m),
+            sd = sd(n_lz_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+lz.mean.se$Taxa <- "Lizard"
+
+sal.mean.se <- amph_lz_wide %>%
+  group_by(Station) %>%
+  summarise(mean_n_500m = mean(n_sal_500m),
+            sd = sd(n_sal_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+sal.mean.se$Taxa <- "Salamander"
+
+frg.mean.se <- amph_lz_wide %>%
+  group_by(Station) %>%
+  summarise(mean_n_500m = mean(n_frg_500m),
+            sd = sd(n_frg_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+frg.mean.se$Taxa <- "Frog"
+
+# join them
+amph_lz.mean.se <- rbind(lz.mean.se, sal.mean.se, frg.mean.se)
 
 ```
 
+Plots - preliminary quick and dirty 
+Frogs
 
+```{r frogs detection rates}
+
+frog_detections <- amph_lz_wide %>%
+  select(-c(Lizard, Salamander, n_lz_500m, n_sal_500m))
+
+# just plot the detections per 500m for frogs
+# note this needs to be done on log scale probs if we look at n per 500m estimates based on individual segment lengths rather than per survey total m surveyed lengths, because the values vary form like 0 to 20
+
+# not log transformed
+ggplot(frog_detections, aes(x=Station, y=mean_n_500m, color = Station, group = Station)) + 
+  geom_jitter(aes(x = Station, y = n_frg_500m), width = 0.1, alpha =0.75, size = 2) + theme_classic()
+
+# log transformed
+ggplot(frog_detections, aes(x=Station, y=log(mean_n_500m), color = Station, group = Station)) +
+  geom_jitter(aes(x = Station, y = log(n_frg_500m)), width = 0.1, alpha =0.75, size = 2) + theme_classic()
+```
+```{r frog mean se}
+
+ggplot(frg.mean.se, aes(x=Station, y=mean_n_500m, fill = Station, group = Station)) +
+  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank()) 
+
+```
+
+```{r frog mean se per year}
+# quick and dirty
+temp <- amph_lz_wide
+temp$Year<- factor(format(temp$Start_Date, "%Y"))
+
+temp <- temp %>%
+  group_by(Station, Year) %>%
+  summarise(mean_n_500m = mean(n_frg_500m),
+            sd = sd(n_frg_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+ggplot(temp, aes(x=Station, y=mean_n_500m, fill = Station)) +
+  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + facet_wrap(~Year)
+
+```
+And what about if we look at the per survey detections rather than per segment?
+
+```{r per surv frogs}
+
+frogs.survey.level$Year<- factor(format(frogs.survey.level$Start_Date, "%Y"))
+
+frogs.survey.level$n_500m <- (frogs.survey.level$n_frogs/frogs.survey.level$total_meters)*500
+
+frogs.survey.level.means.se <- frogs.survey.level %>%
+  group_by(Station, Year) %>%
+  summarise(mean_n_500m = mean(n_500m),
+            sd = sd(n_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+ggplot(frogs.survey.level.means.se, aes(x=Station, y=mean_n_500m, fill = Station)) +
+  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + facet_wrap(~Year)
+
+```
 
 # Understory
 
