@@ -75,10 +75,11 @@ amph_lz_2025=read.csv("Data/Field_Season_2_datasheets(amphibians_and_lizards).cs
 
 #5. corresponding amph_lz env data
 env=read.csv("Data/Field_Season_2_datasheets(Environment_Sheet).csv")
-# environmental data from 2025 (Jacob's project)
+# environmental data from 2025 (Jacob's project: includes night and afternoon)
 
 #6. segment distances from 2025 data; we only need the 2025 afternoon data from here
 seg_dist_25=read.csv("Data/Field_Season_2_datasheets(Segment_Distances).csv")
+# Seemingly no differences bw this one and segs
 
 #7. amphibian 2024 data
 amph_2024 <- read.csv("Data/2024_amphibians.csv")
@@ -100,6 +101,7 @@ We need to make a dataframe that contains the dates that each segment was survey
 segs_expanded <- enviro %>%
   select(!c(6,9,11:45)) %>%
   separate_rows(Order, sep = ",")
+# remove meters, search time, all temp, water body, small mammal data
 
 # get ready to add the meters per segment. Need names to match
 segs <- segs %>%
@@ -439,6 +441,8 @@ small.mamms.afternoon <- env %>%
 #ah ok we only ever saw one smamm in the afternoon. Gonna disregard the afternoon smamm data.
 
 rm(small.mamms.afternoon)
+
+# FLAG: Can this chunk be deleted in entirety?
 ```
 
 ## Merge night and afternoon
@@ -778,8 +782,34 @@ temp <- temp %>%
 ggplot(temp, aes(x=Station, y=mean_n_500m, fill = Station)) +
   geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + facet_wrap(~Year)
 
+## NOTE: Heavy rains began on July 1st, 2025 and lasted through July 9th
+
 ```
 And what about if we look at the per survey detections rather than per segment?
+
+```{r subset frog data floods}
+# Now we have to get rid of all observations that fall within flood range
+
+class(amph_lz_wide$Start_Date)
+
+amph_lz_wide_noflood <- amph_lz_wide %>%
+  filter(!(Start_Date >= as.Date("2025-07-01") &
+           Start_Date <= as.Date("2025-07-09")))
+
+frg.mean.se_noflood <- amph_lz_wide_noflood %>%
+  group_by(Station) %>%
+  summarise(mean_n_500m = mean(n_frg_500m),
+            sd = sd(n_frg_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+ggplot(frg.mean.se_noflood, aes(x=Station, y=mean_n_500m, fill = Station, group = Station)) +
+  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank()) 
+  
+```
+
 
 ```{r per surv frogs}
 
