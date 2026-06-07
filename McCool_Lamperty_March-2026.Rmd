@@ -802,13 +802,6 @@ temperature_long_2024$Survey_Type <-"Night"
 humidity_all <- rbind(humidity_long, humidity_long_2024)
 temperature_all <- rbind(temp_long, temperature_long_2024)
 
-humidity_all <- humidity_all %>%
-  filter(!(Humidity < 73))# one survey had first few readings v low, do not trust
-
-temperature_all %>%
-  group_by(Station) %>%
-  reframe(mean = mean(Temperature))
-
 # get means
 
 humidity_means <- humidity_all %>%
@@ -824,7 +817,34 @@ amph_lz_detections <- left_join(amph_lz_detections, humidity_means)
 
 amph_lz_detections <- left_join(amph_lz_detections, temperature_means)
 ```
+# Environmental data
 
+```{r hum and temp}
+
+humidity_all$Year <- factor(format(humidity_all$Start_Date, "%Y"))
+
+temperature_all$Year <- factor(format(temperature_all$Start_Date, "%Y"))
+
+humidity_summary_yr_survey_type <- humidity_all %>%
+  filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
+  filter(!(Survey_Type == "Morning")) %>%
+  group_by(Station, Survey_Type, Year) %>%
+  summarize(mean_humidity = mean(Humidity),
+            sd = sd(Humidity),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+
+temperature_summary_yr_survey_type <- temperature_all %>%
+  filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
+  filter(!(Survey_Type == "Morning")) %>%
+  group_by(Station, Survey_Type, Year) %>%
+  summarize(mean_temperature = mean(Temperature),
+            sd = sd(Temperature),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
 
 ## Frogs
 
@@ -1073,173 +1093,6 @@ und.fig
 # rm(und.fig)
 ```
 
-# Temperature
-
-## Temp Set-Up
-
-Get temperature data reformatted. We took these readings every 30 min and also every time an individual was found. First step will be looking at variation between stations. 
-
-```{r reformat temperature}
-# First, let's add column to differentiate by season (2024 or 2025)
-enviro$Season <- factor(format(enviro$Start_Date, "%Y"))
-
-# pull out per data record enviro data from snake.sur
-
-env_at_detection <- snakes.sur %>%
-  select(Station, Start_Date, Temperature_at_Time_of_Detection, Humidity_at_Time_of_Detection) %>% na.omit()
-
-enviro2 <- left_join(enviro, env_at_detection)
-
-temperature_long <- enviro2 %>%
-  select(Survey_Start_Date_Time, Station, Season, Parent_Trail_LongName, 
-         Temperature_1:Temperature_7, Temperature_Final, Temperature_at_Time_of_Detection) %>%
-  pivot_longer(names_to = "Measurement",
-               cols = Temperature_1:Temperature_at_Time_of_Detection,
-               values_to = "Temperature", names_repair = "unique")
-# remove NAs
-
-temperature_long <- temperature_long %>%
-  na.omit()
-```
-
-## Temp Figure
-
-Histogram per station & season
-
-```{r temperature histo}
-
-temperature.hist <- ggplot(temperature_long, aes(x= Temperature)) +
-  geom_histogram() +facet_grid(Season~Station) + theme_bw()
-
-temperature.hist
-```
-
-And do a mean and se with points overlain
-
-```{r temperature mean se figure}
-
-temp.mean.se <- temperature_all %>%
-  na.omit() %>%
-  group_by(Station) %>%
-  summarise(mean = mean(Temperature),
-            sd = sd(Temperature),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-temp.fig <- ggplot(temp.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = temperature_all, aes( x = Station, y = Temperature), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
-  scale_fill_manual(values = c("lightgreen","lightgreen")) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Measured Temperature") + ggtitle("Temps by Field Season & Station") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
-
-temp.fig
-
-#Interesting, seems 2025 was def colder at YRS, and a little bit overall as well
-
-#ggsave(temp.fig, file="temp-mean-se.png", width = 6,  height = 4)
-
-rm(temp.fig)
-```
-
-```{r clean after temp}
-rm(temp.mean.se, temperature.hist)
-```
-
-# Humidity
-
-## Hum Set-Up
-
-Get temperature data reformatted. We took these readings every 30 min and also every time an individual was found. First step will be looking at variation between stations. 
-
-```{r reformat humidity}
-
-humidity_long <- enviro2 %>%
-  select(Survey_Start_Date_Time, Station, Season, Parent_Trail_LongName, 
-         Humidity_1:Humidity_7, Humidity_Final, Humidity_at_Time_of_Detection) %>%
-  pivot_longer(names_to = "Measurement",
-               cols = Humidity_1:Humidity_at_Time_of_Detection,
-               values_to = "Humidity", names_repair = "unique")
-# remove NAs
-
-humidity_long <- humidity_long %>%
-  na.omit()
-
-# Sanity check to make sure pivoted temp and humidity DFs are same length
-length(humidity_long$Survey_Start_Date_Time)
-length(temperature_long$Survey_Start_Date_Time) 
-```
-
-## Hum Figure
-
-Histogram per station & season
-
-```{r humidity histo}
-
-humidity.hist <- ggplot(humidity_long, aes(x= Humidity)) +
-  geom_histogram() +facet_grid(Season~Station) + theme_bw()
-humidity.hist
-```
-
-And do a mean and se with points overlain
-
-```{r humidity mean se figure}
-
-hum.mean.se <- humidity_all %>%
-  na.omit() %>%
-  group_by(Station) %>%
-  summarise(mean = mean(Humidity),
-            sd = sd(Humidity),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-hum.fig <- ggplot(hum.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = humidity_all, aes( x = Station, y = Humidity), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
-  scale_fill_manual(values = c("lightgreen","lightgreen")) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("% Relative Humidity") + ggtitle("Humidity by Field Season & Station") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
-
-hum.fig
-
-#Huge amount of variation in humidity, overall more humid at YRS but 
-# definitely more humid in 2025, likely from all the huge rain events 
-
-#ggsave(hum.fig, file="humidty-mean-se.png", width = 6,  height = 4)
-
-#rm(hum.fig)
-```
-
-```{r clean env after hum}
-rm(hum.fig, hum.mean.se, humidity.hist)
-```
-
-# Handling Humidity and Temp
-
-We want to summarize humidity and temp in a way that allows us to incorporate it into our model. As of 2/23, I'm thinking the best way to do this is to take means per survey date.
-
-Let's take the mean vals per date
-
-```{r temp hum means} 
-
-temp_date_means <- temperature_long %>%
-  na.omit() %>%
-  group_by(Survey_Start_Date_Time, Station) %>%
-  reframe(mean_temp_F = mean(Temperature))
-
-hum_date_means <- humidity_long %>%
-  na.omit() %>%
-  group_by(Survey_Start_Date_Time, Station) %>%
-  reframe(mean_humidity_percent = mean(Humidity))
-
-temp_hum_df <- left_join(temp_date_means, hum_date_means)
-
-temp_hum_df$Start_Date <- as.Date(temp_hum_df$Survey_Start_Date_Time)
-
-temp_hum_df <- temp_hum_df %>%
-  select(-Survey_Start_Date_Time)
-
-# clean
-rm(temperature_long, humidity_long, temp_date_means, hum_date_means, understory_long)
-```
 
 # Density estimates
 
