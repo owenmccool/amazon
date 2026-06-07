@@ -1,0 +1,584 @@
+﻿Date,Station,Survey_Type,Segment,Survey_Start_Time,Survey_End_Time,Gross_ID,Animal_ID,Family,Species,Common_Name,Habitat_Type
+6/3/2025,TBS,Night,NUMA-01,8:49 PM,11:05 PM,Frog,FG243,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Varzea
+6/3/2025,TBS,Night,NUMA-01,8:49 PM,11:05 PM,Frog,FG244,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/3/2025,TBS,Night,NUMA-01,8:49 PM,11:05 PM,Lizard,LZ45,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/3/2025,TBS,Night,CHIO-02,8:49 PM,11:05 PM,Frog,FG245,Leptodactylidae,Leptodactylus spp.,Tropical Bullfrogs,Varzea
+6/3/2025,TBS,Night,CHIO-02,8:49 PM,11:05 PM,Frog,FG246,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+6/3/2025,TBS,Night,CHIO-02,8:49 PM,11:05 PM,Frog,FG247,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Varzea
+6/3/2025,TBS,Night,CHIO-02,8:49 PM,11:05 PM,Lizard,LZ46,Teiidae,Kentropyx pelviceps,Forest Whiptail,Varzea
+6/3/2025,TBS,Night,CHIO-02,8:49 PM,11:05 PM,Frog,FG248,Leptodactylidae,Adenomera spp.,Tropical Bullfrogs,Varzea
+6/3/2025,TBS,Night,CHIO-02,8:49 PM,11:05 PM,Frog,FG249,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+6/3/2025,TBS,Night,CHIO-01,8:49 PM,11:05 PM,Frog,FG250,Bufonidae,Rhaebo guttatus,Smooth-sided Toad,Terrafirme
+6/3/2025,TBS,Night,CHIO-01,8:49 PM,11:05 PM,Frog,FG251,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Terrafirme
+6/3/2025,TBS,Night,CHIO-01,8:49 PM,11:05 PM,Frog,FG252,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/3/2025,TBS,Night,CHIO-01,8:49 PM,11:05 PM,Lizard,LZ47,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/4/2025,TBS,Night,ANAC-01,8:12 PM,10:32 PM,Frog,FG253,Hylidae,Boana spp.,Gladiator Treefrogs,Varzea
+6/4/2025,TBS,Night,ANAC-01,8:12 PM,10:32 PM,Frog,FG254,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/4/2025,TBS,Night,LAGO-02,8:12 PM,10:32 PM,Frog,FG255,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/4/2025,TBS,Night,LAGO-02,8:12 PM,10:32 PM,Salamander,SL23,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+6/4/2025,TBS,Night,LAGO-02,8:12 PM,10:32 PM,Lizard,LZ48,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+6/4/2025,TBS,Night,LAGO-02,8:12 PM,10:32 PM,Lizard,LZ49,Anolidae,Anolis punctatus,Amazon Green Anole,Varzea
+6/4/2025,TBS,Night,LAGO-02,8:12 PM,10:32 PM,Frog,FG256,Hylidae,Osteocephalus fuscifacies,Tan-faced Spiny-backed Frog,Varzea
+6/4/2025,TBS,Night,LAGO-02,8:12 PM,10:32 PM,Lizard,LZ50,Tropiduridae,Plica plica,Collared Treerunner,Varzea
+6/4/2025,TBS,Night,LAGO-02,8:12 PM,10:32 PM,Frog,FG257,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+6/5/2024,TBS,Afternoon,TCHO-02,2:20 PM,3:57 PM,Frog,FG258,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/5/2024,TBS,Afternoon,TCHO-02,2:20 PM,3:57 PM,Frog,FG259,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/5/2024,TBS,Afternoon,TCHO-02,2:20 PM,3:57 PM,Frog,FG260,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Terrafirme
+6/5/2024,TBS,Afternoon,TCHO-02,2:20 PM,3:57 PM,Frog,FG261,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/5/2024,TBS,Afternoon,TCHO-02,2:20 PM,3:57 PM,Lizard,LZ51,Teiidae,Kentropyx pelviceps,Forest Whiptail,Terrafirme
+6/5/2024,TBS,Afternoon,TCHO-02,2:20 PM,3:57 PM,Frog,FG262,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Terrafirme
+6/5/2024,TBS,Afternoon,TCHO-02,2:20 PM,3:57 PM,Lizard,LZ52,Teiidae,Kentropyx pelviceps,Forest Whiptail,Terrafirme
+6/5/2024,TBS,Afternoon,MATA-01,2:20 PM,3:57 PM,Lizard,LZ53,Teiidae,Kentropyx pelviceps,Forest Whiptail,Varzea
+6/5/2024,TBS,Afternoon,MATA-01,2:20 PM,3:57 PM,Lizard,LZ54,Teiidae,Kentropyx pelviceps,Forest Whiptail,Varzea
+6/6/2025,TBS,Night,MAPO-02,8:08 PM,11:02 PM,Frog,FG263,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Terrafirme
+6/6/2025,TBS,Night,MAPO-03,8:08 PM,11:02 PM,Frog,FG264,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/6/2025,TBS,Night,MAPO-03,8:08 PM,11:02 PM,Salamander,SL24,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/6/2025,TBS,Night,MAPO-03,8:08 PM,11:02 PM,Lizard,LZ55,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+6/6/2025,TBS,Night,MAPO-03,8:08 PM,11:02 PM,Salamander,SL25,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/6/2025,TBS,Night,MAPO-03,8:08 PM,11:02 PM,Frog,FG265,Hylidae,Osteocephalus taurinus,Manaus Spiny-backed Treefrog,Terrafirme
+6/6/2025,TBS,Night,MURC-01,8:08 PM,11:02 PM,Frog,FG266,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/6/2025,TBS,Night,MURC-01,8:08 PM,11:02 PM,Frog,FG267,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/6/2025,TBS,Night,MAPO-04,8:08 PM,11:02 PM,Frog,FG268,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+6/6/2025,TBS,Night,MAPO-05,8:08 PM,11:02 PM,Frog,FG269,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/6/2025,TBS,Night,MAPO-06,8:08 PM,11:02 PM,Lizard,LZ56,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Terrafirme
+6/6/2025,TBS,Night,MAPO-06,8:08 PM,11:02 PM,Frog,FG270,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/6/2025,TBS,Night,MAPO-06,8:08 PM,11:02 PM,Frog,FG271,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/7/2025,TBS,Night,GUAC-01,7:59 PM,10:26 PM,Frog,FG272,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/7/2025,TBS,Night,GUAC-01,7:59 PM,10:26 PM,Frog,FG273,Leptodactylidae,Leptodactylus pentadactylus,Smoky Jungle Frog,Terrafirme
+6/7/2025,TBS,Night,GUAC-02,7:59 PM,10:26 PM,Frog,FG274,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/7/2025,TBS,Night,DANT-01,7:59 PM,10:26 PM,Frog,FG275,Hylidae,Osteocephalus taurinus,Manaus Spiny-backed Treefrog,Terrafirme
+6/7/2025,TBS,Night,DANT-01,7:59 PM,10:26 PM,Frog,FG276,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/7/2025,TBS,Night,DANT-01,7:59 PM,10:26 PM,Frog,FG277,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/7/2025,TBS,Night,DANT-01,7:59 PM,10:26 PM,Frog,FG278,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+6/7/2025,TBS,Night,DANT-01,7:59 PM,10:26 PM,Frog,FG279,Leptodactylidae,Leptodactylus pentadactylus,Smoky Jungle Frog,Varzea
+6/7/2025,TBS,Night,DANT-01,7:59 PM,10:26 PM,Frog,FG280,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+6/7/2025,TBS,Night,LAGO-01,7:59 PM,10:26 PM,Frog,FG281,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+6/7/2025,TBS,Night,LAGO-01,7:59 PM,10:26 PM,Frog,FG282,Leptodactylidae,Leptodactylus pentadactylus,Smoky Jungle Frog,Varzea
+6/7/2025,TBS,Night,LAGO-01,7:59 PM,10:26 PM,Frog,FG283,Leptodactylidae,Leptodactylus pentadactylus,Smoky Jungle Frog,Varzea
+6/7/2025,TBS,Night,LAGO-01,7:59 PM,10:26 PM,Frog,FG284,Bufonidae,Rhinella marina,Cane Toad,Varzea
+6/7/2025,TBS,Night,LAGO-01,7:59 PM,10:26 PM,Frog,FG285,Hylidae,Dendropsophus bifurcus,Upper Amazon Tree Frog,Varzea
+6/7/2025,TBS,Night,LAGO-01,7:59 PM,10:26 PM,Frog,FG286,Hylidae,Dendropsophus bifurcus,Upper Amazon Tree Frog,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Lizard,LZ57,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Frog,FG287,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Lizard,LZ58,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Frog,FG288,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Frog,FG289,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Terrafirme
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Frog,FG290,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Terrafirme
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Frog,FG291,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Lizard,LZ59,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Lizard,LZ60,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Frog,FG292,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Frog,FG293,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Lizard,LZ61,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/8/2025,TBS,Afternoon,PARA-01,1:47 PM,4:03 PM,Frog,FG294,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Varzea
+6/9/2025,YRS,Night,YCHO-01,8:15 PM,11:03 PM,Lizard,LZ62,Tropiduridae,Plica plica,Collared Treerunner,Terrafirme
+6/9/2025,YRS,Night,YCHO-01,8:15 PM,11:03 PM,Frog,FG295,Leptodactylidae,Edalorhina perezi,Perez's Snouted Frog,Varzea
+6/9/2025,YRS,Night,YCHO-01,8:15 PM,11:03 PM,Lizard,LZ63,Phyllodactylidae,Thecadactylus solimoensis,Turniptail Gecko,Terrafirme
+6/9/2025,YRS,Night,YCHO-01,8:15 PM,11:03 PM,Frog,FG296,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+6/9/2025,YRS,Night,YCHO-01,8:15 PM,11:03 PM,Salamander,SL26,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+6/9/2025,YRS,Night,KINK-01,8:15 PM,11:03 PM,Frog,FG297,Leptodactylidae,Leptodactylus pentadactylus,Smoky Jungle Frog,Terrafirme
+6/9/2025,YRS,Night,KINK-01,8:15 PM,11:03 PM,Frog,FG298,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Terrafirme
+6/9/2025,YRS,Night,NAPO-04,8:15 PM,11:03 PM,Frog,FG299,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+6/9/2025,YRS,Night,BARI-02,8:15 PM,11:03 PM,Frog,FG300,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/9/2025,YRS,Night,BARI-01,8:15 PM,11:03 PM,Frog,FG301,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+6/9/2025,YRS,Night,TINA-01,8:15 PM,11:03 PM,Frog,FG302,Pipidae,Pipa pipa,Suriname Toad,Varzea
+6/9/2025,YRS,Night,TINA-01,8:15 PM,11:03 PM,Frog,FG303,Hylidae,Boana lanciformis,Basin Tree Frog,Varzea
+6/9/2025,YRS,Night,TINA-01,8:15 PM,11:03 PM,Frog,FG304,Hylidae,Boana lanciformis,Basin Tree Frog,Varzea
+6/10/2025,YRS,Night,CEIB-01,8:07 PM,10:33 PM,Lizard,LZ64,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+6/10/2025,YRS,Night,CEIB-01,8:07 PM,10:33 PM,Frog,FG305,Leptodactylidae,Lithodytes lineatus,Painted Antnest Frog,Terrafirme
+6/10/2025,YRS,Night,CEIB-01,8:07 PM,10:33 PM,Frog,FG306,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/10/2025,YRS,Night,CEIB-01,8:07 PM,10:33 PM,Frog,FG307,Hylidae,Boana appendiculata,Canelos Treefrog,Terrafirme
+6/10/2025,YRS,Night,PERU-01,8:07 PM,10:33 PM,Frog,FG308,Hylidae,Boana spp.,Gladiator Treefrogs,Terrafirme
+6/10/2025,YRS,Night,PERU-02,8:07 PM,10:33 PM,Frog,FG309,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/10/2025,YRS,Night,PERU-02,8:07 PM,10:33 PM,Frog,FG310,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/10/2025,YRS,Night,PERU-02,8:07 PM,10:33 PM,Frog,FG311,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/10/2025,YRS,Night,PERU-04,8:07 PM,10:33 PM,Salamander,SL27,Plethodontidae,Bolitoglossa peruviana,Peruvian Climbing Salamander,Terrafirme
+6/10/2025,YRS,Night,PERU-04,8:07 PM,10:33 PM,Lizard,LZ65,Tropiduridae,Plica plica,Collared Treerunner,Terrafirme
+6/10/2025,YRS,Night,PERU-05,8:07 PM,10:33 PM,Frog,FG312,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/10/2025,YRS,Night,PERU-05,8:07 PM,10:33 PM,Frog,FG313,Hylidae,Boana lanciformis,Basin Tree Frog,Varzea
+6/11/2025,YRS,Afternoon,FPPE-01,3:06 PM,5:43 PM,Lizard,LZ66,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Terrafirme
+6/11/2025,YRS,Afternoon,FPPE-02,3:06 PM,5:43 PM,Frog,FG314,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Terrafirme
+6/11/2025,YRS,Afternoon,FPPE-02,3:06 PM,5:43 PM,Frog,FG315,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Terrafirme
+6/11/2025,YRS,Afternoon,FPPE-02,3:06 PM,5:43 PM,Frog,FG316,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/11/2025,YRS,Afternoon,FPPE-02,3:06 PM,5:43 PM,Lizard,LZ67,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Varzea
+6/11/2025,YRS,Afternoon,FPPE-04,3:06 PM,5:43 PM,Frog,FG317,Dendrobatidae,Ranitomeya ventrimaculata,Reticulated Poison Frog,Terrafirme
+6/12/2025,YRS,Morning,NAPO-02,9:18 AM,10:40 AM,Frog,FG318,Dendrobatidae,Ranitomeya ventrimaculata,Reticulated Poison Frog,Terrafirme
+6/12/2025,YRS,Morning,NAPO-02,9:18 AM,10:40 AM,Frog,FG319,Leptodactylidae,Lithodytes lineatus,Painted Antnest Frog,Terrafirme
+6/12/2025,YRS,Morning,NAPO-02,9:18 AM,10:40 AM,Frog,FG320,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/12/2025,YRS,Morning,NAPO-02,9:18 AM,10:40 AM,Lizard,LZ68,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+6/12/2025,YRS,Morning,NAPO-02,9:18 AM,10:40 AM,Frog,FG321,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/12/2025,YRS,Morning,NAPO-02,9:18 AM,10:40 AM,Frog,FG322,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/12/2025,YRS,Morning,NAPO-03,9:18 AM,10:40 AM,Frog,FG323,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/12/2025,YRS,Morning,NAPO-03,9:18 AM,10:40 AM,Frog,FG324,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/12/2025,YRS,Morning,NAPO-04,9:18 AM,10:40 AM,Frog,FG325,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/12/2025,YRS,Morning,NAPO-04,9:18 AM,10:40 AM,Frog,FG326,Dendrobatidae,Ranitomeya ventrimaculata,Reticulated Poison Frog,Varzea
+6/12/2025,YRS,Morning,KINK-01,9:18 AM,10:40 AM,Lizard,LZ69,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Terrafirme
+6/12/2025,YRS,Morning,KINK-01,9:18 AM,10:40 AM,Frog,FG327,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/12/2025,YRS,Morning,KINK-01,9:18 AM,10:40 AM,Frog,FG328,Craugastoridae,Pristimantis martiae,Marty's Rain Frog,Terrafirme
+6/12/2025,YRS,Morning,YCHO-02,9:18 AM,10:40 AM,Frog,FG329,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/12/2025,YRS,Night,GAWA-01,8:01 PM,10:53 PM,Frog,FG330,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/12/2025,YRS,Night,GAWA-02,8:01 PM,10:53 PM,Frog,FG331,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Terrafirme
+6/12/2025,YRS,Night,GAWA-02,8:01 PM,10:53 PM,Frog,FG332,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+6/12/2025,YRS,Night,GAWA-02,8:01 PM,10:53 PM,Frog,FG333,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+6/12/2025,YRS,Night,GAWA-02,8:01 PM,10:53 PM,Frog,FG334,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+6/12/2025,YRS,Night,GAWA-03,8:01 PM,10:53 PM,Frog,FG335,Ranidae,Lithobates palmipes,Amazon River Frog,Varzea
+6/12/2025,YRS,Night,GAWA-03,8:01 PM,10:53 PM,Frog,FG336,Ranidae,Lithobates palmipes,Amazon River Frog,Varzea
+6/12/2025,YRS,Night,GAWA-03,8:01 PM,10:53 PM,Frog,FG337,Hylidae,Boana calcarata,Convict Treefrog,Varzea
+6/12/2025,YRS,Night,GAWA-03,8:01 PM,10:53 PM,Frog,FG338,Hylidae,Osteocephalus taurinus,Manaus Spiny-backed Treefrog,Varzea
+6/12/2025,YRS,Night,GAWA-03,8:01 PM,10:53 PM,Frog,FG339,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+6/12/2025,YRS,Night,GAWA-03,8:01 PM,10:53 PM,Frog,FG340,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Varzea
+6/12/2025,YRS,Night,YCHO-02,8:01 PM,10:53 PM,Salamander,SL28,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/12/2025,YRS,Night,NAPO-05,8:01 PM,10:53 PM,Frog,FG341,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/12/2025,YRS,Night,NAPO-05,8:01 PM,10:53 PM,Frog,FG342,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/12/2025,YRS,Night,TUCA-01,8:01 PM,10:53 PM,Frog,FG343,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/12/2025,YRS,Night,TUCA-01,8:01 PM,10:53 PM,Frog,FG344,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/14/2025,YRS,Night,TINA-02,8:04 PM,10:40 PM,Frog,FG345,Hylidae,Phyllomedusa tarsius,Tarsier Leaf Frog,Varzea
+6/14/2025,YRS,Night,TINA-02,8:04 PM,10:40 PM,Salamander,SL29,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/14/2025,YRS,Night,BOTA-03,8:04 PM,10:40 PM,Frog,FG346,Hylidae,Boana lanciformis,Basin Tree Frog,Varzea
+6/15/2025,YRS,Night,TORR-01,8:34 PM,11:24 PM,Lizard,LZ70,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+6/15/2025,YRS,Night,TORR-01,8:34 PM,11:24 PM,Salamander,SL30,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/15/2025,YRS,Night,FPIN-01,8:34 PM,11:24 PM,Frog,FG347,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Terrafirme
+6/15/2025,YRS,Night,FPIN-01,8:34 PM,11:24 PM,Salamander,SL31,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+6/15/2025,YRS,Night,FPIN-01,8:34 PM,11:24 PM,Frog,FG348,Hylidae,Osteocephalus taurinus,Manaus Spiny-backed Treefrog,Varzea
+6/15/2025,YRS,Night,FPIN-01,8:34 PM,11:24 PM,Frog,FG349,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+6/15/2025,YRS,Night,FPIN-01,8:34 PM,11:24 PM,Frog,FG350,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+6/15/2025,YRS,Night,FPPE-05,8:34 PM,11:24 PM,Salamander,SL32,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/15/2025,YRS,Night,FPPE-05,8:34 PM,11:24 PM,Salamander,SL33,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/15/2025,YRS,Night,FPPE-05,8:34 PM,11:24 PM,Salamander,SL34,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/15/2025,YRS,Night,FPPE-05,8:34 PM,11:24 PM,Frog,FG351,Hylidae,Osteocephalus taurinus,Manaus Spiny-backed Treefrog,Varzea
+6/15/2025,YRS,Night,FPPE-05,8:34 PM,11:24 PM,Lizard,LZ71,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+6/15/2025,YRS,Night,FPPE-05,8:34 PM,11:24 PM,Frog,FG352,Hylidae,Boana geographicans,Map Treefrog,Terrafirme
+6/16/2025,YRS,Afternoon,CEIB-02,2:18 PM,3:16 PM,Lizard,LZ72,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Terrafirme
+6/16/2025,YRS,Afternoon,RENA-01,2:18 PM,3:16 PM,Frog,FG353,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/17/2025,YRS,Night,FPPE-04,8:17 PM,11:35 PM,Frog,FG354,Hylidae,Boana nympha,Nymph Tree Frog,Varzea
+6/17/2025,YRS,Night,FPPE-05,8:17 PM,11:35 PM,Salamander,SL35,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/17/2025,YRS,Night,FPPE-02,8:17 PM,11:35 PM,Frog,FG355,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/17/2025,YRS,Night,FPPE-02,8:17 PM,11:35 PM,Salamander,SL36,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/17/2025,YRS,Night,FPPE-02,8:17 PM,11:35 PM,Salamander,SL37,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/17/2025,YRS,Night,FPPE-02,8:17 PM,11:35 PM,Frog,FG356,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/17/2025,YRS,Night,FPPE-02,8:17 PM,11:35 PM,Frog,FG357,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/17/2025,YRS,Night,FPPE-02,8:17 PM,11:35 PM,Frog,FG358,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/18/2025,YRS,Night,MIRA-04,8:47 PM,10:56 PM,Salamander,SL38,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/18/2025,YRS,Night,MIRA-04,8:47 PM,10:56 PM,Frog,FG359,Hylidae,Boana spp.,Gladiator Treefrogs,Varzea
+6/18/2025,YRS,Night,MIRA-04,8:47 PM,10:56 PM,Lizard,LZ73,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Varzea
+6/18/2025,YRS,Night,MIRA-04,8:47 PM,10:56 PM,Frog,FG360,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+6/18/2025,YRS,Night,MIRA-04,8:47 PM,10:56 PM,Frog,FG361,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+6/18/2025,YRS,Night,MIRA-02,8:47 PM,10:56 PM,Frog,FG362,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+6/18/2025,YRS,Night,MIRA-02,8:47 PM,10:56 PM,Frog,FG363,Hylidae,Phyllomedusa vaillantii,White-lined Leaf Frog,Varzea
+6/18/2025,YRS,Night,MIRA-02,8:47 PM,10:56 PM,Frog,FG364,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+6/18/2025,YRS,Night,MIRA-02,8:47 PM,10:56 PM,Frog,FG365,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+6/18/2025,YRS,Night,MIRA-02,8:47 PM,10:56 PM,Frog,FG366,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Terrafirme
+6/18/2025,YRS,Night,MIRA-02,8:47 PM,10:56 PM,Frog,FG367,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/18/2025,YRS,Night,MIRA-01,8:47 PM,10:56 PM,Frog,FG368,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Terrafirme
+6/18/2025,YRS,Night,MIRA-01,8:47 PM,10:56 PM,Frog,FG369,Hylidae,Boana lanciformis,Basin Tree Frog,Terrafirme
+6/18/2025,YRS,Night,MIRA-01,8:47 PM,10:56 PM,Frog,FG370,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Terrafirme
+6/20/2025,TBS,Night,GUAC-01,8:23 PM,11:07 PM,Frog,FG371,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/20/2025,TBS,Night,GUAC-01,8:23 PM,11:07 PM,Frog,FG372,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Terrafirme
+6/20/2025,TBS,Night,PUMA-01,8:23 PM,11:07 PM,Frog,FG373,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Terrafirme
+6/20/2025,TBS,Night,PUMA-01,8:23 PM,11:07 PM,Lizard,LZ74,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+6/20/2025,TBS,Night,PUMA-01,8:23 PM,11:07 PM,Lizard,LZ75,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+6/20/2025,TBS,Night,PUMA-01,8:23 PM,11:07 PM,Frog,FG374,Hylidae,Phyllomedusa vaillantii,White-lined Leaf Frog,Terrafirme
+6/20/2025,TBS,Night,PUMA-02,8:23 PM,11:07 PM,Frog,FG375,Hylidae,Phyllomedusa vaillantii,White-lined Leaf Frog,Terrafirme
+6/20/2025,TBS,Night,PUMA-02,8:23 PM,11:07 PM,Lizard,LZ76,Tropiduridae,Plica plica,Collared Treerunner,Terrafirme
+6/20/2025,TBS,Night,PUMA-02,8:23 PM,11:07 PM,Frog,FG376,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Terrafirme
+6/20/2025,TBS,Night,HARP-05,8:23 PM,11:07 PM,Lizard,LZ77,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+6/20/2025,TBS,Night,HARP-05,8:23 PM,11:07 PM,Frog,FG377,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/21/2025,TBS,Afternoon ,GUAC-02,3:46 PM,4:59 PM,Frog,FG378,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/21/2025,TBS,Afternoon ,DANT-01,3:46 PM,4:59 PM,Frog,FG379,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/21/2025,TBS,Afternoon ,LAGO-01,3:46 PM,4:59 PM,Frog,FG380,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG381,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Lizard,LZ78,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Lizard,LZ79,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG382,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG383,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Lizard,LZ80,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Terrafirme
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG384,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG385,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG386,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Lizard,LZ81,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Lizard,LZ82,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG387,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG388,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG389,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG390,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG391,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG392,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG393,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG394,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG395,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Frog,FG396,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/21/2025,TBS,Night,PARA-01,8:43 PM,11:53 PM,Lizard,LZ83,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+6/23/2025,TBS,Afternoon,HARP-05,2:52 PM,5:22 PM,Frog,FG397,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/23/2025,TBS,Afternoon,HARP-05,2:52 PM,5:22 PM,Frog,FG398,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/23/2025,TBS,Afternoon,HARP-05,2:52 PM,5:22 PM,Frog,FG399,Craugastoridae,Unknown,Fleshbelly Frogs,Terrafirme
+6/23/2025,TBS,Afternoon,HARP-05,2:52 PM,5:22 PM,Frog,FG400,Craugastoridae,Pristimantis conspicillatus,Chirping Robber Frog,Terrafirme
+6/23/2025,TBS,Afternoon,HARP-04,2:52 PM,5:22 PM,Frog,FG401,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/23/2025,TBS,Afternoon,HARP-04,2:52 PM,5:22 PM,Frog,FG402,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Varzea
+6/23/2025,TBS,Afternoon,HARP-04,2:52 PM,5:22 PM,Frog,FG403,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+6/23/2025,TBS,Afternoon,HARP-04,2:52 PM,5:22 PM,Lizard,LZ84,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+6/23/2025,TBS,Afternoon,HARP-03,2:52 PM,5:22 PM,Frog,FG404,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+6/23/2025,TBS,Afternoon,HARP-03,2:52 PM,5:22 PM,Frog,FG405,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+6/23/2025,TBS,Afternoon,HARP-03,2:52 PM,5:22 PM,Frog,FG406,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+6/23/2025,TBS,Afternoon,HARP-03,2:52 PM,5:22 PM,Lizard,LZ85,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+6/23/2025,TBS,Afternoon,MATA-01,2:52 PM,5:22 PM,Frog,FG407,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+6/23/2025,TBS,Night,PUMA-01,8:12 PM,11:04 PM,Frog,FG408,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Terrafirme
+6/23/2025,TBS,Night,PUPL-01,8:12 PM,11:04 PM,Frog,FG409,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/23/2025,TBS,Night,PUPL-02,8:12 PM,11:04 PM,Frog,FG410,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/23/2025,TBS,Night,PUPL-02,8:12 PM,11:04 PM,Frog,FG411,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/23/2025,TBS,Night,PUPL-02,8:12 PM,11:04 PM,Salamander,SL39,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/23/2025,TBS,Night,PUPL-02,8:12 PM,11:04 PM,Frog,FG412,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/23/2025,TBS,Night,PUPL-04,8:12 PM,11:04 PM,Frog,FG413,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+6/23/2025,TBS,Night,PUPL-04,8:12 PM,11:04 PM,Lizard,LZ86,Sphaerodactylidae,Gonatodes concinnatus,O'Shaughnessy's Gecko,Terrafirme
+6/23/2025,TBS,Night,PUPL-07,8:12 PM,11:04 PM,Frog,FG414,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Varzea
+6/23/2025,TBS,Night,PUPL-08,8:12 PM,11:04 PM,Frog,FG415,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Varzea
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG416,Hylidae,Boana appendiculata,Canelos Treefrog,Varzea
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG417,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Varzea
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG418,Hylidae,Boana lanciformis,Basin Tree Frog,Varzea
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG419,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG420,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG421,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG422,Hylidae,Boana appendiculata,Canelos Treefrog,Varzea
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG423,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG424,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Varzea
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG425,Hylidae,Boana appendiculata,Canelos Treefrog,Varzea
+6/25/2025,TBS,Night,HAPL-01,8:00 PM,10:22 PM,Frog,FG426,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/25/2025,TBS,Night,HARP-01,8:00 PM,10:22 PM,Frog,FG427,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/25/2025,TBS,Night,HARP-01,8:00 PM,10:22 PM,Lizard,LZ87,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Lizard,LZ88,Teiidae,Kentropyx pelviceps,Forest Whiptail,Varzea
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Lizard,LZ89,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Frog,FG428,Ranidae,Lithobates palmipes,Amazon River Frog,Terrafirme
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Frog,FG429,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Terrafirme
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Frog,FG430,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Frog,FG431,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Frog,FG432,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Frog,FG433,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+6/26/2025,TBS,Afternoon,GUAC-04,2:10 PM,3:49 PM,Frog,FG434,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+6/26/2025,TBS,Night,MAPO-01,8:01 PM,10:51 PM,Lizard,LZ90,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Terrafirme
+6/26/2025,TBS,Night,MAPO-03,8:01 PM,10:51 PM, Lizard,LZ91,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+6/26/2025,TBS,Night,MAPO-03,8:01 PM,10:51 PM,Frog,FG434,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/26/2025,TBS,Night,MAPO-03,8:01 PM,10:51 PM,Frog,FG435,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/26/2025,TBS,Night,MURC-01,8:01 PM,10:51 PM,Frog,FG436,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/26/2025,TBS,Night,MURC-01,8:01 PM,10:51 PM,Lizard,LZ92,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+6/26/2025,TBS,Night,MUPO-01,8:01 PM,10:51 PM,Frog,FG437,Hylidae,Boana calcarata,Convict Treefrog,Varzea
+6/26/2025,TBS,Night,MUPO-01,8:01 PM,10:51 PM, Lizard,LZ93,Sphaerodactylidae,Gonatodes concinnatus,O'Shaughnessy's Gecko,Varzea
+6/26/2025,TBS,Night,MAPO-04,8:01 PM,10:51 PM, Lizard,LZ94,Anolidae,Anolis trachyderma,Common Forest Anole,Terrafirme
+6/26/2025,TBS,Night,MAPO-04,8:01 PM,10:51 PM, Lizard,LZ95,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+6/26/2025,TBS,Night,MAPO-04,8:01 PM,10:51 PM, Lizard,LZ96,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+6/26/2025,TBS,Night,MAPO-05,8:01 PM,10:51 PM,Frog,FG438,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/26/2025,TBS,Night,MAPO-05,8:01 PM,10:51 PM, Lizard,LZ97,Anolidae,Anolis punctatus,Amazon Green Anole,Varzea
+6/26/2025,TBS,Night,MAPO-05,8:01 PM,10:51 PM, Lizard,LZ98,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/26/2025,TBS,Night,NUMA-02,8:01 PM,10:51 PM, Lizard,LZ99,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+6/26/2025,TBS,Night,NUMA-02,8:01 PM,10:51 PM, Lizard,LZ100,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+6/26/2025,TBS,Night,NUMA-02,8:01 PM,10:51 PM,Frog,FG439,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/26/2025,TBS,Night,NUMA-02,8:01 PM,10:51 PM,Frog,FG440,Hylidae,Unknown,Tree Frogs and Allies,Varzea
+6/27/2025,TBS,Night,DANT-01,8:10 PM,10:04 PM,Salamander,SL40,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+6/27/2025,TBS,Night,DANT-01,8:10 PM,10:04 PM,Frog,FG441,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+6/27/2025,TBS,Night,DANT-01,8:10 PM,10:04 PM, Lizard,LZ101,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Terrafirme
+6/27/2025,TBS,Night,DANT-01,8:10 PM,10:04 PM,Frog,FG442,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/27/2025,TBS,Night,DANT-01,8:10 PM,10:04 PM, Lizard,LZ102,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/27/2025,TBS,Night,DANT-01,8:10 PM,10:04 PM, Lizard,LZ103,Anolidae,Anolis trachyderma,Common Forest Anole,Varzea
+6/27/2025,TBS,Night,LAGO-01,8:10 PM,10:04 PM,Frog,FG443,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Varzea
+6/27/2025,TBS,Night,LAGO-01,8:10 PM,10:04 PM, Lizard,LZ104,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+6/27/2025,TBS,Night,LAGO-01,8:10 PM,10:04 PM,Frog,FG444,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Varzea
+6/28/2025,TBS,Night,GUAC-03,8:17 PM,10:36 PM,Frog,FG445,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/28/2025,TBS,Night,GUAC-03,8:17 PM,10:36 PM,Frog,FG446,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Varzea
+6/28/2025,TBS,Night,GUAC-03,8:17 PM,10:36 PM,Frog,FG447,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Terrafirme
+6/28/2025,TBS,Night,PUMA-01,8:17 PM,10:36 PM,Frog,FG448,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/28/2025,TBS,Night,PUMA-01,8:17 PM,10:36 PM, Lizard,LZ105,Sphaerodactylidae,Gonatodes concinnatus,O'Shaughnessy's Gecko,Terrafirme
+6/28/2025,TBS,Night,PUMA-01,8:17 PM,10:36 PM,Frog,FG449,Hylidae,Boana spp.,Gladiator Treefrogs,Terrafirme
+6/28/2025,TBS,Night,PUMA-02,8:17 PM,10:36 PM, Lizard,LZ106,Anolidae,Unknown,Anoles,Terrafirme
+6/28/2025,TBS,Night,HARP-05,8:17 PM,10:36 PM,Salamander,SL41,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+6/29/2025,TBS,Night,MAPO-02,8:08 PM,11:03 PM,Frog,FG450,Hylidae,Boana geographicans,Map Treefrog,Terrafirme
+6/29/2025,TBS,Night,MANU-01,8:08 PM,11:03 PM,Frog,FG451,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/29/2025,TBS,Night,NUMA-02,8:08 PM,11:03 PM,Frog,FG452,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+6/29/2025,TBS,Night,NUMA-02,8:08 PM,11:03 PM,Frog,FG453,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/29/2025,TBS,Night,CHIO-02,8:08 PM,11:03 PM, Lizard,LZ107,Anolidae,Anolis trachyderma,Common Forest Anole,Varzea
+6/29/2025,TBS,Night,CHIO-02,8:08 PM,11:03 PM,Salamander,SL42,Plethodontidae,Bolitoglossa peruviana,Peruvian Climbing Salamander,Varzea
+6/29/2025,TBS,Night,CHIO-02,8:08 PM,11:03 PM, Lizard,LZ108,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+6/29/2025,TBS,Night,CHIO-02,8:08 PM,11:03 PM,Frog,FG454,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+6/29/2025,TBS,Night,CHIO-02,8:08 PM,11:03 PM, Lizard,LZ109,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+6/29/2025,TBS,Night,CHIO-02,8:08 PM,11:03 PM, Lizard,LZ110,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+6/29/2025,TBS,Night,CHIO-02,8:08 PM,11:03 PM, Lizard,LZ111,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+6/29/2025,TBS,Night,CHIO-01,8:08 PM,11:03 PM,Frog,FG455,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/29/2025,TBS,Night,CHIO-01,8:08 PM,11:03 PM,Frog,FG456,Bufonidae,Rhaebo guttatus,Smooth-sided Toad,Varzea
+6/29/2025,TBS,Night,CHIO-01,8:08 PM,11:03 PM,Frog,FG457,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Varzea
+6/29/2025,TBS,Night,CHIO-01,8:08 PM,11:03 PM,Frog,FG458,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/29/2025,TBS,Night,CHIO-01,8:08 PM,11:03 PM,Frog,FG459,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Varzea
+6/29/2025,TBS,Night,CHIO-01,8:08 PM,11:03 PM,Frog,FG460,Leptodactylidae,Leptodactylus pentadactylus,Smoky Jungle Frog,Varzea
+6/29/2025,TBS,Night,MAPO-06,8:08 PM,11:03 PM, Lizard,LZ112,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+6/29/2025,TBS,Night,MAPO-06,8:08 PM,11:03 PM,Frog,FG461,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+6/29/2025,TBS,Night,NUMA-01,8:08 PM,11:03 PM,Frog,FG462,Leptodactylidae,Leptodactylus pentadactylus,Smoky Jungle Frog,Varzea
+6/30/2025,TBS,Afternoon,HARP-02,2:34 PM,3:37 PM,Lizard,LZ113,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+6/30/2025,TBS,Afternoon,HARP-02,2:34 PM,3:37 PM,Frog,FG463,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/30/2025,TBS,Afternoon,HARP-02,2:34 PM,3:37 PM,Frog,FG464,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+6/30/2025,TBS,Afternoon,HARP-02,2:34 PM,3:37 PM,Lizard,LZ114,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Varzea
+6/30/2025,TBS,Afternoon,HARP-02,2:34 PM,3:37 PM,Frog,FG465,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+6/30/2025,TBS,Afternoon,HARP-02,2:34 PM,3:37 PM,Frog,FG466,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+6/30/2025,TBS,Afternoon,HARP-02,2:34 PM,3:37 PM, Lizard,LZ115,Gymnophthalmidae,Loxopholis parietalis,Common Root Teju,Terrafirme
+6/30/2025,TBS,Night,PUMA-01,8:12 PM,11:15 PM, Lizard,LZ116,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+6/30/2025,TBS,Night,PUMA-01,8:12 PM,11:15 PM,Frog,FG467,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Terrafirme
+6/30/2025,TBS,Night,PUPL-01,8:12 PM,11:15 PM,Frog,FG468,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Varzea
+6/30/2025,TBS,Night,PUPL-02,8:12 PM,11:15 PM,Lizard,LZ117,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+6/30/2025,TBS,Night,PUPL-02,8:12 PM,11:15 PM,Lizard,LZ118,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Terrafirme
+6/30/2025,TBS,Night,PUPL-02,8:12 PM,11:15 PM,Frog,FG469,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Varzea
+6/30/2025,TBS,Night,PUPL-05,8:12 PM,11:15 PM,Frog,FG470,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+6/30/2025,TBS,Night,PUPL-05,8:12 PM,11:15 PM,Lizard,LZ119,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+6/30/2025,TBS,Night,PUPL-06,8:12 PM,11:15 PM,Frog,FG471,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+6/30/2025,TBS,Night,PUPL-10,8:12 PM,11:15 PM,Frog,FG472,Hylidae,Boana calcarata,Convict Treefrog,Varzea
+6/30/2025,TBS,Night,PUPL-10,8:12 PM,11:15 PM,Frog,FG473,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+7/1/2025,TBS,Afternoon,MAPO-04,2:34 PM,3:48 PM,Frog,FG474,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/1/2025,TBS,Afternoon,MAPO-04,2:34 PM,3:48 PM,Frog,FG475,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+7/1/2025,TBS,Afternoon,MAPO-05,2:34 PM,3:48 PM,Frog,FG476,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/1/2025,TBS,Afternoon,NUMA-01,2:34 PM,3:48 PM,Frog,FG477,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Lizard,LZ120,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Terrafirme
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG478,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Varzea
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG479,Hylidae,Boana spp.,Gladiator Treefrogs,Varzea
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG480,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG481,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG482,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Lizard,LZ121,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG483,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Terrafirme
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG484,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Terrafirme
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG485,Hylidae,Boana lanciformis,Basin Tree Frog,Terrafirme
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG486,Bufonidae,Rhaebo guttatus,Smooth-sided Toad,Terrafirme
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG487,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Terrafirme
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG488,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Lizard,LZ122,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Varzea
+7/1/2025,TBS,Night,HAPL-01,8:48 PM,11:22 PM,Frog,FG489,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/1/2025,TBS,Night,HARP-01,8:48 PM,11:22 PM,Frog,FG490,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/1/2025,TBS,Night,HARP-01,8:48 PM,11:22 PM,Frog,FG491,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+7/2/2025,TBS,Night,ANAC-01,8:06 PM,10:53 PM,Frog,FG492,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+7/2/2025,TBS,Night,ANAC-01,8:06 PM,10:53 PM,Frog,FG493,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+7/2/2025,TBS,Night,ANAC-01,8:06 PM,10:53 PM,Frog,FG494,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+7/2/2025,TBS,Night,ANAC-01,8:06 PM,10:53 PM,Salamander,SL43,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Frog,FG495,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Frog,FG496,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Lizard,LZ123,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Lizard,LZ124,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Lizard,LZ125,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Lizard,LZ126,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Frog,FG497,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Lizard,LZ127,Anolidae,Unknown,Anoles,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Frog,FG498,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Frog,FG499,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+7/2/2025,TBS,Night,LAGO-02,8:06 PM,10:53 PM,Frog,FG500,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+7/2/2025,TBS,Night,LAGO-01,8:06 PM,10:53 PM,Lizard,LZ128,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+7/2/2025,TBS,Night,LAGO-01,8:06 PM,10:53 PM,Frog,FG501,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/2/2025,TBS,Night,LAGO-01,8:06 PM,10:53 PM,Lizard,LZ129,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+7/2/2025,TBS,Night,LAGO-01,8:06 PM,10:53 PM,Frog,FG502,Leptodactylidae,Leptodactylus pentadactylus,Smoky Jungle Frog,Varzea
+7/2/2025,TBS,Night,LAGO-01,8:06 PM,10:53 PM,Lizard,LZ130,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+7/2/2025,TBS,Night,LAGO-01,8:06 PM,10:53 PM,Lizard,LZ131,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+7/2/2025,TBS,Night,LAGO-01,8:06 PM,10:53 PM,Frog,FG503,Hylidae,Boana spp.,Gladiator Treefrogs,Varzea
+7/2/2025,TBS,Night,LAGO-01,8:06 PM,10:53 PM,Frog,FG504,Hylidae,Boana spp.,Gladiator Treefrogs,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Lizard,LZ132,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL44,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Lizard,LZ133,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG505,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG506,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL45,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL46,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Lizard,LZ134,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL47,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG507,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG508,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL48,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Lizard,LZ135,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL49,Plethodontidae,Bolitoglossa peruviana,Peruvian Climbing Salamander,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG509,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG510,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG511,Hylidae,Boana appendiculata,Canelos Treefrog,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL50,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL51,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG512,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG513,Hylidae,Boana appendiculata,Canelos Treefrog,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG514,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL52,Plethodontidae,Bolitoglossa peruviana,Peruvian Climbing Salamander,Terrafirme
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG515,Hylidae,Boana spp.,Gladiator Treefrogs,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Frog,FG516,Hylidae,Osteocephalus cannatellai,Cannatella's Spiny-backed Frog,Varzea
+7/4/2025,YRS,Night,FPPE-05,8:21 PM,11:39 PM,Salamander,SL53,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/5/2025,YRS,Afternoon,YCHO-01,2:45 PM,4:12 PM,Frog,FG517,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Terrafirme
+7/5/2025,YRS,Afternoon,YCHO-01,2:45 PM,4:12 PM,Frog,FG518,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Terrafirme
+7/5/2025,YRS,Afternoon,YCHO-01,2:45 PM,4:12 PM,Frog,FG519,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Terrafirme
+7/5/2025,YRS,Afternoon,YCHO-01,2:45 PM,4:12 PM,Lizard,LZ136,Teiidae,Kentropyx pelviceps,Forest Whiptail,Terrafirme
+7/5/2025,YRS,Night,COCA-01,8:26 PM,11:30 PM,Frog,FG520,Hylidae,Boana geographicans,Map Treefrog,Terrafirme
+7/5/2025,YRS,Night,COCA-01,8:26 PM,11:30 PM,Frog,FG521,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/5/2025,YRS,Night,CEIB-02,8:26 PM,11:30 PM,Lizard,LZ137,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+7/5/2025,YRS,Night,CEIB-02,8:26 PM,11:30 PM,Frog,FG522,Hylidae,Boana appendiculata,Canelos Treefrog,Terrafirme
+7/5/2025,YRS,Night,CEIB-02,8:26 PM,11:30 PM,Salamander,SL54,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/5/2025,YRS,Night,CEIB-02,8:26 PM,11:30 PM,Frog,FG523,Hylidae,Boana appendiculata,Canelos Treefrog,Terrafirme
+7/5/2025,YRS,Night,CEIB-02,8:26 PM,11:30 PM,Lizard,LZ138,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+7/5/2025,YRS,Night,CEIB-02,8:26 PM,11:30 PM,Frog,FG524,Dendrobatidae,Ranitomeya ventrimaculata,Reticulated Poison Frog,Terrafirme
+7/5/2025,YRS,Night,CEIB-02,8:26 PM,11:30 PM,Salamander,SL55,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/5/2025,YRS,Night,PERU-01,8:26 PM,11:30 PM,Salamander,SL56,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/5/2025,YRS,Night,PERU-02,8:26 PM,11:30 PM,Salamander,SL57,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/5/2025,YRS,Night,PERU-02,8:26 PM,11:30 PM,Frog,FG525,Hylidae,Boana spp.,Gladiator Treefrogs,Terrafirme
+7/5/2025,YRS,Night,PERU-02,8:26 PM,11:30 PM,Lizard,LZ139,Gymnophthalmidae,Loxopholis parietalis,Common Root Teju,Terrafirme
+7/5/2025,YRS,Night,PERU-02,8:26 PM,11:30 PM,Frog,FG526,Hylidae,Unknown,Tree Frogs and Allies,Varzea
+7/5/2025,YRS,Night,PERU-02,8:26 PM,11:30 PM,Frog,FG527,"weird ground frog in valley, looked like big head x treefrog",,,Varzea
+7/5/2025,YRS,Night,PERU-02,8:26 PM,11:30 PM,Frog,FG528,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+7/5/2025,YRS,Night,PERU-03,8:26 PM,11:30 PM,Frog,FG529,Hylidae,Osteocephalus cannatellai,Cannatella's Spiny-backed Frog,Terrafirme
+7/5/2025,YRS,Night,PERU-03,8:26 PM,11:30 PM,Frog,FG530,Hylidae,Osteocephalus taurinus,Manaus Spiny-backed Treefrog,Terrafirme
+7/5/2025,YRS,Night,PERU-03,8:26 PM,11:30 PM,Lizard,LZ140,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Terrafirme
+7/5/2025,YRS,Night,PERU-03,8:26 PM,11:30 PM,Frog,FG531,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/5/2025,YRS,Night,PERU-04,8:26 PM,11:30 PM,Frog,FG532,Hylidae,Osteocephalus cannatellai,Cannatella's Spiny-backed Frog,Terrafirme
+7/5/2025,YRS,Night,PERU-04,8:26 PM,11:30 PM,Frog,FG533,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/5/2025,YRS,Night,PERU-05,8:26 PM,11:30 PM,Frog,FG534,Hylidae,Scinax garbei,Eirunepe Snouted Tree Frog,Terrafirme
+7/5/2025,YRS,Night,PERU-05,8:26 PM,11:30 PM,Frog,FG535,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Varzea
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG536,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Lizard,LZ141,Gymnophthalmidae,Loxopholis parietalis,Common Root Teju,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG537,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG538,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG539,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG540,Dendrobatidae,Ranitomeya ventrimaculata,Reticulated Poison Frog,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG541,Hylidae,weird treefrog,,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Salamander,SL58,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG542,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG543,Hylidae,Osteocephalus taurinus,Manaus Spiny-backed Treefrog,Terrafirme
+7/6/2025,YRS,Night,TORR-01,8:13 PM,10:38 PM,Frog,FG544,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Varzea
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Frog,FG545,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Salamander,SL59,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Salamander,SL60,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Frog,FG546,Dendrobatidae,Ranitomeya ventrimaculata,Reticulated Poison Frog,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Frog,FG547,Dendrobatidae,Ranitomeya ventrimaculata,Reticulated Poison Frog,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Lizard,LZ142,Sphaerodactylidae,Gonatodes concinnatus,O'Shaughnessy's Gecko,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Frog,FG548,Hylidae,Osteocephalus cannatellai,Cannatella's Spiny-backed Frog,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Frog,FG549,Hylidae,Osteocephalus cannatellai,Cannatella's Spiny-backed Frog,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Salamander,SL61,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Frog,FG550,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Frog,FG551,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Salamander,SL62,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Salamander,SL63,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Salamander,SL64,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,TORR-01,8:26 PM,11:02 PM,Salamander,SL65,Plethodontidae,Bolitoglossa peruviana,Peruvian Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,FPPE-03,8:26 PM,11:02 PM,Salamander,SL66,Plethodontidae,Bolitoglossa peruviana,Peruvian Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,FPPE-03,8:26 PM,11:02 PM,Salamander,SL67,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,FPIN-01,8:26 PM,11:02 PM,Frog,FG552,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Terrafirme
+7/7/2025,YRS,Night,FPIN-01,8:26 PM,11:02 PM,Lizard,LZ143,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Varzea
+7/7/2025,YRS,Night,FPIN-01,8:26 PM,11:02 PM,Salamander,SL68,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/7/2025,YRS,Night,FPIN-01,8:26 PM,11:02 PM,Frog,FG553,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/7/2025,YRS,Night,FPPE-05,8:26 PM,11:02 PM,Salamander,SL69,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/7/2025,YRS,Night,FPPE-01,8:26 PM,11:02 PM,Salamander,SL70,Plethodontidae,Bolitoglossa peruviana,Peruvian Climbing Salamander,Terrafirme
+7/8/2025,YRS,Afternoon,COCA-01,2:32 PM,4:40 PM,Frog,FG554,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/8/2025,YRS,Afternoon,COCA-01,2:32 PM,4:40 PM,Frog,FG555,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/8/2025,YRS,Afternoon,COCA-01,2:32 PM,4:40 PM,Frog,FG556,Aromobatidae,Allobates femoralis,Spotted-thighed Poison Frog,Terrafirme
+7/8/2025,YRS,Afternoon,COCA-01,2:32 PM,4:40 PM,Frog,FG557,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/8/2025,YRS,Afternoon,COCA-01,2:32 PM,4:40 PM,Frog,FG558,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/8/2025,YRS,Afternoon,COCA-01,2:32 PM,4:40 PM,Frog,FG559,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/8/2025,YRS,Afternoon,CEIB-02,2:32 PM,4:40 PM,Frog,FG560,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/8/2025,YRS,Afternoon,PERU-01,2:32 PM,4:40 PM,Lizard,LZ144,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+7/8/2025,YRS,Afternoon,RENA-01,2:32 PM,4:40 PM,Frog,FG561,Craugastoridae,Pristimantis conspicillatus,Chirping Robber Frog,Terrafirme
+7/8/2025,YRS,Afternoon,RENA-01,2:32 PM,4:40 PM,Frog,FG562,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/8/2025,YRS,Afternoon,RENA-01,2:32 PM,4:40 PM,Lizard,LZ145,Gymnophthalmidae,Loxopholis parietalis,Common Root Teju,Terrafirme
+7/8/2025,YRS,Afternoon,PERU-02,2:32 PM,4:40 PM,Lizard,LZ146,Alopoglossidae,Alopoglossus atriventris,Keel-bellied Shade Lizard,Terrafirme
+7/8/2025,YRS,Night,PANT-01,8:18 PM,10:59 PM,Frog,FG564,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Varzea
+7/8/2025,YRS,Night,PANT-01,8:18 PM,10:59 PM,Frog,FG565,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Varzea
+7/8/2025,YRS,Night,PANT-01,8:18 PM,10:59 PM,Salamander,SL71,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/8/2025,YRS,Night,NAPO-02,8:18 PM,10:59 PM,Frog,FG566,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+7/8/2025,YRS,Night,NAPO-02,8:18 PM,10:59 PM,Frog,FG567,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/8/2025,YRS,Night,NAPO-02,8:18 PM,10:59 PM,Frog,FG568,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Terrafirme
+7/8/2025,YRS,Night,NAPO-02,8:18 PM,10:59 PM,Frog,FG569,Hylidae,Boana spp.,Gladiator Treefrogs,Terrafirme
+7/8/2025,YRS,Night,NAPO-03,8:18 PM,10:59 PM,Frog,FG570,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+7/8/2025,YRS,Night,NAPO-03,8:18 PM,10:59 PM,Frog,FG571,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Terrafirme
+7/8/2025,YRS,Night,NAPO-03,8:18 PM,10:59 PM,Frog,FG572,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/8/2025,YRS,Night,TINA-02,8:18 PM,10:59 PM,Frog,FG573,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+7/8/2025,YRS,Night,BOTA-02,8:18 PM,10:59 PM,Frog,FG574,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/8/2025,YRS,Night,BOTA-02,8:18 PM,10:59 PM,Frog,FG575,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/8/2025,YRS,Night,GRFI-01,8:18 PM,10:59 PM,Lizard,LZ147,Anolidae,Anolis scypheus,Yellow-tongued Anole,Terrafirme
+7/8/2025,YRS,Night,GRFI-01,8:18 PM,10:59 PM,Salamander,SL72,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/11/2025,YRS,Night,GAWA-01,8:14 PM,10:40 PM,Frog,FG576,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+7/11/2025,YRS,Night,GAWA-01,8:14 PM,10:40 PM,Frog,FG577,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+7/11/2025,YRS,Night,GAWA-01,8:14 PM,10:40 PM,Frog,FG578,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Varzea
+7/11/2025,YRS,Night,GAWA-01,8:14 PM,10:40 PM,Frog,FG579,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+7/11/2025,YRS,Night,GAWA-01,8:14 PM,10:40 PM,Lizard,LZ148,Anolidae,Anolis fuscoauratus,Brown-eared Anole,Varzea
+7/11/2025,YRS,Night,GAWA-01,8:14 PM,10:40 PM,Frog,FG580,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+7/11/2025,YRS,Night,GAWA-02,8:14 PM,10:40 PM,Frog,FG581,unknown,,,Varzea
+7/11/2025,YRS,Night,GAWA-02,8:14 PM,10:40 PM,Frog,FG582,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+7/11/2025,YRS,Night,GAWA-02,8:14 PM,10:40 PM,Frog,FG583,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+7/11/2025,YRS,Night,GAWA-02,8:14 PM,10:40 PM,Frog,FG584,Hylidae,Boana geographicans,Map Treefrog,Varzea
+7/11/2025,YRS,Night,GAWA-03,8:14 PM,10:40 PM,Frog,FG585,Ranidae,Lithobates palmipes,Amazon River Frog,Varzea
+7/11/2025,YRS,Night,GAWA-03,8:14 PM,10:40 PM,Frog,FG586,Ranidae,Lithobates palmipes,Amazon River Frog,Varzea
+7/11/2025,YRS,Night,GAWA-03,8:14 PM,10:40 PM,Frog,FG587,Ranidae,Lithobates palmipes,Amazon River Frog,Varzea
+7/11/2025,YRS,Night,GAWA-03,8:14 PM,10:40 PM,Frog,FG588,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+7/11/2025,YRS,Night,GAWA-03,8:14 PM,10:40 PM,Frog,FG589,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+7/12/2025,YRS,Afternoon,FPPE-06,2:48 PM,4:20 PM,Frog,FG590,Leptodactylidae,Edalorhina perezi,Perez's Snouted Frog,Terrafirme
+7/12/2025,YRS,Afternoon,FPPE-01,2:48 PM,4:20 PM,Frog,FG591,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/13/2025,YRS,Night,BOTA-01,8:51 PM,10:41 PM,Frog,FG592,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/13/2025,YRS,Night,TINA-02,8:51 PM,10:41 PM,Frog,FG593,Leptodactylidae,Leptodactylus spp.,Neotropical Grass Frogs,Varzea
+7/13/2025,YRS,Night,TINA-02,8:51 PM,10:41 PM,Frog,FG594,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+7/13/2025,YRS,Night,TINA-02,8:51 PM,10:41 PM,Frog,FG595,Craugastoridae,Pristimantis kichwarum,Jatun Sacha Rain Frog,Terrafirme
+7/13/2025,YRS,Night,TINA-02,8:51 PM,10:41 PM,Frog,FG596,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+7/13/2025,YRS,Night,TINA-02,8:51 PM,10:41 PM,Frog,FG597,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/13/2025,YRS,Night,TINA-02,8:51 PM,10:41 PM,Frog,FG598,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/13/2025,YRS,Night,NAPO-02,8:51 PM,10:41 PM,Frog,FG599,Hylidae,Boana appendiculata,Canelos Treefrog,Terrafirme
+7/13/2025,YRS,Night,NAPO-02,8:51 PM,10:41 PM,Frog,FG600,Craugastoridae,Oreobates quixensis,Common Big-headed Frog,Terrafirme
+7/13/2025,YRS,Night,NAPO-02,8:51 PM,10:41 PM,Frog,FG601,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+7/13/2025,YRS,Night,TIMA-01,8:51 PM,10:41 PM,Frog,FG602,Hylidae,Unknown,Tree Frogs and Allies,Terrafirme
+7/13/2025,YRS,Night,TIMA-01,8:51 PM,10:41 PM,Frog,FG603,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Terrafirme
+7/13/2025,YRS,Night,BARI-01,8:51 PM,10:41 PM,Lizard,LZ149,Anolidae,Anolis scypheus,Yellow-tongued Anole,Varzea
+7/13/2025,YRS,Night,BARI-01,8:51 PM,10:41 PM,Frog,FG604,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+7/14/2025,YRS,Afternoon,GAWA-01,2:15 PM,4:00 PM,Frog,FG605,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Varzea
+7/14/2025,YRS,Afternoon,GAWA-01,2:15 PM,4:00 PM,Frog,FG606,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Varzea
+7/14/2025,YRS,Afternoon,GAWA-02,2:15 PM,4:00 PM,Frog,FG607,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/14/2025,YRS,Afternoon,YCHO-02,2:15 PM,4:00 PM,Frog,FG608,Dendrobatidae,Ranitomeya ventrimaculata,Reticulated Poison Frog,Terrafirme
+7/14/2025,YRS,Night,MIRA-04,8:34 PM,10:56 PM,Salamander,SL73,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/14/2025,YRS,Night,MIRA-04,8:34 PM,10:56 PM,Frog,FG609,Hylidae,Unknown,Tree Frogs and Allies,Varzea
+7/14/2025,YRS,Night,MIRA-03,8:34 PM,10:56 PM,Frog,FG610,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/14/2025,YRS,Night,MIRA-03,8:34 PM,10:56 PM,Frog,FG611,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/14/2025,YRS,Night,MIRA-03,8:34 PM,10:56 PM,Frog,FG612,Hylidae,Boana spp.,Gladiator Treefrogs,Varzea
+7/14/2025,YRS,Night,MIRA-02,8:34 PM,10:56 PM,Frog,FG613,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Terrafirme
+7/14/2025,YRS,Night,MIRA-02,8:34 PM,10:56 PM,Frog,FG614,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Varzea
+7/14/2025,YRS,Night,MIRA-02,8:34 PM,10:56 PM,Salamander,SL74,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/14/2025,YRS,Night,MIRA-02,8:34 PM,10:56 PM,Salamander,SL75,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/14/2025,YRS,Night,MIRA-02,8:34 PM,10:56 PM,Salamander,SL76,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/14/2025,YRS,Night,MIRA-02,8:34 PM,10:56 PM,Lizard,LZ150,Gymnophthalmidae,Loxopholis parietalis,Common Root Teju,Terrafirme
+7/14/2025,YRS,Night,MIRA-02,8:34 PM,10:56 PM,Frog,FG615,Hylidae,Boana spp.,Gladiator Treefrogs,Terrafirme
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Frog,FG616,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Varzea
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Frog,FG617,mystery,,,Varzea
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Frog,FG618,Leptodactylidae,Adenomera andreae,Cocha Chirping Frog,Varzea
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Frog,FG619,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Varzea
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Lizard,LZ151,Gymnophthalmidae,Loxopholis parietalis,Common Root Teju,Varzea
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Frog,FG620,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Frog,FG621,Hylidae,Osteocephalus cannatellai,Cannatella's Spiny-backed Frog,Terrafirme
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Salamander,SL77,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/14/2025,YRS,Night,MIRA-01,8:34 PM,10:56 PM,Frog,FG622,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/15/2025,YRS,Afternoon,NAPO-04,2:24 PM,4:16 PM,Frog,FG623,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-04,2:24 PM,4:16 PM,Frog,FG624,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-04,2:24 PM,4:16 PM,Frog,FG625,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-04,2:24 PM,4:16 PM,Frog,FG626,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-03,2:24 PM,4:16 PM,Frog,FG627,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-03,2:24 PM,4:16 PM,Frog,FG628,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-03,2:24 PM,4:16 PM,Frog,FG629,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-02,2:24 PM,4:16 PM,Frog,FG630,mystery,,,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-02,2:24 PM,4:16 PM,Frog,FG631,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-02,2:24 PM,4:16 PM,Frog,FG632,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-02,2:24 PM,4:16 PM,Lizard,LZ152,Gymnophthalmidae,Loxopholis parietalis,Common Root Teju,Terrafirme
+7/15/2025,YRS,Afternoon,NAPO-01,2:24 PM,4:16 PM,Frog,FG633,Dendrobatidae,Ameerega hahneli,Pale-striped Poison Frog,Terrafirme
+7/15/2025,YRS,Afternoon,TINA-02,2:24 PM,4:16 PM,Frog,FG634,Bufonidae,Rhinella margaritifera,South American Common Toad,Varzea
+7/15/2025,YRS,Afternoon,BOTA-03,2:24 PM,4:16 PM,Frog,FG635,Dendrobatidae,Ameerega bilinguis,Ecuador Poison Frog,Terrafirme
+7/15/2025,YRS,Afternoon,BOTA-01,2:24 PM,4:16 PM,Frog,FG636,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/15/2025,YRS,Night,YCHO-01,8:30 PM,10:12 PM,Salamander,SL78,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Varzea
+7/15/2025,YRS,Night,YCHO-01,8:30 PM,10:12 PM,Frog,FG637,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+7/15/2025,YRS,Night,YCHO-01,8:30 PM,10:12 PM,Frog,FG638,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Terrafirme
+7/15/2025,YRS,Night,KINK-01,8:30 PM,10:12 PM,Salamander,SL79,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/15/2025,YRS,Night,KINK-01,8:30 PM,10:12 PM,Frog,FG639,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+7/15/2025,YRS,Night,NAPO-05,8:30 PM,10:12 PM,Frog,FG640,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Terrafirme
+7/15/2025,YRS,Night,NAPO-06,8:30 PM,10:12 PM,Frog,FG641,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/15/2025,YRS,Night,NAPO-06,8:30 PM,10:12 PM,Salamander,SL80,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/15/2025,YRS,Night,NAPO-06,8:30 PM,10:12 PM,Frog,FG642,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/15/2025,YRS,Night,NAPO-06,8:30 PM,10:12 PM,Frog,FG643,Bufonidae,Rhinella margaritifera,South American Common Toad,Terrafirme
+7/15/2025,YRS,Night,NAPO-06,8:30 PM,10:12 PM,Frog,FG644,Leptodactylidae,Engystomops petersi,Painted Forest Toadlet,Terrafirme
+7/16/2025,YRS,Night,COCA-01,8:21 PM,10:24 PM,Frog,FG645,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Terrafirme
+7/16/2025,YRS,Night,COCA-01,8:21 PM,10:24 PM,Frog,FG646,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+7/16/2025,YRS,Night,CEIB-02,8:21 PM,10:24 PM,Frog,FG647,Hylidae,Boana appendiculata,Canelos Treefrog,Terrafirme
+7/16/2025,YRS,Night,CEIB-02,8:21 PM,10:24 PM,Frog,FG648,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Terrafirme
+7/16/2025,YRS,Night,CEIB-02,8:21 PM,10:24 PM,Frog,FG649,Hylidae,Unknown,Tree Frogs and Allies,Terrafirme
+7/16/2025,YRS,Night,PERU-01,8:21 PM,10:24 PM,Lizard,LZ153,Phyllodactylidae,Thecadactylus solimoensis,Turniptail Gecko,Terrafirme
+7/16/2025,YRS,Night,PERU-01,8:21 PM,10:24 PM,Salamander,SL81,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/16/2025,YRS,Night,RENA-01,8:21 PM,10:24 PM,Salamander,SL82,Plethodontidae,Bolitoglossa altamazonica,Amazon Climbing Salamander,Terrafirme
+7/16/2025,YRS,Night,RENA-01,8:21 PM,10:24 PM,Frog,FG650,Hylidae,Osteocephalus spp.,Broad-headed Treefrogs,Terrafirme
+7/16/2025,YRS,Night,RENA-01,8:21 PM,10:24 PM,Frog,FG651,Craugastoridae,Pristimantis spp.,Rain and Robber Frogs,Terrafirme
+7/16/2025,YRS,Night,MIRA-01,8:21 PM,10:24 PM,Frog,FG652,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea
+7/16/2025,YRS,Night,MIRA-01,8:21 PM,10:24 PM,Frog,FG653,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Varzea
+7/16/2025,YRS,Night,MIRA-01,8:21 PM,10:24 PM,Lizard,LZ154,Hoplocercidae,Enyalioides laticeps,Broad-headed Wood Lizard,Varzea
+7/16/2025,YRS,Night,MIRA-01,8:21 PM,10:24 PM,Frog,FG654,Microhylidae,Chiasmocleis bassleri,Bassler's Humming Frog,Terrafirme
+7/16/2025,YRS,Night,MIRA-01,8:21 PM,10:24 PM,Frog,FG655,Hylidae,Osteocephalus yasuni,Yasuni Spiny-backed Treefrog,Varzea

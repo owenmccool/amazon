@@ -70,7 +70,7 @@ segs <- read.csv("Data/Segment_Distances.csv")
 # segs from Owen's snake project only
 
 #4. amphibian and lizard data collected in 2025
-amph_lz_2025=read.csv("Data/Field_Season_2_datasheets(amphibians_and_lizards).csv")
+amph_lz_2025=read.csv("Data/amph_lz_2025_reduced_columns.csv")
 # amphibian and lizard data from 2025 (Jacob's project)
 
 #5. corresponding amph_lz env data
@@ -337,6 +337,12 @@ amph_lz_2025 <- amph_lz_2025 %>%
 
 amph_lz_2025$Species= na_if(amph_lz_2025$Species, "spp") #replace "spp" with NA
 
+# prep to merge, make columns consistent
+amph_2024 <- amph_2024 %>%
+  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment)
+liz_2024 <-liz_2024 %>%
+  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment)
+
 # Merge 2024-2025 amphibian and lizard data
 amph_lz <- rbind(amph_lz_2025, amph_2024, liz_2024)
 
@@ -354,7 +360,6 @@ amph_lz$Gross_ID <- rm_trail_spaces(amph_lz$Gross_ID)
 amph_lz$Genus <- rm_trail_spaces(amph_lz$Genus)
 amph_lz$Survey_Type <- rm_trail_spaces(amph_lz$Survey_Type)
 amph_lz$Station <- rm_trail_spaces(amph_lz$Station)
-amph_lz$Weather <- rm_trail_spaces(amph_lz$Weather)
 amph_lz$Animal_ID <- rm_trail_spaces(amph_lz$Animal_ID)
 ```
 
@@ -363,7 +368,16 @@ amph_lz$Animal_ID <- rm_trail_spaces(amph_lz$Animal_ID)
 ```{r amph lz date and other cleaning}
 
 amph_lz$Start_Date_Start_Time=paste(amph_lz$Date,amph_lz$Survey_Start_Time,sep=" ")
-amph_lz$End_Date_End_Time=paste(amph_lz$Date,amph_lz$Survey_End_Time,sep=" ")
+
+amph_lz$End_Date <- amph_lz$Date
+# fix the past midnight cases
+amph_lz <- amph_lz %>%
+  mutate(End_Date = ifelse(Survey_End_Time == "12:11 AM", "06/18/24", End_Date))
+
+amph_lz <- amph_lz %>%
+  mutate(End_Date = ifelse(Survey_End_Time == "12:05 AM", "07/15/24", End_Date))
+
+amph_lz$End_Date_End_Time=paste(amph_lz$End_Date,amph_lz$Survey_End_Time, sep=" ")
 
 amph_lz$Start_Date_Start_Time=mdy_hm(amph_lz$Start_Date_Start_Time)
 amph_lz$End_Date_End_Time=mdy_hm(amph_lz$End_Date_End_Time)
@@ -384,9 +398,6 @@ amph_lz$Gross_ID=trimws(amph_lz$Gross_ID)
 #### Genus ####
 amph_lz %>%
   distinct(Genus) %>% arrange(Genus)
-
-#### Time_Found ####
-amph_lz$Time_Found=hm(amph_lz$Time_Found)
 
 ```
 
@@ -443,11 +454,24 @@ small.mamms.afternoon <- env %>%
 rm(small.mamms.afternoon)
 
 # FLAG: Can this chunk be deleted in entirety?
+
+# T response - yep as long as you remember we checked this already bc I won't
 ```
 
 ## Merge night and afternoon
 
 ```{r join night and afternoon surv and seg data}
+
+# make sure there are no weird duplicates
+afternoon_2025 <- afternoon_2025 %>% distinct()
+segments_master <- segments_master %>% distinct()
+
+# reduce columns for simplicity
+afternoon_2025 <- afternoon_2025 %>% 
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Seg_dist_m)
+
+segments_master <- segments_master %>% 
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Seg_dist_m)
 
 all_surv_records <- full_join(segments_master, afternoon_2025)
 
@@ -460,10 +484,7 @@ anti_join(snakes.sur, all_surv_records, by = "Segment") # looks good
 anti_join(amph_lz, all_surv_records, by = "Segment") # looks good
 
 # and with the amph lz data?
-anti_join(all_surv_records, amph_lz, by = "Segment") # looks good
-
-# is every survey accounted for?
-# double check to make sure that all_surv_records isn't missing any survey dates on segments
+anti_join(all_surv_records, amph_lz, by = "Segment") 
 
 # date name fixes real quick so they match
 amph_lz$Start_Date <- amph_lz$Date
@@ -475,31 +496,27 @@ missing<-anti_join(amph_lz, all_surv_records, by =c("Start_Date", "Segment"))
 # try to put those into all_surv_records (except the morning survey, we don't need that)
 
 missing <- missing %>%
-  filter(Survey_Type != "Morning") %>%
-  select(c(Start_Date, End_Date, Station, Segment, Survey_Start_Time, Survey_End_Time, Surveyors, Survey_Type))
+  filter(Survey_Type != "Morning") %>% 
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment)
 
-# ugh handful of segments didn't have any length info in all_surv_records, so I'm just going to manually add in their lengths here
+#all surv records has the lengths we need so just pull those out and add the column to temp missing distances df
 
-missing <- missing %>%
-  mutate(Seg_dist_m = NA) %>%
-  mutate(Seg_dist_m = ifelse(Segment == "TCHO-02", 830, Seg_dist_m))
+missing_distances <- all_surv_records %>%
+  select(Segment, Seg_dist_m) %>% distinct()
 
-missing <- missing %>%
-  mutate(Seg_dist_m = ifelse(Segment == "TORR-01", 900, Seg_dist_m))
+# add together
 
-missing <- missing %>%
-  mutate(Seg_dist_m = ifelse(Segment == "GUAC-01", 230, Seg_dist_m))
-
-missing <- missing %>%
-  mutate(Seg_dist_m = ifelse(Segment == "MATA-01", 1030, Seg_dist_m))
-
-missing$Seg_dist_m <- as.integer(missing$Seg_dist_m)
+missing <- left_join(missing, missing_distances)
 
 # merge with the all_surv_records
-all_surv_records <- full_join(all_surv_records, missing)
+all_surv_records <- rbind(all_surv_records, missing)
+
+# make sure no duplicates
+all_surv_records <- all_surv_records %>%
+  distinct()
 
 # clean
-rm(afternoon_2025, segments_master, segs)
+rm(afternoon_2025, segments_master, segs, missing, missing_distances)
 
 # rename env and enviro to be less confusing
 env_2025 <- env
@@ -534,12 +551,21 @@ all_surv_records %>%
             sd = sd(Effort_hrs))
 
 # mean and sd meters searched per station per survey type
-all_surv_records %>%
+temp <-all_surv_records %>%
   group_by(Station, Start_Date, Survey_Type) %>%
-  summarize(total_meters_surveyed = sum(Seg_dist_m)) %>%
+  summarize(total_meters_surveyed = sum(Seg_dist_m))
+
+temp %>%
   group_by(Station, Survey_Type) %>%
-            summarize(mean_m = mean(total_meters_surveyed),
-            sd = sd(total_meters_surveyed))
+  summarize(mean_length = mean(total_meters_surveyed),
+            sd_length = sd(total_meters_surveyed))
+
+rm(temp)
+
+all_surv_records %>%
+  group_by(Station, Survey_Type) %>%
+  summarize(cumulative_m = sum(Seg_dist_m),
+            cumulative_surveys = n_distinct(Start_Date_Start_Time))
 
 ```
 
@@ -643,20 +669,23 @@ rm(sim, smam.cont)
 # Amph Lz Detections
 
 ```{r amph lz raw detection rates}
-# remove the one morning survey
-amph_lz <- amph_lz %>%
-  filter(Survey_Type != "Morning")
-  
-#add segment distance data
+
+# add segment distance data
+
 segments <- all_surv_records %>%
-  filter(Survey_Type != "Morning") %>%
-  select(Segment, Seg_dist_m) %>%
+  select(Segment, Effort_hrs, Seg_dist_m) %>%
   distinct()
 
 amph_lz <- left_join(amph_lz, segments)
 
+# columns are crazy, reduce and simplify
+
+amph_lz <- amph_lz %>%
+  select(Station, Start_Date, End_Date, Start_Date_Start_Time, End_Date_End_Time, Effort_hrs, Survey_Type, Gross_ID, Common_Name, Family, Genus, Species, Segment, Seg_dist_m)
+
+# tallies
 amph_lz_counts <- amph_lz %>%
-  group_by(Start_Date, Survey_Start_Time, Survey_End_Time, Station, Segment, Seg_dist_m, Survey_Type, Gross_ID) %>% tally()
+  group_by(Station, Start_Date, Survey_Type, Effort_hrs, Segment, Seg_dist_m, Gross_ID) %>% tally()
 
 zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
 
@@ -668,252 +697,313 @@ amph_lz_wide <- amph_lz_counts %>%
 
 # prep to add in the zeros, pull out columns I want
 zeros <- zeros %>%
-  select(Start_Date, Survey_Start_Time, Survey_End_Time, Station, Segment, Seg_dist_m, Survey_Type)
+  select(Station, Start_Date, Survey_Type, Effort_hrs, Segment, Seg_dist_m) 
 
 #bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
 amph_lz_wide <- rbind(amph_lz_wide, zeros)
 
 #clean
-rm(zeros, missing)
-
-# get per 500 m detection rates - NOTE WE MAY WANT TO DO THIS PER SURVEY DISTANCE RATHER THAN PER SEGMENT DISTANCE
+rm(zeros)
 
 # make NA cases (from when I added in the zeros) to zero
 amph_lz_wide[is.na(amph_lz_wide)] <- 0
 
-# lizards
-amph_lz_wide$n_lz_500m <- (amph_lz_wide$Lizard/amph_lz_wide$Seg_dist_m)*500
-# salamanders
-amph_lz_wide$n_sal_500m <- (amph_lz_wide$Salamander/amph_lz_wide$Seg_dist_m)*500
-#frogs
-amph_lz_wide$n_frg_500m <- (amph_lz_wide$Frog/amph_lz_wide$Seg_dist_m)*500
+# look at per hour detection rates
+amph_lz_detections <- amph_lz_wide %>%
+  group_by(Start_Date, Station, Effort_hrs, Survey_Type) %>%
+  summarize(n_frogs = sum(Frog),
+            n_sal = sum(Salamander),
+            n_liz = sum(Lizard))
 
-# frogs broader grouping - just to see what it looks like per survey
-frogs.survey.level <- amph_lz_wide %>%
-  select(-Lizard, -Salamander) %>%
+amph_lz_detections <- amph_lz_detections %>%
+  mutate(n_frogs_hr = n_frogs/as.numeric(Effort_hrs),
+         n_sal_hr = n_sal/as.numeric(Effort_hrs),
+           n_liz_hr = n_liz/as.numeric(Effort_hrs))
+```
+
+Need to check models with the temperature and humidity data
+
+```{r amph lz model prep}
+
+humidity_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Humidity_1:Humidity_8, Humidity_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Humidity_1:Humidity_Final,
+               values_to = "Humidity", names_repair = "unique")
+# remove NAs
+
+humidity_long <- humidity_long %>%
+  na.omit()
+
+# fix date
+humidity_long$Start_Date <- mdy(humidity_long$Date)
+humidity_long <- humidity_long %>%
+  select(-Date)
+
+# repeat with temp
+temp_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Temperature_1:Temperature_8, Temperature_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Temperature_1:Temperature_Final,
+               values_to = "Temperature", names_repair = "unique")
+
+# remove NAs
+temp_long <- temp_long %>%
+  na.omit()
+# date
+temp_long$Start_Date <- mdy(temp_long$Date)
+temp_long <- temp_long %>%
+  select(-Date)
+
+# 2024 data
+
+# pull out 2024 year only
+env_24_25_nights$Year<- factor(format(env_24_25_nights$Start_Date, "%Y"))
+  
+env_2024 <- env_24_25_nights %>%
+  filter(Year == "2024")
+
+# humidity - 2024 - pivot
+
+# simplify
+env_2024 <- env_2024 %>%
+  select(-Effort_hrs, -Notes, -Number_of_Small_Mammals_Spotted, -Number_of_Water_Bodies_Spotted, -Surveyors, -Searching_Time, -Meters, -Order, -Survey_Start_Time, -Survey_End_Time)
+
+humidity_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Humidity_1:Humidity_8, Humidity_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Humidity_1:Humidity_Final,
+               values_to = "Humidity", names_repair = "unique")
+# remove NAs
+
+humidity_long_2024 <- humidity_long_2024 %>%
+  na.omit()
+
+# repeat with temp
+temperature_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Temperature_1:Temperature_8, Temperature_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Temperature_1:Temperature_Final,
+               values_to = "Temperature", names_repair = "unique")
+# remove NAs
+
+temperature_long_2024 <- temperature_long_2024 %>%
+  na.omit()
+
+# join
+# add survey type column to 2024 env data
+humidity_long_2024$Survey_Type <-"Night"
+temperature_long_2024$Survey_Type <-"Night"
+
+humidity_all <- rbind(humidity_long, humidity_long_2024)
+temperature_all <- rbind(temp_long, temperature_long_2024)
+
+humidity_all <- humidity_all %>%
+  filter(!(Humidity < 73))# one survey had first few readings v low, do not trust
+
+temperature_all %>%
+  group_by(Station) %>%
+  reframe(mean = mean(Temperature))
+
+# get means
+
+humidity_means <- humidity_all %>%
   group_by(Station, Start_Date, Survey_Type) %>%
-  summarise(n_frogs = sum(Frog),
-  total_meters = sum(Seg_dist_m))
+  summarize(mean_relative_humidity = mean(Humidity))
 
-# make NA cases (from when I added in the zeros) to zero
-# make NAs zeros
-amph_lz_wide[is.na(amph_lz_wide)] <- 0
+temperature_means <- temperature_all %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  summarize(mean_temp_F = mean(Temperature))
 
-#clean
-rm(amph_lz_counts)
+# add to the amph lz detection data
+amph_lz_detections <- left_join(amph_lz_detections, humidity_means)
+
+amph_lz_detections <- left_join(amph_lz_detections, temperature_means)
 ```
 
-Summarize and visualize this herp detection rate data
 
-```{r summaries lz frg sal}
-
-lz.mean.se <- amph_lz_wide %>%
-  group_by(Station) %>%
-  summarise(mean_n_500m = mean(n_lz_500m),
-            sd = sd(n_lz_500m),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-lz.mean.se$Taxa <- "Lizard"
-
-sal.mean.se <- amph_lz_wide %>%
-  group_by(Station) %>%
-  summarise(mean_n_500m = mean(n_sal_500m),
-            sd = sd(n_sal_500m),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-sal.mean.se$Taxa <- "Salamander"
-
-frg.mean.se <- amph_lz_wide %>%
-  group_by(Station) %>%
-  summarise(mean_n_500m = mean(n_frg_500m),
-            sd = sd(n_frg_500m),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-frg.mean.se$Taxa <- "Frog"
-
-# join them
-amph_lz.mean.se <- rbind(lz.mean.se, sal.mean.se, frg.mean.se)
-
-```
-
-Plots - preliminary quick and dirty 
 ## Frogs
 
-```{r frogs detection rates}
+### Summarize
 
-frog_detections <- amph_lz_wide %>%
-  select(-c(Lizard, Salamander, n_lz_500m, n_sal_500m))
+```{r summarize frogs}
 
-# just plot the detections per 500m for frogs
-# note this needs to be done on log scale probs if we look at n per 500m estimates based on individual segment lengths rather than per survey total m surveyed lengths, because the values vary form like 0 to 20
-
-# not log transformed
-ggplot(frog_detections, aes(x=Station, y=mean_n_500m, color = Station, group = Station)) + 
-  geom_jitter(aes(x = Station, y = n_frg_500m), width = 0.1, alpha =0.75, size = 2) + theme_classic()
-
-# log transformed
-ggplot(frog_detections, aes(x=Station, y=log(mean_n_500m), color = Station, group = Station)) +
-  geom_jitter(aes(x = Station, y = log(n_frg_500m)), width = 0.1, alpha =0.75, size = 2) + theme_classic()
-```
-```{r frog mean se}
-
-ggplot(frg.mean.se, aes(x=Station, y=mean_n_500m, fill = Station, group = Station)) +
-  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank()) 
-
-```
-
-```{r frog mean se per year}
-# quick and dirty
-temp <- amph_lz_wide
-temp$Year<- factor(format(temp$Start_Date, "%Y"))
-
-temp <- temp %>%
-  group_by(Station, Year) %>%
-  summarise(mean_n_500m = mean(n_frg_500m),
-            sd = sd(n_frg_500m),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-ggplot(temp, aes(x=Station, y=mean_n_500m, fill = Station)) +
-  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + facet_wrap(~Year)
-
-## NOTE: Heavy rains began on July 1st, 2025 and lasted through July 9th
-
-```
-And what about if we look at the per survey detections rather than per segment?
-
-```{r subset frog data floods}
-# Now we have to get rid of all observations that fall within flood range
-
-class(amph_lz_wide$Start_Date)
-
-amph_lz_wide_noflood <- amph_lz_wide %>%
-  filter(!(Start_Date >= as.Date("2025-07-01") &
-           Start_Date <= as.Date("2025-07-09")))
-
-frg.mean.se_noflood <- amph_lz_wide_noflood %>%
+amph_lz_detections %>%
   group_by(Station) %>%
-  summarise(mean_n_500m = mean(n_frg_500m),
-            sd = sd(n_frg_500m),
+  summarise(mean_frogs = mean(n_frogs),
+            sd = sd(n_frogs),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-ggplot(frg.mean.se_noflood, aes(x=Station, y=mean_n_500m, fill = Station, group = Station)) +
-  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank()) 
-  
 ```
 
-
-```{r per surv frogs}
-
-frogs.survey.level$Year<- factor(format(frogs.survey.level$Start_Date, "%Y"))
-
-frogs.survey.level$n_500m <- (frogs.survey.level$n_frogs/frogs.survey.level$total_meters)*500
-
-frogs.survey.level.means.se <- frogs.survey.level %>%
-  group_by(Station, Year) %>%
-  summarise(mean_n_500m = mean(n_500m),
-            sd = sd(n_500m),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-ggplot(frogs.survey.level.means.se, aes(x=Station, y=mean_n_500m, fill = Station)) +
-  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + facet_wrap(~Year)
-
-```
-
-### Frog Model
+### Model
 
 ```{r frog model}
+# remove NAs where we didn't have env data (2)
+
+amph_lz_detections <- amph_lz_detections %>%
+  na.omit()
+
+frog.mod1 <- glmmTMB(n_frogs ~ Station + mean_temp_F + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
+
+frog.mod2 <- glmmTMB(n_frogs ~ Station + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
+
+sim <- simulateResiduals(fittedModel = frog.mod2, plot = T)
+
+summary(frog.mod2) # great, can report this
+
+testDispersion(frog.mod, plot = F)
+testZeroInflation(frog.mod, plot = F)
+
+```
+
+### Figure
+
+```{r frog plots}
+
+frogs.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_frogs_hr),
+            sd = sd(n_frogs_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+library(showtext)
+showtext_auto()
+font_add(family = "Tahoma", regular = "tahoma.ttf")
+
+frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_frogs_hr), 
+              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frog Detections in Hunted\nand Unhunted Forest") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
+
+frog.fig1
+
+```
+
+
+## Salamanders
+
+### Summarize
+
+```{r summarize salamanders}
+
+amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(
+    tot_sal = sum(n_sal),
+    mean_salamanders = mean(n_sal),
+            sd = sd(n_sal),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+### Model
+
+```{r sal model}
+
+sal.mod1 <- glmmTMB(n_sal ~ Station + mean_temp_F + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
+
+summary(sal.mod1)
+
+sim <- simulateResiduals(fittedModel = sal.mod1, plot = T)
+
+testDispersion(sal.mod1, plot = F)
+testZeroInflation(sal.mod1, plot = F)
+
+```
+
+### Figure
+
+```{r sal plots}
+
+sal.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_sal_hr),
+            sd = sd(n_sal_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+sal.fig1 <- ggplot(sal.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_sal_hr), 
+              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Salamander Detections in Hunted\nand Unhunted Forest") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
+
+sal.fig1 
 
 ```
 
 
 ## Lizards
 
-```{r lizard detection rates}
+### Summarize
 
-liz_detections <- amph_lz_wide %>%
-  select(-c(Frog, Salamander, n_frg_500m, n_sal_500m))
+```{r summarize Lizards}
 
-# just plot the detections per 500m for frogs
-# note this needs to be done on log scale probs if we look at n per 500m estimates based on individual segment lengths rather than per survey total m surveyed lengths, because the values vary from like 0 to 20
-# FLAG: THERESE does this log scale still need to be done for lizards?
-
-# not log transformed
-ggplot(liz_detections, aes(x=Station, y=mean_n_500m, color = Station, group = Station)) + 
-  geom_jitter(aes(x = Station, y = n_lz_500m), width = 0.1, alpha =0.75, size = 2) + theme_classic()
-
-# log transformed
-ggplot(liz_detections, aes(x=Station, y=log(mean_n_500m), color = Station, group = Station)) +
-  geom_jitter(aes(x = Station, y = log(n_lz_500m)), width = 0.1, alpha =0.75, size = 2) + theme_classic()
-```
-
-```{r lizard mean se}
-
-ggplot(lz.mean.se, aes(x=Station, y=mean_n_500m, fill = Station, group = Station)) +
-  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank()) 
-
-```
-
-
-```{r lizard mean se per year}
-# quick and dirty
-temp <- amph_lz_wide
-temp$Year<- factor(format(temp$Start_Date, "%Y"))
-
-temp <- temp %>%
-  group_by(Station, Year) %>%
-  summarise(mean_n_500m = mean(n_lz_500m),
-            sd = sd(n_lz_500m),
+amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(
+    tot_liz = sum(n_liz),
+    mean_Lizards = mean(n_liz),
+            sd = sd(n_liz),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-ggplot(temp, aes(x=Station, y=mean_n_500m, fill = Station)) +
-  geom_errorbar(aes(ymin = mean_n_500m - se, ymax = mean_n_500m + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + facet_wrap(~Year)
-
-```
-### Lizard Model
-
-```{r lizard model}
-
 ```
 
+### Model
 
+```{r liz model}
 
-## Salamanders
+liz.mod1 <- glmmTMB(n_liz ~ Station + mean_temp_F + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
 
-```{r salamander detection rates}
+summary(liz.mod1)
 
-sal_detections <- amph_lz_wide %>%
-  select(-c(Lizard, Salamander, n_lz_500m, n_sal_500m))
+sim <- simulateResiduals(fittedModel = liz.mod1, plot = T)
 
-# just plot the detections per 500m for frogs
-# note this needs to be done on log scale probs if we look at n per 500m estimates based on individual segment lengths rather than per survey total m surveyed lengths, because the values vary form like 0 to 20
-
-# not log transformed
-ggplot(frog_detections, aes(x=Station, y=mean_n_500m, color = Station, group = Station)) + 
-  geom_jitter(aes(x = Station, y = n_frg_500m), width = 0.1, alpha =0.75, size = 2) + theme_classic()
-
-# log transformed
-ggplot(frog_detections, aes(x=Station, y=log(mean_n_500m), color = Station, group = Station)) +
-  geom_jitter(aes(x = Station, y = log(n_frg_500m)), width = 0.1, alpha =0.75, size = 2) + theme_classic()
-```
-
-### Salamander Model
-
-```{r salamander model}
+testDispersion(liz.mod1, plot = F)
+testZeroInflation(liz.mod1, plot = F)
 
 ```
+
+### Figure
+
+```{r liz plots}
+
+liz.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_liz_hr),
+            sd = sd(n_liz_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+liz.fig1 <- ggplot(liz.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_liz_hr), 
+              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Lizard Detections in Hunted\nand Unhunted Forest") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
+
+liz.fig1 
+
+```
+
 
 
 # Understory
@@ -1028,17 +1118,17 @@ And do a mean and se with points overlain
 
 ```{r temperature mean se figure}
 
-temp.mean.se <- temperature_long %>%
+temp.mean.se <- temperature_all %>%
   na.omit() %>%
-  group_by(Station, Season) %>%
+  group_by(Station) %>%
   summarise(mean = mean(Temperature),
             sd = sd(Temperature),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-temp.fig <- ggplot(temp.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = temperature_long, aes( x = Station, y = Temperature), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
+temp.fig <- ggplot(temp.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = temperature_all, aes( x = Station, y = Temperature), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
   scale_fill_manual(values = c("lightgreen","lightgreen")) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + facet_wrap(~Season) + xlab("") + scale_color_discrete(labels = "") +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
   theme(legend.title=element_blank()) + ylab("Measured Temperature") + ggtitle("Temps by Field Season & Station") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
@@ -1094,17 +1184,17 @@ And do a mean and se with points overlain
 
 ```{r humidity mean se figure}
 
-hum.mean.se <- humidity_long %>%
+hum.mean.se <- humidity_all %>%
   na.omit() %>%
-  group_by(Station, Season) %>%
+  group_by(Station) %>%
   summarise(mean = mean(Humidity),
             sd = sd(Humidity),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-hum.fig <- ggplot(hum.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = humidity_long, aes( x = Station, y = Humidity), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
+hum.fig <- ggplot(hum.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = humidity_all, aes( x = Station, y = Humidity), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.75) + theme_bw() +
   scale_fill_manual(values = c("lightgreen","lightgreen")) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + facet_wrap(~Season) + xlab("") + scale_color_discrete(labels = "") +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
   theme(legend.title=element_blank()) + ylab("% Relative Humidity") + ggtitle("Humidity by Field Season & Station") + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
