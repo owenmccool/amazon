@@ -1064,18 +1064,38 @@ liz.fig1
 # FIRST: need to make all y-axis same height so bixes are same size
 smamm.fig <- smamm.fig +
   coord_cartesian(ylim = c(0, 11))
+smamm.fig <- smamm.fig +
+  labs(title = NULL)
+smamm.fig <- smamm.fig + labs(title = "Small Mammal")
 
 frog.fig1 <- frog.fig1 +
   coord_cartesian(ylim = c(0, 11))
+frog.fig1 <- frog.fig1 +
+  labs(title = NULL)
+frog.fig1  <- frog.fig1  + labs(title = "Frog")
 
 liz.fig1 <- liz.fig1 +
   coord_cartesian(ylim = c(0, 11))
+liz.fig1 <- liz.fig1 +
+  labs(title = NULL)
+liz.fig1   <- liz.fig1   + labs(title = "Lizard")
 
 #combine all plots
-prey_rates <- smamm.fig + frog.fig1 + liz.fig1 + 
-  plot_layout(ncol = 3)
-
+prey_rates <- (smamm.fig + frog.fig1 + liz.fig1) +
+  plot_layout(ncol = 3) +
+  plot_annotation(
+    title = "Prey Base Detections in Unhunted and Hunted Forest",
+    theme = theme(
+      plot.title = element_text(
+        size = 20,   
+        face = "bold", 
+        family = "Tahoma",
+        hjust = 0.5
+      )
+    )
+  )
 prey_rates
+
 
 ggsave(prey_rates, file="prey_rates.png", width = 6,  height = 4)
 ```
