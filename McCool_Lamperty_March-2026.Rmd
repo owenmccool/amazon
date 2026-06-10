@@ -20,13 +20,12 @@ library(iNEXT) # species diversity
 library(hillR) # species diversity
 library(DHARMa) # checking models
 library(car) # reporting model stats
+library(patchwork)
 library(glmmTMB)
 library(unmarked) #density estimates with hierarchical distance sampling models
 library(tidyr)
 library(AICcmodavg) # has convenient functions for comparing models based on AIC
-library(showtext)
-showtext_auto()
-font_add(family = "Tahoma", regular = "tahoma.ttf")
+
 ```
 
 # Project Overview
@@ -341,16 +340,17 @@ amph_lz_2025$Species= na_if(amph_lz_2025$Species, "spp") #replace "spp" with NA
 
 # prep to merge, make columns consistent
 amph_lz_2025 <- amph_lz_2025 %>%
-  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment, Trail_Walked, Height_of_Individual)
-
+  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment)
 amph_2024 <- amph_2024 %>%
-  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment, Trail_Walked, Height_of_Individual)
-
-liz_2024 <-liz_2024 %>%
-  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment, Trail_Walked, Height_of_Individual)
+  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment)
+liz_2024 <- liz_2024 %>%
+  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment)
 
 # Merge 2024-2025 amphibian and lizard data
 amph_lz <- rbind(amph_lz_2025, amph_2024, liz_2024)
+dim(amph_lz_2025)
+dim(amph_2024)
+dim(liz_2024)
 
 # clean
 rm(amph_2024, liz_2024, amph_lz_2025)
@@ -367,8 +367,6 @@ amph_lz$Genus <- rm_trail_spaces(amph_lz$Genus)
 amph_lz$Survey_Type <- rm_trail_spaces(amph_lz$Survey_Type)
 amph_lz$Station <- rm_trail_spaces(amph_lz$Station)
 amph_lz$Animal_ID <- rm_trail_spaces(amph_lz$Animal_ID)
-amph_lz$Trail_Walked <- rm_trail_spaces(amph_lz$Trail_Walked)
-
 ```
 
 **amph_lz** has all 2024-2025 records of amphibian and lizard detections, afternoon and night surveys included
@@ -470,18 +468,16 @@ rm(small.mamms.afternoon)
 
 ```{r join night and afternoon surv and seg data}
 
+# make sure there are no weird duplicates
+afternoon_2025 <- afternoon_2025 %>% distinct()
+segments_master <- segments_master %>% distinct()
+
 # reduce columns for simplicity
 afternoon_2025 <- afternoon_2025 %>% 
-  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Seg_dist_m, Parent_Trail)
-
-afternoon_2025 <- afternoon_2025 %>%
-  rename(Parent_Trail_LongName = Parent_Trail)
-
-amph_lz <- amph_lz %>%
-  rename(Parent_Trail_LongName = Trail_Walked)
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Seg_dist_m)
 
 segments_master <- segments_master %>% 
-  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Seg_dist_m, Parent_Trail_LongName)
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Seg_dist_m)
 
 all_surv_records <- full_join(segments_master, afternoon_2025)
 
@@ -507,7 +503,7 @@ missing<-anti_join(amph_lz, all_surv_records, by =c("Start_Date", "Segment"))
 
 missing <- missing %>%
   filter(Survey_Type != "Morning") %>% 
-  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Parent_Trail_LongName)
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment)
 
 #all surv records has the lengths we need so just pull those out and add the column to temp missing distances df
 
@@ -645,7 +641,7 @@ smamm.fig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
 
 #ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 6)
 
-rm(smams.mean.se, smamm.fig)
+#rm(smams.mean.se, smamm.fig)
 ```
 
 ## Smamm Model
@@ -665,8 +661,10 @@ summary(smam.cont) # great, can report this
 testDispersion(smam.cont, plot = F)
 testZeroInflation(smam.cont, plot = F)
 
-#https://stats.stackexchange.com/questions/603155/seeking-feedback-on-the-interpretation-and-reporting-of-a-glmm-output
+# could report in this format:
+Anova(smam.cont)
 
+#https://stats.stackexchange.com/questions/603155/seeking-feedback-on-the-interpretation-and-reporting-of-a-glmm-output
 ```
 
 
@@ -689,11 +687,11 @@ amph_lz <- left_join(amph_lz, segments)
 # columns are crazy, reduce and simplify
 
 amph_lz <- amph_lz %>%
-  select(Station, Start_Date, End_Date, Start_Date_Start_Time, End_Date_End_Time, Effort_hrs, Survey_Type, Gross_ID, Common_Name, Family, Genus, Species, Segment, Seg_dist_m, Parent_Trail_LongName, Height_of_Individual)
+  select(Station, Start_Date, End_Date, Start_Date_Start_Time, End_Date_End_Time, Effort_hrs, Survey_Type, Gross_ID, Common_Name, Family, Genus, Species, Segment, Seg_dist_m)
 
 # tallies
 amph_lz_counts <- amph_lz %>%
-  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Effort_hrs, Segment, Seg_dist_m, Gross_ID, Height_of_Individual) %>% tally()
+  group_by(Station, Start_Date, Survey_Type, Effort_hrs, Segment, Seg_dist_m, Gross_ID) %>% tally()
 
 zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
 
@@ -705,7 +703,7 @@ amph_lz_wide <- amph_lz_counts %>%
 
 # prep to add in the zeros, pull out columns I want
 zeros <- zeros %>%
-  select(Station, Start_Date, Survey_Type, Effort_hrs, Segment, Seg_dist_m, Parent_Trail_LongName) 
+  select(Station, Start_Date, Survey_Type, Effort_hrs, Segment, Seg_dist_m) 
 
 #bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
 amph_lz_wide <- rbind(amph_lz_wide, zeros)
@@ -714,11 +712,11 @@ amph_lz_wide <- rbind(amph_lz_wide, zeros)
 rm(zeros)
 
 # make NA cases (from when I added in the zeros) to zero
-amph_lz_wide<- amph_lz_wide %>% mutate(across(c(Lizard, Frog, Salamander), ~replace_na(.x, 0)))
+amph_lz_wide[is.na(amph_lz_wide)] <- 0
 
 # look at per hour detection rates
 amph_lz_detections <- amph_lz_wide %>%
-  group_by(Start_Date, Station, Effort_hrs, Survey_Type, Parent_Trail_LongName, Height_of_Individual) %>%
+  group_by(Start_Date, Station, Effort_hrs, Survey_Type) %>%
   summarize(n_frogs = sum(Frog),
             n_sal = sum(Salamander),
             n_liz = sum(Lizard))
@@ -833,9 +831,6 @@ humidity_all$Year <- factor(format(humidity_all$Start_Date, "%Y"))
 
 temperature_all$Year <- factor(format(temperature_all$Start_Date, "%Y"))
 
-humidity_all <- humidity_all %>%
-  filter(Survey_Type != "Morning")
-
 humidity_summary_yr_survey_type <- humidity_all %>%
   filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
   filter(!(Survey_Type == "Morning")) %>%
@@ -845,8 +840,6 @@ humidity_summary_yr_survey_type <- humidity_all %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-temperature_all <- temperature_all %>%
-  filter(Survey_Type != "Morning")
 
 temperature_summary_yr_survey_type <- temperature_all %>%
   filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
@@ -858,33 +851,7 @@ temperature_summary_yr_survey_type <- temperature_all %>%
   mutate(se = sd / sqrt(n))
 
 ```
-```{r temp fig}
 
-temp.fig <- ggplot(temperature_summary_yr_survey_type, aes(x=Station, y=mean_temperature, fill = Survey_Type)) + geom_jitter(data = temperature_all, aes( x = Station, y = Temperature), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
-  scale_fill_manual(values = c("Chocolate", "blue3")) + 
-  geom_errorbar(aes(ymin=mean_temperature-se, ymax=mean_temperature+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Temperature (F)") + ggtitle("Survey temperature ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
-
-temp.fig
-
-#ggsave(temp.fig, file="Figures/temperature_fig_updatedJune2026.png", width = 6,  height = 4)
-
-```
-
-```{r hum fig}
-
-hum.fig <- ggplot(humidity_summary_yr_survey_type, aes(x=Station, y=mean_humidity, fill = Survey_Type)) + geom_jitter(data = humidity_all, aes( x = Station, y = Humidity), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
-  scale_fill_manual(values = c("Chocolate", "blue3")) + 
-  geom_errorbar(aes(ymin=mean_humidity-se, ymax=mean_humidity+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Relative humidity (%)") + ggtitle("Survey humidity ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
-
-hum.fig
-
-#ggsave(hum.fig, file="Figures/humidity_fig_updatedJune2026.png", width = 6,  height = 4)
-
-```
 ## Frogs
 
 ### Summarize
@@ -892,9 +859,7 @@ hum.fig
 ```{r summarize frogs}
 
 amph_lz_detections %>%
-  filter(Survey_Type != "Morning") %>%
-  na.omit() %>%
-  group_by(Station, Survey_Type, Height_of_Individual) %>%
+  group_by(Station) %>%
   summarise(mean_frogs = mean(n_frogs),
             sd = sd(n_frogs),
             n = n()) %>%
@@ -905,71 +870,50 @@ amph_lz_detections %>%
 ### Model
 
 ```{r frog model}
+# remove NAs where we didn't have env data (2)
+
+amph_lz_detections <- amph_lz_detections %>%
+  na.omit()
+
+frog.mod1 <- glmmTMB(n_frogs ~ Station + mean_temp_F + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
+summary(frog.mod1)
+
+frog.mod2 <- glmmTMB(n_frogs ~ Station + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
+# put another argument in before data argument IF data still zero-inflated after nbinom: ziformula = ~ , (overdispersed = more variation than a Poisson would expect)
+summary(frog.mod2)
+
+sim <- simulateResiduals(fittedModel = frog.mod2, plot = T)
+
+summary(frog.mod2) # great, can report this
+
+testDispersion(frog.mod2, plot = F)
+testZeroInflation(frog.mod2, plot = F)
+
+length(amph_lz$Start_Date[amph_lz$Gross_ID == "Frog" & amph_lz$Station == "TBS"])
+
+```
+
+```{r frog model diurnal}
+# remove NAs where we didn't have env data (2)
 
 amph_lz_detections <- amph_lz_detections %>%
   na.omit() %>%
-  filter(Survey_Type != "Morning") %>%
-  filter(Height_of_Individual != "")
+  filter(Survey_Type!= "Morning")
 
-# start simple, only hunting status (station) and survey type
-frog.mod1 <- glmmTMB(n_frogs ~ Station + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
-
-sim1 <- simulateResiduals(fittedModel = frog.mod1, plot = T)
-# passes validation
-
+frog.mod1 <- glmmTMB(n_frogs ~ Station + mean_temp_F + mean_relative_humidity + Station*Survey_Type + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
 summary(frog.mod1)
-# AIC  675.9
-# no sig effect of station on frog detections
 
-# make model more complex, add interaction effect of hunting status with survey type
-frog.mod2 <- glmmTMB(n_frogs ~ Station/Survey_Type + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
-
-sim2 <- simulateResiduals(fittedModel = frog.mod2, plot = T)
-# passes
-# AIC worse: 679
+frog.mod2 <- glmmTMB(n_frogs ~ Station + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
+# put another argument in before data argument IF data still zero-inflated after nbinom: ziformula = ~ , (overdispersed = more variation than a Poisson would expect)
 summary(frog.mod2)
 
-#drop survey type bc doesn't improve model fit
-#investigate humidity
-frog.mod3 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
+sim <- simulateResiduals(fittedModel = frog.mod2, plot = T)
 
-sim3 <- simulateResiduals(fittedModel = frog.mod3, plot = T)
-# passes validation
-# AIC better 675.1
-summary(frog.mod3)
+summary(frog.mod2) # great, can report this
 
-# keep humidity, add temp
-frog.mod4 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + mean_temp_F/Station + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
+testDispersion(frog.mod2, plot = F)
+testZeroInflation(frog.mod2, plot = F)
 
-sim4 <- simulateResiduals(fittedModel = frog.mod4, plot = T)
-# passes validation
-# AIC  worse 678.6
-summary(frog.mod4)
-
-# ground versus tree
-frog.mod5 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + Station:Height_of_Individual + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
-
-sim5 <- simulateResiduals(fittedModel = frog.mod5, plot = T)
-# passes validation
-# AIC better 669.1
-summary(frog.mod5)
-
-# ABOVE IS BEST FIT
-
-# and drop humidity since it barely decreased AIC
-# ground versus tree
-frog.mod6 <- glmmTMB(n_frogs ~ Station/Height_of_Individual + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
-
-sim6 <- simulateResiduals(fittedModel = frog.mod6, plot = T)
-# passes validation
-# AIC better 670.5
-summary(frog.mod6)
-
-#make sure top model (model 3) isn't over dispersed or zero inflated
-testDispersion(frog.mod3, plot = F)
-testZeroInflation(frog.mod3, plot = F)
-
-#looks good
 ```
 
 ### Figure
@@ -977,47 +921,29 @@ testZeroInflation(frog.mod3, plot = F)
 ```{r frog plots}
 
 frogs.mean.se <- amph_lz_detections %>%
-  filter(Survey_Type !="Morning") %>%
-  filter(Height_of_Individual != "") %>%
-  group_by(Station, Survey_Type, Height_of_Individual) %>%
+  group_by(Station) %>%
   summarise(mean = mean(n_frogs_hr),
             sd = sd(n_frogs_hr),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Survey_Type)) +
+library(showtext)
+showtext_auto()
+font_add(family = "Tahoma", regular = "tahoma.ttf")
+
+frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
   geom_jitter(data = amph_lz_detections, 
               aes(x = Station, y = n_frogs_hr), 
               width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frog Detections in Hunted\nand Unhunted Forest") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme( axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) + labs(fill = "Survey Type")
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
 
-frog.fig1 + facet_wrap(~Height_of_Individual)
-
-```
-```{r frog fig 2}
-frogs.mean.se2 <- amph_lz_detections %>%
-  filter(Survey_Type !="Morning") %>%
-  filter(Height_of_Individual != "") %>%
-  group_by(Station, Height_of_Individual) %>%
-  summarise(mean = mean(n_frogs_hr),
-            sd = sd(n_frogs_hr),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-frog.fig2 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Height_of_Individual)) +
-  geom_jitter(data = amph_lz_detections, 
-              aes(x = Station, y = n_frogs_hr), 
-              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "gray")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frog Detections in Hunted\nand Unhunted Forest") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme( axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) + labs(fill = "Height of Individual")
-
-frog.fig2 + facet_wrap(~Height_of_Individual)
-
+frog.fig1
 
 ```
+
 
 ## Salamanders
 
@@ -1132,6 +1058,27 @@ liz.fig1
 
 ```
 
+# Combining Plots 
+
+```{r final figure pane}
+# FIRST: need to make all y-axis same height so bixes are same size
+smamm.fig <- smamm.fig +
+  coord_cartesian(ylim = c(0, 11))
+
+frog.fig1 <- frog.fig1 +
+  coord_cartesian(ylim = c(0, 11))
+
+liz.fig1 <- liz.fig1 +
+  coord_cartesian(ylim = c(0, 11))
+
+#combine all plots
+prey_rates <- smamm.fig + frog.fig1 + liz.fig1 + 
+  plot_layout(ncol = 3)
+
+prey_rates
+
+ggsave(prey_rates, file="prey_rates.png", width = 6,  height = 4)
+```
 
 
 # Understory
