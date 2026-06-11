@@ -894,7 +894,7 @@ hum.fig
 amph_lz_detections %>%
   filter(Survey_Type != "Morning") %>%
   na.omit() %>%
-  group_by(Station, Survey_Type, Height_of_Individual) %>%
+  group_by(Station, Survey_Type) %>%
   summarise(mean_frogs = mean(n_frogs),
             sd = sd(n_frogs),
             n = n()) %>%
@@ -904,7 +904,68 @@ amph_lz_detections %>%
 
 ### Model
 
-```{r frog model}
+Look at response variable as continuous (n per hour) to be consistent with small mammal models
+
+```{r frog model continuous}
+
+amph_lz_detections <- amph_lz_detections %>%
+  na.omit() %>%
+  filter(Survey_Type != "Morning") %>%
+  filter(Height_of_Individual != "")
+
+# start simple, only hunting status (station) and survey type
+frog.cont.mod1 <- glmmTMB(n_frogs_hr ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod1, plot = T)
+# passes validation
+
+summary(frog.cont.mod1)
+# AIC 448.1 
+# no sig effect of station on frog detections
+
+# make model more complex, add interaction effect of hunting status with survey type
+frog.cont.mod2 <- glmmTMB(n_frogs_hr ~ Station/Survey_Type + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod2, plot = T)
+# passes
+# AIC worse: 451.1
+summary(frog.cont.mod2)
+
+#drop survey type bc doesn't improve model fit
+
+#investigate humidity
+frog.cont.mod3 <- glmmTMB(n_frogs_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod3, plot = T)
+# passes validation
+# AIC 447.3 but barely (dAIC = 0.8)
+summary(frog.cont.mod3)
+
+# keep humidity, add temp
+frog.cont.mod4 <- glmmTMB(n_frogs_hr ~ Station*mean_relative_humidity + mean_temp_F/Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod4, plot = T)
+# doesnt pass validation
+# AIC  worse 450.6, so remove temperature
+summary(frog.cont.mod4)
+
+# ground versus understory versus canopy
+frog.cont.mod5 <- glmmTMB(n_frogs_hr ~ Station*mean_relative_humidity + Station:Height_of_Individual + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod5, plot = T)
+# does not pass validation
+# we don't have a specific hypothesis relating to ground versus understory versus canopy frog presence anyway
+# I think we can move on without complicating things and considering this
+
+#make sure top model (mod 1) isn't over dispersed or zero inflated
+testDispersion(frog.cont.mod1, plot = F)
+testZeroInflation(frog.cont.mod1, plot = F)
+
+#looks good
+```
+This investigates models with the response as count data (n frogs per survey) and effort accounted for as an offset in the models. This is less preferred simply because it doesn't match what we did with the small mammals, which couldn't be modeled with count data due to convergence issues. 
+
+```{r frog model count data}
 
 amph_lz_detections <- amph_lz_detections %>%
   na.omit() %>%
@@ -930,12 +991,13 @@ sim2 <- simulateResiduals(fittedModel = frog.mod2, plot = T)
 summary(frog.mod2)
 
 #drop survey type bc doesn't improve model fit
+
 #investigate humidity
 frog.mod3 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
 
 sim3 <- simulateResiduals(fittedModel = frog.mod3, plot = T)
 # passes validation
-# AIC better 675.1
+# AIC better 675.1 but barely
 summary(frog.mod3)
 
 # keep humidity, add temp
@@ -943,27 +1005,16 @@ frog.mod4 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + mean_temp_F/Stat
 
 sim4 <- simulateResiduals(fittedModel = frog.mod4, plot = T)
 # passes validation
-# AIC  worse 678.6
+# AIC  worse 678.6, so remove temperature
 summary(frog.mod4)
 
-# ground versus tree
+# ground versus understory versus canopy
 frog.mod5 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + Station:Height_of_Individual + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
 
 sim5 <- simulateResiduals(fittedModel = frog.mod5, plot = T)
-# passes validation
-# AIC better 669.1
-summary(frog.mod5)
-
-# ABOVE IS BEST FIT
-
-# and drop humidity since it barely decreased AIC
-# ground versus tree
-frog.mod6 <- glmmTMB(n_frogs ~ Station/Height_of_Individual + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
-
-sim6 <- simulateResiduals(fittedModel = frog.mod6, plot = T)
-# passes validation
-# AIC better 670.5
-summary(frog.mod6)
+# does not pass validation
+# we don't have a specific hypothesis relating to ground versus understory versus canopy frog presence anyway
+# I think we can move on without complicating things and considering this
 
 #make sure top model (model 3) isn't over dispersed or zero inflated
 testDispersion(frog.mod3, plot = F)
@@ -972,11 +1023,35 @@ testZeroInflation(frog.mod3, plot = F)
 #looks good
 ```
 
-### Figure
+### Figures
 
 ```{r frog plots}
 
 frogs.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_frogs_hr),
+            sd = sd(n_frogs_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_frogs_hr), 
+              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frog Detections in Hunted\nand Unhunted Forest") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
+
+frog.fig1
+
+```
+
+Also just because I'm curious, look at things broken down by survey type and height of individual at time of detection (ground, understory, or canopy)
+
+```{r more frog plots}
+
+frogs.mean.se2 <- amph_lz_detections %>%
   filter(Survey_Type !="Morning") %>%
   filter(Height_of_Individual != "") %>%
   group_by(Station, Survey_Type, Height_of_Individual) %>%
@@ -985,7 +1060,7 @@ frogs.mean.se <- amph_lz_detections %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Survey_Type)) +
+frog.fig.complicated <- ggplot(frogs.mean.se2, aes(x=Station, y=mean, fill = Survey_Type)) +
   geom_jitter(data = amph_lz_detections, 
               aes(x = Station, y = n_frogs_hr), 
               width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
@@ -993,11 +1068,11 @@ frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Survey_Type)) +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme( axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
       hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) + labs(fill = "Survey Type")
 
-frog.fig1 + facet_wrap(~Height_of_Individual)
+frog.fig.complicated + facet_wrap(~Height_of_Individual)
 
 ```
-```{r frog fig 2}
-frogs.mean.se2 <- amph_lz_detections %>%
+```{r another frog fig}
+frogs.mean.se3 <- amph_lz_detections %>%
   filter(Survey_Type !="Morning") %>%
   filter(Height_of_Individual != "") %>%
   group_by(Station, Height_of_Individual) %>%
@@ -1006,7 +1081,7 @@ frogs.mean.se2 <- amph_lz_detections %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-frog.fig2 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Height_of_Individual)) +
+frog.fig2 <- ggplot(frogs.mean.se3, aes(x=Station, y=mean, fill = Height_of_Individual)) +
   geom_jitter(data = amph_lz_detections, 
               aes(x = Station, y = n_frogs_hr), 
               width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
@@ -1016,65 +1091,7 @@ frog.fig2 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Height_of_Indiv
 
 frog.fig2 + facet_wrap(~Height_of_Individual)
 
-
 ```
-
-## Salamanders
-
-### Summarize
-
-```{r summarize salamanders}
-
-amph_lz_detections %>%
-  group_by(Station) %>%
-  summarise(
-    tot_sal = sum(n_sal),
-    mean_salamanders = mean(n_sal),
-            sd = sd(n_sal),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-```
-
-### Model
-
-```{r sal model}
-
-sal.mod1 <- glmmTMB(n_sal ~ Station + mean_temp_F + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
-
-summary(sal.mod1)
-
-sim <- simulateResiduals(fittedModel = sal.mod1, plot = T)
-
-testDispersion(sal.mod1, plot = F)
-testZeroInflation(sal.mod1, plot = F)
-
-```
-
-### Figure
-
-```{r sal plots}
-
-sal.mean.se <- amph_lz_detections %>%
-  group_by(Station) %>%
-  summarise(mean = mean(n_sal_hr),
-            sd = sd(n_sal_hr),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-sal.fig1 <- ggplot(sal.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
-  geom_jitter(data = amph_lz_detections, 
-              aes(x = Station, y = n_sal_hr), 
-              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Salamander Detections in Hunted\nand Unhunted Forest") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
-
-sal.fig1 
-
-```
-
 
 ## Lizards
 
@@ -1095,19 +1112,50 @@ amph_lz_detections %>%
 
 ### Model
 
-```{r liz model}
+```{r lz mod}
 
-liz.mod1 <- glmmTMB(n_liz ~ Station + mean_temp_F + mean_relative_humidity + offset(log(as.numeric(Effort_hrs))), data = amph_lz_detections, family = nbinom2)
+# start simple, only hunting status (station) and survey type
+liz.cont.mod1 <- glmmTMB(n_liz_hr ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
-summary(liz.mod1)
+sim <- simulateResiduals(fittedModel = liz.cont.mod1, plot = T)
+# passes validation
 
-sim <- simulateResiduals(fittedModel = liz.mod1, plot = T)
+summary(liz.cont.mod1)
+# AIC 275.8  
+# sig effect of station
 
-testDispersion(liz.mod1, plot = F)
-testZeroInflation(liz.mod1, plot = F)
+# make model more complex, add interaction effect of hunting status with survey type
+liz.cont.mod2 <- glmmTMB(n_liz_hr ~ Station/Survey_Type + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
+sim <- simulateResiduals(fittedModel = liz.cont.mod2, plot = T)
+# passes
+# AIC:  278.1 (worse)
+summary(liz.cont.mod2)
+
+#drop survey type bc doesn't improve model fit
+
+#investigate humidity
+liz.cont.mod3 <- glmmTMB(n_liz_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.cont.mod3, plot = T)
+# passes validation
+# AIC 279.6 (worse)
+summary(liz.cont.mod3)
+
+# temp?
+liz.cont.mod4 <- glmmTMB(n_liz_hr ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.cont.mod4, plot = T)
+# doesnt pass validation
+# AIC  270.5, substantial improvement! this is top mod, difference appear to be drive by temperature
+summary(liz.cont.mod4)
+
+#make sure top model (mod 1) isn't over dispersed or zero inflated
+testDispersion(liz.cont.mod4, plot = F)
+testZeroInflation(liz.cont.mod4, plot = F)
+
+#looks good
 ```
-
 ### Figure
 
 ```{r liz plots}

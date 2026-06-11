@@ -920,17 +920,6 @@ testZeroInflation(frog.mod2, plot = F)
 
 ```{r frog plots}
 
-frogs.mean.se <- amph_lz_detections %>%
-  group_by(Station) %>%
-  summarise(mean = mean(n_frogs_hr),
-            sd = sd(n_frogs_hr),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-library(showtext)
-showtext_auto()
-font_add(family = "Tahoma", regular = "tahoma.ttf")
-
 frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
   geom_jitter(data = amph_lz_detections, 
               aes(x = Station, y = n_frogs_hr), 
