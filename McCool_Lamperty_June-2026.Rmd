@@ -765,6 +765,24 @@ temp_long$Start_Date <- mdy(temp_long$Date)
 temp_long <- temp_long %>%
   select(-Date)
 
+# understory
+
+understory_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Understory_Density_1:Understory_Density_Final,
+               values_to = "Understory", names_repair = "unique")
+# remove NAs
+
+understory_long <- understory_long %>%
+  na.omit()
+
+# fix date
+understory_long$Start_Date <- mdy(understory_long$Date)
+understory_long <- understory_long %>%
+  select(-Date)
+
 # 2024 data
 
 # pull out 2024 year only
@@ -802,13 +820,27 @@ temperature_long_2024 <- env_2024 %>%
 temperature_long_2024 <- temperature_long_2024 %>%
   na.omit()
 
+# repeat with understory
+understory_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Understory_Density_1:Understory_Density_Final,
+               values_to = "Understory", names_repair = "unique")
+# remove NAs
+
+understory_long_2024 <- understory_long_2024 %>%
+  na.omit()
+
 # join
 # add survey type column to 2024 env data
 humidity_long_2024$Survey_Type <-"Night"
 temperature_long_2024$Survey_Type <-"Night"
+understory_long_2024$Survey_Type <-"Night"
 
 humidity_all <- rbind(humidity_long, humidity_long_2024)
 temperature_all <- rbind(temp_long, temperature_long_2024)
+understory_all <-rbind(understory_long, understory_long_2024)
 
 # get means
 
@@ -820,18 +852,27 @@ temperature_means <- temperature_all %>%
   group_by(Station, Start_Date, Survey_Type) %>%
   summarize(mean_temp_F = mean(Temperature))
 
+understory_means <- understory_all %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  summarize(mean_understory_leaves = mean(Understory))
+
 # add to the amph lz detection data
 amph_lz_detections <- left_join(amph_lz_detections, humidity_means)
 
 amph_lz_detections <- left_join(amph_lz_detections, temperature_means)
+
+amph_lz_detections <- left_join(amph_lz_detections, understory_means)
 ```
 # Environmental data
 
-```{r hum and temp}
+```{r hum and temp and und}
 
 humidity_all$Year <- factor(format(humidity_all$Start_Date, "%Y"))
 
 temperature_all$Year <- factor(format(temperature_all$Start_Date, "%Y"))
+
+understory_all$Year <- factor(format(understory_all$Start_Date, "%Y"))
+
 
 humidity_all <- humidity_all %>%
   filter(Survey_Type != "Morning")
@@ -845,6 +886,7 @@ humidity_summary_yr_survey_type <- humidity_all %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
+# temperature
 temperature_all <- temperature_all %>%
   filter(Survey_Type != "Morning")
 
@@ -854,6 +896,19 @@ temperature_summary_yr_survey_type <- temperature_all %>%
   group_by(Station, Survey_Type, Year) %>%
   summarize(mean_temperature = mean(Temperature),
             sd = sd(Temperature),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+# understory
+understory_all <- understory_all %>%
+  filter(Survey_Type != "Morning")
+
+understory_summary_yr_survey_type <- understory_all %>%
+  filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
+  filter(!(Survey_Type == "Morning")) %>%
+  group_by(Station, Survey_Type, Year) %>%
+  summarize(mean_understory = mean(Understory),
+            sd = sd(Understory),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
@@ -885,6 +940,20 @@ hum.fig
 #ggsave(hum.fig, file="Figures/humidity_fig_updatedJune2026.png", width = 6,  height = 4)
 
 ```
+
+```{r und fig}
+und.fig <- ggplot(understory_summary_yr_survey_type, aes(x=Station, y=mean_understory, fill = Survey_Type)) + geom_jitter(data = understory_all, aes( x = Station, y = Understory), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
+  scale_fill_manual(values = c("Chocolate", "blue3")) + 
+  geom_errorbar(aes(ymin=mean_understory-se, ymax=mean_understory+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Survey understory density ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
+
+und.fig
+
+#ggsave(und.fig, file="Figures/understory_fig_updatedJune2026.png", width = 6,  height = 4)
+```
+
+
 ## Frogs
 
 ### Summarize
@@ -1090,7 +1159,7 @@ frog.fig2 <- ggplot(frogs.mean.se3, aes(x=Station, y=mean, fill = Height_of_Indi
       hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) + labs(fill = "Height of Individual")
 
 frog.fig2 + facet_wrap(~Height_of_Individual)
-
+citation()
 ```
 
 ## Lizards
@@ -1182,73 +1251,6 @@ liz.fig1
 
 
 
-# Understory
-
-## Understory Set-Up
-
-Get understory data reformatted. We took these readings every 15 min. First step will be looking at variation between stations. 
-
-```{r reformat understory}
-understory_long <- enviro %>%
-  select(Survey_Start_Date_Time, Station, Parent_Trail_LongName, Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
-  pivot_longer(names_to = "Measurement",
-               cols = Understory_Density_1:Understory_Density_Final,
-               values_to = "Understory_leaves", names_repair = "unique")
-
-# remove NAs
-
-understory_long <- understory_long %>%
-  na.omit()
-
-```
-
-## Und Figure
-
-Histogram per station
-
-```{r understory histo}
-
-under.hist <- ggplot(understory_long, aes(x= Understory_leaves)) +
-  geom_histogram() +facet_wrap(~Station) + theme_bw()
-
-under.hist
-
-# summary
-understory_long %>%
-  na.omit() %>%
-  group_by(Station) %>%
-  summarise(mean = mean(Understory_leaves),
-            sd = sd(Understory_leaves),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-```
-
-And do a mean and se with points overlain
-
-```{r understory mean se figure}
-
-und.mean.se <- understory_long %>%
-  na.omit() %>%
-  group_by(Station) %>%
-  summarise(mean = mean(Understory_leaves),
-            sd = sd(Understory_leaves),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-und.fig <- ggplot(und.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) + geom_jitter(data = understory_long, aes( x = Station, y = Understory_leaves), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
-  scale_fill_manual(values = c("lightgreen","lightgreen")) + 
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Understory Density") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(legend.position = "none") + theme(axis.text = element_text(color = "black", size = 12)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
-
-und.fig
-
-#ggsave(und.fig, file="understory-mean-se.png", width = 6,  height = 4)
-
-# rm(und.fig)
-```
-
 
 # Density estimates
 
@@ -1268,10 +1270,6 @@ snakes.sur %>%
   group_by(Year, Station) %>%
     reframe(N_surveys = length(unique(Start_Date))) #Effort comparisons between stations
 
-enviro %>%
-  group_by(Season, Station) %>%
-    reframe(Accum_hrs = sum(Effort_hrs))
-
 # Deciding on distance bins in distance sampling involves selecting cutpoints that adequately capture the shape of the detection function, typically ensuring more bins near the line (where detection probability changes rapidly) and fewer further away. The goal is to minimize bias from data rounding while ensuring enough observations per bin for accurate model fitting. 
 
 # Smaller bins closer to zero
@@ -1284,44 +1282,6 @@ hist(snakes.sur$Distance_From_Trail_m, breaks = seq(0, 12, by = 0.5))
 
 ```
 
-Proceed with specifying bins.
-
-The chunk below divides observations into smaller bins closer to the trail and larger bins farther away. 0, 0.25, 0.5, 1, 1.5, 2, 2.5, 3.5, 5, 8.
-
-```{r divide up bins, eval=FALSE} 
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 0.25, "0_0.25", NA))
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.25 & Distance_From_Trail_m <= 0.5, "0.25_0.5", Distance_bin_m))
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 0.5 & Distance_From_Trail_m <= 1, "0.5_1", Distance_bin_m))
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 1.5, "1_1.5", Distance_bin_m))
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1.5 & Distance_From_Trail_m <= 2, "1.5_2", Distance_bin_m))
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 2.5, "2_2.5", Distance_bin_m))
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2.5 & Distance_From_Trail_m <=3.5, "2.5_3.5", Distance_bin_m))
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3.5 & Distance_From_Trail_m <=5, "3.5_5", Distance_bin_m))
-
-#snakes.sur <- snakes.sur %>%
- # mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
-
-# join temp and humidity means to the snakes.sur data
-#snakes.sur <- left_join(snakes.sur, temp_hum_df)
-```
-
-This verions of binning (chunk below) divides chunks up into 1 m intervals until 5m from trail, which is grouped into 1 bin of distances 5-8m from trail (and I threw the 11.5m away obs in that group too).
 
 ```{r divide up bins broader}
 
@@ -1345,7 +1305,6 @@ snakes.sur <- snakes.sur %>%
 
 ```
 
-What I'm reading indicates with sparse data, larger bins are better. I'm trying a version here with much larger bins.
 
 ## 3 Diet types
 
@@ -1476,6 +1435,7 @@ fitstats <- function(fm) {
 
 ```
 
+
 ## Model 3 Diet Types
 
 ```{r mods three diet types no env covs}
@@ -1515,6 +1475,7 @@ aic_table.3
 #pb_3cats
 # fine
 ```
+
 
 ## Predicted vals 3 diet types
 
@@ -1560,6 +1521,7 @@ p_3cats
 ```
 
 Appears to be elevated numbers in hunted forest in the guild that is mostly mammal consumers.
+
 
 ## Family level
 
@@ -1613,6 +1575,7 @@ density_fam_df <- df_long %>%
               values_fill = 0)
 ```
 
+
 ## Model family level density
 
 ```{r model at fam level}
@@ -1657,6 +1620,7 @@ aic_table.fam <- aictab(cand.set = mod.set.family, sort = TRUE)
 aic_table.fam
 ```
 
+
 ## Predicted vals fam
 
 ```{r predicted values three guilds}
@@ -1688,6 +1652,7 @@ p_3cats_fam
 ```
 
 Appears to be elevated numbers in hunted forest in the family that is mostly mammal consumers.
+
 
 
 # Community composition
