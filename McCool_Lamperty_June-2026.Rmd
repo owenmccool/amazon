@@ -1193,7 +1193,7 @@ summary(liz.cont.mod1)
 # AIC 275.8  
 # sig effect of station
 
-# make model more complex, add interaction effect of hunting status with survey type
+# make model more complex, add interaction effect of hunting status with survey type, thing on left of / is fixed effect, 
 liz.cont.mod2 <- glmmTMB(n_liz_hr ~ Station/Survey_Type + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = liz.cont.mod2, plot = T)
@@ -1223,7 +1223,7 @@ summary(liz.cont.mod4)
 testDispersion(liz.cont.mod4, plot = F)
 testZeroInflation(liz.cont.mod4, plot = F)
 
-#looks good
+#looks good: Get scatterplot about lixzard tedections with temp, how different are they between day and night
 ```
 ### Figure
 
@@ -1985,3 +1985,15 @@ ggplot(detections.mean.se, aes(x=Station, y=mean, fill = Diet_Type_3categories))
 
 # need to also report raw overall detections regardless of diet type per station 
 ```
+
+# Snake Detection model testing
+
+## Snake detections wide DF
+
+```{r snake detection wide df}
+# First, need to make a wide dataframe similar to amph_lz_detections
+
+snake_detcns <- left_join(snakes.sur, segments)
+```
+
+
