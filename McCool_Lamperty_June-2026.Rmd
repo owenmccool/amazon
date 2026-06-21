@@ -1986,14 +1986,131 @@ ggplot(detections.mean.se, aes(x=Station, y=mean, fill = Diet_Type_3categories))
 # need to also report raw overall detections regardless of diet type per station 
 ```
 
-# Snake Detection model testing
+# Snakes
 
-## Snake detections wide DF
+## Snake detections dataframe creation
 
 ```{r snake detection wide df}
 # First, need to make a wide dataframe similar to amph_lz_detections
 
-snake_detcns <- left_join(snakes.sur, segments)
+# Have to keep zeros and fix repeat SK04 and SK05 observations
+
+snakes.sur2 <- snakes.sur %>%
+  distinct() %>%
+  mutate(n = if_else(is.na(Snake_ID), 0L, 1L))
+
+snake_counts <- snakes.sur2 %>%
+  group_by(Station, Start_Date, Parent_Trail_LongName) %>%
+  summarise(n_snakes = sum(n), .groups = "drop")
+
+# sanity check to make sure correct number of observations is here 
+
+sum(snake_counts$n_snakes)
+
+# Okay now time to add environmental variables: 
+
+humidity_night <- humidity_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    humidity_night %>%
+      select(Station, Start_Date, mean_relative_humidity),
+    by = c("Station", "Start_Date")
+  )
+
+temp_night <- temperature_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    temp_night %>%
+      select(Station, Start_Date, mean_temp_F), 
+    by = c("Station", "Start_Date")
+  )
+
+understory_night <- understory_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    understory_night %>%
+      select(Station, Start_Date, mean_understory_leaves), 
+    by = c("Station", "Start_Date")
+  )
+
+# Almost ready: now just need to add in the Effort column and Meters column from the enviro sheet and then get n_snakes per hour 
+
+snake_counts <- snake_counts %>%
+  left_join(
+    env_24_25_nights %>%
+      select(
+        Station,
+        Start_Date,
+        Parent_Trail_LongName,
+        Meters,
+        Effort_hrs
+      ),
+    by = c("Station", "Start_Date", "Parent_Trail_LongName")
+  )
+
+snake_counts <- snake_counts %>%
+  mutate(n_snakes_hr = n_snakes / Effort_hrs)
 ```
 
+## Summarize
 
+```{r snake summaries}
+
+snake_counts %>%
+  group_by(Station) %>%
+  summarise(
+    tot_snake = sum(n_snakes),
+    mean_snake = mean(n_snakes),
+            sd = sd(n_snakes),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+## Model
+
+```{r snake models}
+
+# start simple, only hunting status (station) and survey type
+snake.mod1 <- glmmTMB(n_snakes_hr ~ Station + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod1, plot = T)
+# passes validation
+
+summary(snake.mod1)
+# AIC 129.3
+
+# Okay so station doesn't determine any significant differences I don't think
+
+snake.mod2 <- glmmTMB(n_snakes_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod2, plot = T)
+# passes validation
+# AIC 130.1 but barely (dAIC = 0.8)
+summary(snake.mod2)
+
+# Humidity doesn't seem to impact detections when looking at station differences
+
+# Time to check temp
+
+snake.mod3 <- glmmTMB(n_snakes_hr ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod3, plot = T)
+# passes validation
+# AIC 130.9 
+summary(snake.mod3)
+
+# Lastly understory density
+
+snake.mod4 <- glmmTMB(n_snakes_hr ~ Station*mean_understory_leaves + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod4, plot = T)
+# passes validation
+# AIC 129.8
+summary(snake.mod4)
+```
