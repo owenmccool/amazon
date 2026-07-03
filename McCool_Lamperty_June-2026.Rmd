@@ -221,9 +221,6 @@ effort <- enviro %>%
 # join effort to small mamms
 small.mamms.df <- left_join(small.mamms.df, effort)
 
-# clean 
-rm(effort)
-
 # get rate of n mammals per hour
 small.mamms.df$smammals.hr <- small.mamms.df$Number_of_Small_Mammals_Spotted/small.mamms.df$Effort_hrs
 
@@ -671,10 +668,10 @@ testZeroInflation(smam.cont, plot = F)
 
 
 ```{r clean env after smamm}
-rm(sim, smam.cont)
+rm(sim, smam.cont, small.mamms.df)
 ```
 
-# Amph Lz Detections
+# Prep frog, lizard, and env data
 
 ```{r amph lz raw detection rates}
 
@@ -863,7 +860,6 @@ amph_lz_detections <- left_join(amph_lz_detections, temperature_means)
 
 amph_lz_detections <- left_join(amph_lz_detections, understory_means)
 ```
-# Environmental data
 
 ```{r hum and temp and und}
 
@@ -913,7 +909,8 @@ understory_summary_yr_survey_type <- understory_all %>%
   mutate(se = sd / sqrt(n))
 
 ```
-```{r temp fig}
+
+```{r temperature fig}
 
 temp.fig <- ggplot(temperature_summary_yr_survey_type, aes(x=Station, y=mean_temperature, fill = Survey_Type)) + geom_jitter(data = temperature_all, aes( x = Station, y = Temperature), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
   scale_fill_manual(values = c("Chocolate", "blue3")) + 
@@ -953,10 +950,9 @@ und.fig
 #ggsave(und.fig, file="Figures/understory_fig_updatedJune2026.png", width = 6,  height = 4)
 ```
 
+# Frogs per hour
 
-## Frogs
-
-### Summarize
+## Summarize
 
 ```{r summarize frogs}
 
@@ -971,7 +967,7 @@ amph_lz_detections %>%
 
 ```
 
-### Model
+## Model
 
 Look at response variable as continuous (n per hour) to be consistent with small mammal models
 
@@ -1092,7 +1088,7 @@ testZeroInflation(frog.mod3, plot = F)
 #looks good
 ```
 
-### Figures
+## Figures
 
 ```{r frog plots}
 
@@ -1140,6 +1136,7 @@ frog.fig.complicated <- ggplot(frogs.mean.se2, aes(x=Station, y=mean, fill = Sur
 frog.fig.complicated + facet_wrap(~Height_of_Individual)
 
 ```
+
 ```{r another frog fig}
 frogs.mean.se3 <- amph_lz_detections %>%
   filter(Survey_Type !="Morning") %>%
@@ -1162,9 +1159,9 @@ frog.fig2 + facet_wrap(~Height_of_Individual)
 citation()
 ```
 
-## Lizards
+# Lizards per hour
 
-### Summarize
+## Summarize
 
 ```{r summarize Lizards}
 
@@ -1179,7 +1176,7 @@ amph_lz_detections %>%
 
 ```
 
-### Model
+## Model
 
 ```{r lz mod}
 
@@ -1225,7 +1222,8 @@ testZeroInflation(liz.cont.mod4, plot = F)
 
 #looks good: Get scatterplot about lixzard tedections with temp, how different are they between day and night
 ```
-### Figure
+
+## Figures
 
 ```{r liz plots}
 
@@ -1251,6 +1249,330 @@ liz.fig1
 
 
 
+# Snakes per hour
+
+```{r snake detection wide df}
+# First, need to make a wide dataframe similar to amph_lz_detections
+
+# Have to keep zeros and fix repeat SK04 and SK05 observations
+
+snakes.sur2 <- snakes.sur %>%
+  distinct() %>%
+  mutate(n = if_else(is.na(Snake_ID), 0L, 1L))
+
+snake_counts <- snakes.sur2 %>%
+  group_by(Station, Start_Date, Parent_Trail_LongName) %>%
+  summarise(n_snakes = sum(n), .groups = "drop")
+
+# sanity check to make sure correct number of observations is here 
+
+sum(snake_counts$n_snakes)
+
+# Okay now time to add environmental variables: 
+
+humidity_night <- humidity_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    humidity_night %>%
+      select(Station, Start_Date, mean_relative_humidity),
+    by = c("Station", "Start_Date")
+  )
+
+temp_night <- temperature_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    temp_night %>%
+      select(Station, Start_Date, mean_temp_F), 
+    by = c("Station", "Start_Date")
+  )
+
+understory_night <- understory_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    understory_night %>%
+      select(Station, Start_Date, mean_understory_leaves), 
+    by = c("Station", "Start_Date")
+  )
+
+# Almost ready: now just need to add in the Effort column and Meters column from the enviro sheet and then get n_snakes per hour 
+
+snake_counts <- snake_counts %>%
+  left_join(
+    env_24_25_nights %>%
+      select(
+        Station,
+        Start_Date,
+        Parent_Trail_LongName,
+        Meters,
+        Effort_hrs
+      ),
+    by = c("Station", "Start_Date", "Parent_Trail_LongName")
+  )
+
+snake_counts <- snake_counts %>%
+  mutate(n_snakes_hr = n_snakes / Effort_hrs)
+```
+
+## Summarize
+
+```{r snake summaries}
+
+snake_counts %>%
+  group_by(Station) %>%
+  summarise(
+    tot_snake = sum(n_snakes),
+    mean_snake = mean(n_snakes),
+            sd = sd(n_snakes),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+## Model
+
+```{r snake models}
+
+# start simple, only hunting status (station) and survey type
+snake.mod1 <- glmmTMB(n_snakes_hr ~ Station + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod1, plot = T)
+# passes validation
+
+summary(snake.mod1)
+# AIC 129.3
+
+# Okay so station doesn't determine any significant differences I don't think
+
+snake.mod2 <- glmmTMB(n_snakes_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod2, plot = T)
+# passes validation
+# AIC 130.1 but barely (dAIC = 0.8)
+summary(snake.mod2)
+
+# Humidity doesn't seem to impact detections when looking at station differences
+
+# Time to check temp
+
+snake.mod3 <- glmmTMB(n_snakes_hr ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod3, plot = T)
+# passes validation
+# AIC 130.9 
+summary(snake.mod3)
+
+# Lastly understory density
+
+snake.mod4 <- glmmTMB(n_snakes_hr ~ Station*mean_understory_leaves + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod4, plot = T)
+# passes validation
+# AIC 129.8
+summary(snake.mod4)
+```
+
+# Snakes per guild per hour
+
+## Format
+
+```{r detections pr hr by guild split into three categories}
+
+# effort hours
+snakes.sur <- left_join(snakes.sur, effort)
+
+# isolate surveys for which no snakes were found
+zeros.3.diets <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station, Diet_Type_3categories, Parent_Trail_LongName, Effort_hrs)
+
+# get them into the format we want (tally doesn't actually matter here)
+z.tally.no.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Station, Parent_Trail_LongName, Diet_Type_3categories, Effort_hrs) %>% tally()
+
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
+
+# no mammals
+z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
+
+# mostly mammals
+z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Station, Diet_Type_3categories, Parent_Trail_LongName, Effort_hrs) %>% tally()
+
+z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
+
+# mixed
+z.tally.mixed.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date,Station, Parent_Trail_LongName, Diet_Type_3categories, Effort_hrs) %>% tally()
+
+z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
+
+# stack them together
+z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+#clean
+rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies.3 <- z.tallies.3 %>%
+  select(!n)
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally.3 <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Parent_Trail_LongName, Diet_Type_3categories, Effort_hrs) %>% tally()
+
+# now, we can add the surveys and the segments with zero detections back
+
+snake_guild_per_hr <- full_join(z.tallies.3, survey.tally.3)
+
+# make NAs zeros
+snake_guild_per_hr <- snake_guild_per_hr %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+snake_guild_per_hr$snakes_hr <- snake_guild_per_hr$n/snake_guild_per_hr$Effort_hrs
+
+rm(z.tallies.3, zeros.3.diets, survey.tally.3)
+```
+
+## Summarize
+
+```{r summarize snakes per hr per guild}
+
+snake_guild_per_hr %>%
+  group_by(Station, Diet_Type_3categories) %>%
+  summarise(
+    tot_snakes_per_surv = sum(n),
+    mean_snakes_per_surv = mean(n),
+            sd = sd(n),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+## Model
+
+```{r snakes per guild mod}
+
+snakes.3.guilds.m1 <- glmmTMB(n ~ Diet_Type_3categories:Station + (1|Parent_Trail_LongName) + offset(log(Effort_hrs)), data = snake_guild_per_hr, family = nbinom2)
+
+sim <- simulateResiduals(fittedModel = snakes.3.guilds.m1, plot = T)
+# passes validation
+
+summary(snakes.3.guilds.m1)
+
+# T stopping here July 3, 2026
+# I think this needs some more trouble shooting to investigate if I should be concerned about rank difficient cols being dropped; also, had more trouble with continue response (n per hour) relative to the count data with the offset term - so that may be the way to go
+
+```
+
+```{r raw detection per unit distance}
+
+# isolate surveys for which no snakes were found
+zeros.3.diets <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m)
+
+# get them into the format we want (tally doesn't actually matter here)
+z.tally.no.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
+
+# no mammals
+z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
+
+# mostly mammals
+z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
+
+# mixed
+
+# mixed
+z.tally.mixed.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date,Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
+
+# stack them together
+z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+#clean
+rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies.3 <- z.tallies.3 %>%
+  select(!n)
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally.3 <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+# now, we can add the surveys and the segments with zero detections back
+
+raw_detection_df <- full_join(z.tallies.3, survey.tally.3)
+
+# make NAs zeros
+raw_detection_df <- raw_detection_df %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+# I did this fast and it should be checked
+
+detection_rates <- raw_detection_df %>%
+  group_by(Station, Diet_Type_3categories, Start_Date) %>%
+  summarize(meters_surveyed = sum(Seg_dist_m),
+            individuals_found = sum(n))
+
+sum(detection_rates$individuals_found)
+detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
+
+sum(detection_rates$individuals_found)
+detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
+
+detection_rates$n_per_1000m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*10000
+# summarize and visualize
+detections.mean.se <- detection_rates %>%
+  group_by(Station, Diet_Type_3categories) %>%
+  summarise(mean = mean(n_per_1000m),
+            sd = sd(n_per_1000m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+ggplot(detections.mean.se, aes(x=Station, y=mean, fill = Diet_Type_3categories)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Detections/1km") + ggtitle("Snake Detections per 1km by Diet Type") + facet_wrap(~Diet_Type_3categories, scales = "free")
+
+# need to also report raw overall detections regardless of diet type per station 
+```
 
 # Density estimates
 
@@ -1654,7 +1976,6 @@ p_3cats_fam
 Appears to be elevated numbers in hunted forest in the family that is mostly mammal consumers.
 
 
-
 # Community composition
 
 ## Pie Charts
@@ -1891,226 +2212,3 @@ ggiNEXT(species.diversity, type=1, facet.var="Order.q", grey=TRUE)
 ```
 
 Right so no difference there.
-
-# Raw detection rates over distance
-
-```{r raw detection rates}
-
-# isolate surveys for which no snakes were found
-zeros.3.diets <- snakes.sur %>%
-  filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m)
-
-# get them into the format we want (tally doesn't actually matter here)
-z.tally.no.mammals.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
-
-# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
-
-# no mammals
-z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
-
-# mostly mammals
-z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
-
-z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
-
-# mixed
-
-# mixed
-z.tally.mixed.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date,Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
-
-z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
-
-# stack them together
-z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
-
-#clean
-rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
-
-# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
-
-# remove the n column (meaningless)
-z.tallies.3 <- z.tallies.3 %>%
-  select(!n)
-
-# also isolate surveys that DID have snakes detected
-surveys.no.zeros <- snakes.sur %>%
-  filter(!is.na(Snake_ID))
-
-length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
-# remove the duplicate entries
-
-surveys.no.zeros <- surveys.no.zeros %>%
-  filter(!duplicated(Snake_ID))
-
-# tally counts - df without zeros
-survey.tally.3 <- surveys.no.zeros %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
-
-# now, we can add the surveys and the segments with zero detections back
-
-raw_detection_df <- full_join(z.tallies.3, survey.tally.3)
-
-# make NAs zeros
-raw_detection_df <- raw_detection_df %>%
-  mutate(n = ifelse(is.na(n), 0, n))
-
-# I did this fast and it should be checked
-
-detection_rates <- raw_detection_df %>%
-  group_by(Station, Diet_Type_3categories, Start_Date) %>%
-  summarize(meters_surveyed = sum(Seg_dist_m),
-            individuals_found = sum(n))
-
-sum(detection_rates$individuals_found)
-detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
-
-sum(detection_rates$individuals_found)
-detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
-
-detection_rates$n_per_1000m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*10000
-# summarize and visualize
-detections.mean.se <- detection_rates %>%
-  group_by(Station, Diet_Type_3categories) %>%
-  summarise(mean = mean(n_per_1000m),
-            sd = sd(n_per_1000m),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-ggplot(detections.mean.se, aes(x=Station, y=mean, fill = Diet_Type_3categories)) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Detections/1km") + ggtitle("Snake Detections per 1km by Diet Type") + facet_wrap(~Diet_Type_3categories, scales = "free")
-
-# need to also report raw overall detections regardless of diet type per station 
-```
-
-# Snakes
-
-## Snake detections dataframe creation
-
-```{r snake detection wide df}
-# First, need to make a wide dataframe similar to amph_lz_detections
-
-# Have to keep zeros and fix repeat SK04 and SK05 observations
-
-snakes.sur2 <- snakes.sur %>%
-  distinct() %>%
-  mutate(n = if_else(is.na(Snake_ID), 0L, 1L))
-
-snake_counts <- snakes.sur2 %>%
-  group_by(Station, Start_Date, Parent_Trail_LongName) %>%
-  summarise(n_snakes = sum(n), .groups = "drop")
-
-# sanity check to make sure correct number of observations is here 
-
-sum(snake_counts$n_snakes)
-
-# Okay now time to add environmental variables: 
-
-humidity_night <- humidity_means %>%
-  filter(Survey_Type == "Night")
-
-snake_counts <- snake_counts %>%
-  left_join(
-    humidity_night %>%
-      select(Station, Start_Date, mean_relative_humidity),
-    by = c("Station", "Start_Date")
-  )
-
-temp_night <- temperature_means %>%
-  filter(Survey_Type == "Night")
-
-snake_counts <- snake_counts %>%
-  left_join(
-    temp_night %>%
-      select(Station, Start_Date, mean_temp_F), 
-    by = c("Station", "Start_Date")
-  )
-
-understory_night <- understory_means %>%
-  filter(Survey_Type == "Night")
-
-snake_counts <- snake_counts %>%
-  left_join(
-    understory_night %>%
-      select(Station, Start_Date, mean_understory_leaves), 
-    by = c("Station", "Start_Date")
-  )
-
-# Almost ready: now just need to add in the Effort column and Meters column from the enviro sheet and then get n_snakes per hour 
-
-snake_counts <- snake_counts %>%
-  left_join(
-    env_24_25_nights %>%
-      select(
-        Station,
-        Start_Date,
-        Parent_Trail_LongName,
-        Meters,
-        Effort_hrs
-      ),
-    by = c("Station", "Start_Date", "Parent_Trail_LongName")
-  )
-
-snake_counts <- snake_counts %>%
-  mutate(n_snakes_hr = n_snakes / Effort_hrs)
-```
-
-## Summarize
-
-```{r snake summaries}
-
-snake_counts %>%
-  group_by(Station) %>%
-  summarise(
-    tot_snake = sum(n_snakes),
-    mean_snake = mean(n_snakes),
-            sd = sd(n_snakes),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-```
-## Model
-
-```{r snake models}
-
-# start simple, only hunting status (station) and survey type
-snake.mod1 <- glmmTMB(n_snakes_hr ~ Station + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = snake.mod1, plot = T)
-# passes validation
-
-summary(snake.mod1)
-# AIC 129.3
-
-# Okay so station doesn't determine any significant differences I don't think
-
-snake.mod2 <- glmmTMB(n_snakes_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = snake.mod2, plot = T)
-# passes validation
-# AIC 130.1 but barely (dAIC = 0.8)
-summary(snake.mod2)
-
-# Humidity doesn't seem to impact detections when looking at station differences
-
-# Time to check temp
-
-snake.mod3 <- glmmTMB(n_snakes_hr ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = snake.mod3, plot = T)
-# passes validation
-# AIC 130.9 
-summary(snake.mod3)
-
-# Lastly understory density
-
-snake.mod4 <- glmmTMB(n_snakes_hr ~ Station*mean_understory_leaves + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = snake.mod4, plot = T)
-# passes validation
-# AIC 129.8
-summary(snake.mod4)
-```
