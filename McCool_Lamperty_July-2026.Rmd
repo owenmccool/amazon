@@ -1,0 +1,2200 @@
+---
+title: "Snake_Analysis"
+author: "Owen McCool, Therese Lamperty"
+date: "2025-07-16"
+output: word_document
+---
+
+# Code Setup & package read in 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r read in packages}
+library(vegan)
+library(stringr)
+library(ggplot2)
+library(tidyverse)
+library(iNEXT) # species diversity
+library(hillR) # species diversity
+library(DHARMa) # checking models
+library(car) # reporting model stats
+library(glmmTMB)
+library(unmarked) #density estimates with hierarchical distance sampling models
+library(tidyr)
+library(AICcmodavg) # has convenient functions for comparing models based on AIC
+library(showtext)
+showtext_auto()
+font_add(family = "Tahoma", regular = "tahoma.ttf")
+```
+
+# Project Overview
+
+Study Site: Research was split between two different zones within the greater Yasuni Biosphere Reserve. Tiputini Biodiversity Station (TBS) served as the faunally intact site, whereas Yasuni Research Station (YRS) served as the defaunated site. Both sites are situated along the Tiputini River within the province of Orellana, Ecuador. TBS, approximately 45 km east of YRS, is only accessible by boat. YRS is along the Maxus Oil Road, and is less integrated into the Amazonian ecosystem. Additionally, unsustainable hunting activities by the indigenous communities have been prominent in the surrounding region at YRS for multiple decades, as noted from 2014. This is thought to be the root cause of defaunation in this zone. 
+
+	I transferred between the two research stations every two weeks, starting my first rotation at TBS on June 10. Time at each station was spent working on 3 separate projects: my herpetofauna surveys, frugivory surveys, and an overarching seed enemy and dispersal project. 
+
+	The rainy season in Northeastern Ecuador is at its peak between March and July. I conducted my study between the months of June and August, 2024. The average high temperature for June in this region is 85.66° F, with the average low of 70.05° F. July has an average high temperature of 86.29° F and an average low of 69.13° F. August has an average high temperature of 91.35° F and an average low of 69.60° F. June receives 143mm of precipitation on average each year, whereas July receives 99.69mm and August receives 77.55mm. (https://weatherandclimate.com/ecuador/orellana/boca-tiputini) 
+Put project description here (field sites, time frame of collection,sampling scheme, type of data (eg. species ID,temp, etc.) )
+
+Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors/night. Trail systems at each site served as the sampling paths. The surveys were repeated around 6 times on each rotation while in the field, and resampled on the second rotations. The surveys typically began around 20:00-20:30 and lasted until 23:00-00:00 CST. At each site, habitat matches were compared and assessed and trails through that habitat were consistently walked. Two different types of habitat, Terra Firma (uplands) and Varzea (flooded forest) were surveyed on the herp nocturnal walks. In addition to this, two significant bodies of water were also surveyed at each site, primarily consisting of oxbow lakes with one year-round large pond. 
+
+	Surveyors used FENIX HM60R headlamps while conducting night surveys. They carefully examined all surrounding habitat, including understory trees, shrubs, vines, water bodies, forest floor, and middle-canopy. Amphibians of the order Anura gave off reflective eyeshine and were easier to sample for, whereas members of Squamata did not. More information about this will be within the discussion section. Effort hours will be calculated based on survey time length and number of surveyors. 
+
+	Additionally, environmental information was taken throughout the course of each survey. Temperature and humidity data was collected with a Mengshen meter in 30 minute intervals on surveys. Understory vegetation density was also measured every 15 minutes along each trail. A 1.5m PVC pipe was randomly placed upright just off the right side of the trail at each measuring point, and the number of leaves making contact with the pipe was counted. 
+
+	Weather and wind were noted before each survey in four nominal categories, with weather either being “clear, partly cloudy, cloudy, rainy” and wind being “no wind, felt on face, branches move, trees move”. I also accounted for precipitation that had already occurred in 6-hour blocks as “time window of last rain event”. 
+
+	Once an animal was found, the first step of the protocol was to note what time of night the find occurred. After this, the temperature and humidity was once again collected. A rangefinder was used to estimate the perpendicular distance of each animal from the trail. A GPS was used to mark and log the coordinates of each animal found. Animals were given a two-letter code based on the Order and Suborder followed by a number, indicating its position of being found. For example, the code of the 9th snake found of the season would be SK09. Species found were also identified to the lowest taxonomic level in the field, and photographs of individuals were taken both to get positive IDs later in the lab when not possible in the field, but also to avoid counting re-captures.
+
+	Snakes found during non-survey times were also recorded. These individuals were split into one of two categories of detection. The first is an “Opportunistic Encounter” (OE), which is any snake that was found by me while out working on other non-herpetofauna projects in the field. The other type of detection is the Third Party Encounter (TPE). This was any snake that was found by other research groups during my rotations at each station, identified to lowest possible taxonomy. The same data was taken for these individuals. GPS coordinates, time of detection, trail, observer, estimation of distance from trail, and habitat type. Because the third-party observers often didn’t have access to the climate data logger, this information was retrieved later on from each station’s respective weather tower data, based on the time of detection. 
+
+Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert field book Reptiles of Ecuador. 
+
+# Read in and prep data
+
+## Read in
+
+This data was cleaned some in initial steps in 2024-2025 (see archived code). Note that temp and humidity data was removed for 4 surveys at YRS that took place after July 11, 2025, during which the team lost confidence in the data collection instrument. 
+
+```{r data read in}
+
+#1. all snake records
+snakes.master <- read.csv(file = "Data/snake.master.csv")
+
+#2. environmental data, which also has rodent encounters
+enviro <- read.csv(file = "Data/enviro.csv")
+# 2024 and 2025; enviro = df from Owen's snake project only
+
+#3. segment data, has lengths of segments
+segs <- read.csv("Data/Segment_Distances.csv")
+# segs from Owen's snake project only
+
+#4. amphibian and lizard data collected in 2025
+amph_lz_2025=read.csv("Data/amph_lz_2025_reduced_columns.csv")
+# amphibian and lizard data from 2025 (Jacob's project)
+
+#5. corresponding amph_lz env data
+env=read.csv("Data/Field_Season_2_datasheets(Environment_Sheet).csv")
+# environmental data from 2025 (Jacob's project: includes night and afternoon)
+
+#6. segment distances from 2025 data; we only need the 2025 afternoon data from here
+seg_dist_25=read.csv("Data/Field_Season_2_datasheets(Segment_Distances).csv")
+# Seemingly no differences bw this one and segs
+
+#7. amphibian 2024 data
+amph_2024 <- read.csv("Data/2024_amphibians.csv")
+# Owen added this 2024 amphibian data in
+
+#8. lizard 2024 data
+liz_2024 <- read.csv("Data/2024_lizards.csv")
+# Owen also added in 2024 lizard data
+```
+
+# Data prep
+
+We need to make a dataframe that contains the dates that each segment was surveyed, preferably also merged with the length of each of those segments.
+
+## Nighttime segments 2024-2025
+
+```{r nighttime segments}
+ 
+segs_expanded <- enviro %>%
+  select(!c(6,9,11:45)) %>%
+  separate_rows(Order, sep = ",")
+# remove meters, search time, all temp, water body, small mammal data
+
+# get ready to add the meters per segment. Need names to match
+segs <- segs %>%
+  rename(Segment = SEGMENT) %>%
+  rename(Parent_Trail = PARENT.TRAIL) %>%
+  rename(Seg_dist_m = DISTANCE_M)
+
+# and fix the names in segs_expanded to match and to be easy to understand
+segs_expanded <- segs_expanded %>%
+  rename(Segment = Order) %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
+
+# change this in enviro as well
+enviro <- enviro %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
+
+# join them together
+segments_master <- left_join(segs_expanded, segs)
+
+# there are some missing distances
+# check for typos
+unique(segs_expanded$Segment)
+
+# there's just one where there is a hyphen separating two segments that need to be in separate rows
+segs_expanded <- segs_expanded %>%
+  mutate(Segment = ifelse(Segment == "NUMA-02-CHIO-03", 
+                          "NUMA-02, CHIO-03", Segment)) %>%
+  separate_rows(Segment, sep = ",")
+
+# remove all the spaces
+segs_expanded <- segs_expanded %>%
+  mutate(Segment = trimws(Segment))
+
+# fix one case where there is just a space between two segments that need to be in separate rows
+segs_expanded <- segs_expanded %>%
+  separate_rows(Segment, sep = " ")
+
+# okay this looks more promising, try to join again
+segments_master <- left_join(segs_expanded, segs)
+
+# T note 4/21/2026 - check for duplicated entries - I think that CHIO-03 from 2024 is in here 2x
+
+```
+
+**segments_master** at this point is only snake data - records of every survey that was conducted and used in the snake study (2024-25). So this doesn't include the afternoon surveys for other herps.
+
+## Nightime 24-25 smamm
+
+Also date and search time and snake diet categories.
+
+```{r snake and smamm df prepping}
+
+# make dates dates
+snakes.master$Start_Date <- mdy(snakes.master$Start_Date)
+
+snakes.master$Date <- mdy(snakes.master$Date)
+
+enviro$Start_Date <- mdy(enviro$Start_Date)
+
+segments_master$Start_Date<-mdy(segments_master$Start_Date)
+segments_master$End_Date<-mdy(segments_master$End_Date)
+
+# modify diet type to be binary = eats mammals, does not eat mammals
+unique(snakes.master$Diet_Type)
+# keep original too
+snakes.master$Diet_Type_3categories <- snakes.master$Diet_Type
+
+# mixed = "includes mammals"
+snakes.master <- snakes.master %>%
+  mutate(Diet_Type = ifelse(Diet_Type == "mixed", 
+                          "includes_mammals", Diet_Type)) 
+# mostly mammals = includes mammals
+snakes.master <- snakes.master %>%
+  mutate(Diet_Type = ifelse(Diet_Type == "mostly_mammals", 
+                          "includes_mammals", Diet_Type))
+
+# sampling effort
+snakes.sur <- snakes.master %>%
+  filter(Type_of_Encounter == "Survey") #piping with dplyr, make new dataframe with only surveyed snakes since those are only obs. with effort associated (not sure if this is needed since effort hours is now its own column)
+
+#Now we want to put in an environment sheet because it has our effort hours, and we want to convert those to usable numeric values
+
+# NOTE this is the time spent actively searching, not the time difference between start and stop of survey for the night
+
+enviro$Effort_hrs <- sapply(strsplit(enviro$Searching_Time, ":"), function(x) {
+  as.numeric(x[1]) + as.numeric(x[2]) / 60
+}) #not really sure how this function works (from internet) but it makes the hours go from 2:30 to 2.50 hours, etc. 
+
+# join date and time columns first
+# note I added end date columns manually in the enviro datasheet to account for the 2 surveys that went past midnight
+enviro$Survey_Start_Date_Time <- paste(enviro$Start_Date, enviro$Survey_Start_Time)
+
+# use lubridate to make these date and time in R
+enviro$Survey_Start_Date_Time <-ymd_hm(enviro$Survey_Start_Date_Time)
+
+# repeat with end date and time
+enviro$Survey_End_Date_Time <- paste(enviro$End_Date, enviro$Survey_End_Time)
+
+enviro$Survey_End_Date_Time <-mdy_hm(enviro$Survey_End_Date_Time)
+
+# small mammals 
+ # add the n small mammals found per survey to the snake.sur dataframe because that has the effort hours already in it
+
+# subset data - just want the n small mammmals and keep the date column to join by
+
+small.mamms.df <- enviro %>%
+  select(Station, Start_Date, Number_of_Small_Mammals_Spotted, Parent_Trail_LongName) #creating temporary dataframe with just these parameters
+
+small.mamms.df$Number_of_Small_Mammals_Spotted <-  as.numeric(small.mamms.df$Number_of_Small_Mammals_Spotted) #changing the n small mammals to a number from a character (idk why it was a character)
+
+# isolate effort hours per survey
+effort <- enviro %>%
+  select(Start_Date, Effort_hrs)
+
+# join effort to small mamms
+small.mamms.df <- left_join(small.mamms.df, effort)
+
+# get rate of n mammals per hour
+small.mamms.df$smammals.hr <- small.mamms.df$Number_of_Small_Mammals_Spotted/small.mamms.df$Effort_hrs
+
+# add segment lengths to snake sur df
+snakes.sur <- snakes.sur %>%
+  rename(Segment = Location)
+
+```
+
+```{r check and fix tricky join}
+
+length(unique(segments_master$Segment)) # 89 unique segments surveyed
+length(unique(segments_master$Start_Date)) #61 surveys
+
+snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Segment)) # snakes were found on 46 of them
+
+snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 101 snakes found
+
+length(unique(snakes.sur$Start_Date)) #60, what date is in segments master but not in snakes.sur? (it must be the duplicated one from start of season one)
+
+missing_startdate <- anti_join(segments_master, snakes.sur, by = "Start_Date")
+ 
+# FLAG 1: MAPO-01 MAPO-02 HARP-01 on 2024-06-21 are in segments master but not in the record of surveys that were pulled from snake.master dataframe. Can we confirm that these surveys happened? Was there just no enviro data that went with them?
+
+# okay so do we have distances for all segments snakes were found on?
+
+missing_segs <- anti_join(segments_master, snakes.sur, by = "Segment")
+
+# 157 instances of segments being surveyed and no snakes were found?
+
+# also, in theory, segments master has all the cases that a survey occurred, and so I can remove the cases of surveys with no snakes found from the snakes.sur dataframe before merging (double check with Owen that this sounds right)
+
+snakes.sur.zeros.dropped <- snakes.sur %>%
+ filter(!is.na(Snake_ID))
+
+snakes.sur.zeros.dropped <- snakes.sur.zeros.dropped %>%
+  select(Start_Date, Station, Segment, Snake_ID, Distance_From_Trail_m, Diet_Type, Diet_Type_3categories, Family, Genus, Species, Common_Name, Temperature_at_Time_of_Detection, Humidity_at_Time_of_Detection)
+
+snakes.sur <- full_join(segments_master, snakes.sur.zeros.dropped, relationship = "many-to-many")
+
+length(unique(snakes.sur$Segment)) # 89 unique segments surveyed
+
+length(unique(snakes.sur$Start_Date)) #61 surveys
+
+snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Segment)) # snakes were found on 46 of them
+
+snakes.sur %>% filter(!is.na(Snake_ID)) %>% summarize(n_distinct(Snake_ID)) # 101 snakes found
+
+# FLAG 2: NOTE TO THERESE: SOMEHOW IN SNAKES.SUR, SK04 AND SK05 GET DUPLICATED BUT IT DOESN'T SEEM TO CAUSE ERRORS LATER ON DOWN THE LINE. EG, THE DENSITY SECTION HAS EXACTLY 101 SNAKES WHICH IS THE CORRECT AMOUNT SO I'M NOT SURE WHAT'S GOING WRONG HERE 
+
+# FLAG reply 4/21/2026 T: I think that I caught that and removed those duplicates at some point in the code. We could (and should) remove them earlier on though - just do that either in the raw datafile if it's truly an error or maybe here.
+
+rm(snakes.sur.zeros.dropped, missing_startdate, missing_segs, segs_expanded)
+
+```
+
+**enviro** = 2024-2025 env, smamm, and survey records, nighttime only
+
+**small.mamms.df** = 2024-2025 small mammal records tallied up with search effort (hrs), nighttime only
+
+**segments_master** = 2024-25 nighttime surveys - each segment surveyed with corresponding date and time and length
+
+## 2024 amphibian and lizard data
+
+```{r clean 2024 amph lz data}
+# Start with amphibians
+amph_2024 <- amph_2024[-2,]
+colnames(amph_2024) <- amph_2024[1,]
+amph_2024 <- amph_2024[-1,]
+
+amph_2024 <- amph_2024 %>%
+  rename(Time_Found = Time_Found_)
+amph_2024 <- amph_2024 %>%
+  mutate(Survey_Type = "Night", 
+         X = NA, 
+         X.1 = NA, 
+         Size = NA,
+         Diet_Type = NA,
+         Primary_Diet_Component = NA)
+
+
+# Now for lizards
+liz_2024 <- liz_2024[-2,]
+colnames(liz_2024) <- liz_2024[1,]
+liz_2024 <- liz_2024[-1,]
+
+liz_2024 <- liz_2024 %>%
+  rename(Time_Found = Time_Found_)
+liz_2024 <- liz_2024 %>%
+  mutate(Survey_Type = "Night", 
+         X = NA, 
+         X.1 = NA, 
+         Size = NA,
+         Diet_Type = NA,
+         Primary_Diet_Component = NA)
+
+```
+
+## 2025 amphibian and lizard data
+
+```{r organize and clean species data, warning=FALSE}
+
+amph_lz_2025 = amph_lz_2025 %>%
+  separate(Species,into=c("Genus","Species")) #turn Species column into Genus and Species columns
+
+# replace unknown family with NA
+amph_lz_2025 <- amph_lz_2025 %>%
+  mutate(Family = ifelse(Family == "weird" | Family == "mystery" | Family == "weird ground frog in valley, looked like big head x treefrog" | Family == "unknown", NA, Family))
+
+# replace blank Genus and Unknown Genus entries with NA
+amph_lz_2025 <- amph_lz_2025 %>%
+  mutate(Genus = ifelse(Genus == "" | Genus == "Unknown", NA, Genus))
+
+amph_lz_2025$Species= na_if(amph_lz_2025$Species, "spp") #replace "spp" with NA
+
+# prep to merge, make columns consistent
+amph_lz_2025 <- amph_lz_2025 %>%
+  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment, Trail_Walked, Height_of_Individual)
+
+amph_2024 <- amph_2024 %>%
+  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment, Trail_Walked, Height_of_Individual)
+
+liz_2024 <-liz_2024 %>%
+  select(Date, Survey_Type, Survey_Start_Time, Survey_End_Time, Gross_ID, Family, Species, Genus, Habitat_Type, Common_Name, Animal_ID, Station, Segment, Trail_Walked, Height_of_Individual)
+
+# Merge 2024-2025 amphibian and lizard data
+amph_lz <- rbind(amph_lz_2025, amph_2024, liz_2024)
+
+# clean
+rm(amph_2024, liz_2024, amph_lz_2025)
+
+rm_trail_spaces <- function(column) {
+  clean_column <- trimws(column)
+  return(clean_column)
+}
+
+# Get rid of trailing spaces
+
+amph_lz$Gross_ID <- rm_trail_spaces(amph_lz$Gross_ID)
+amph_lz$Genus <- rm_trail_spaces(amph_lz$Genus)
+amph_lz$Survey_Type <- rm_trail_spaces(amph_lz$Survey_Type)
+amph_lz$Station <- rm_trail_spaces(amph_lz$Station)
+amph_lz$Animal_ID <- rm_trail_spaces(amph_lz$Animal_ID)
+amph_lz$Trail_Walked <- rm_trail_spaces(amph_lz$Trail_Walked)
+
+```
+
+**amph_lz** has all 2024-2025 records of amphibian and lizard detections, afternoon and night surveys included
+
+```{r amph lz date and other cleaning}
+
+amph_lz$Start_Date_Start_Time=paste(amph_lz$Date,amph_lz$Survey_Start_Time,sep=" ")
+
+amph_lz$End_Date <- amph_lz$Date
+# fix the past midnight cases
+amph_lz <- amph_lz %>%
+  mutate(End_Date = ifelse(Survey_End_Time == "12:11 AM", "06/18/24", End_Date))
+
+amph_lz <- amph_lz %>%
+  mutate(End_Date = ifelse(Survey_End_Time == "12:05 AM", "07/15/24", End_Date))
+
+amph_lz$End_Date_End_Time=paste(amph_lz$End_Date,amph_lz$Survey_End_Time, sep=" ")
+
+amph_lz$Start_Date_Start_Time=mdy_hm(amph_lz$Start_Date_Start_Time)
+amph_lz$End_Date_End_Time=mdy_hm(amph_lz$End_Date_End_Time)
+
+#### Date ####
+
+amph_lz$Date=mdy(amph_lz$Date)
+
+#### Survey_Type ####
+amph_lz$Survey_Type=trimws(amph_lz$Survey_Type)
+
+#### Survey_hr ####
+amph_lz$Effort_hrs=difftime(amph_lz$End_Date_End_Time,amph_lz$Start_Date_Start_Time,units="hours")
+
+#### Gross_ID () ####
+amph_lz$Gross_ID=trimws(amph_lz$Gross_ID)
+
+#### Genus ####
+amph_lz %>%
+  distinct(Genus) %>% arrange(Genus)
+
+```
+
+For the 2025 afternoon surveys, we need records of each time a segment was surveyed in the afternoon and how long that segment was (there's not complete overlap btwn nightime and afternoon segments)
+
+```{r amph lz 2025 afternoon segs}
+# add survey type column to segments master
+segments_master$Survey_Type <- "Night"
+
+# pull out afternoon surveys from 2025
+afternoon_2025 <- env %>%
+  filter(Survey_Type == "Afternoon") %>%
+  select(c(1,2,3,5,7,8)) %>%
+  separate_rows(Order, sep = ",")
+
+# and fix the names to match and to be easy to understand
+afternoon_2025 <- afternoon_2025 %>%
+  rename(Segment = Order)
+
+# remove all the spaces
+afternoon_2025 <- afternoon_2025 %>%
+  mutate(Segment = trimws(Segment))
+
+# do this for seg_dist_25 as well and fix names 
+seg_dist_25 <- seg_dist_25 %>%
+  mutate(SEGMENT = trimws(SEGMENT)) %>%
+  rename(Segment = SEGMENT) %>%
+  rename(Seg_dist_m = DISTANCE_.M.) %>%
+  rename(Parent_Trail=PARENT.TRAIL)
+
+# add segment length
+afternoon_2025 <- left_join(afternoon_2025, seg_dist_25)
+
+# start date and end date to facilitate join later
+afternoon_2025$Start_Date <- mdy(afternoon_2025$Date)
+afternoon_2025$End_Date <- mdy(afternoon_2025$Date)
+afternoon_2025 <- afternoon_2025 %>%
+  select(-Date)
+
+# clean
+rm(seg_dist_25)
+```
+**afternoon_2025** should have records of all afternoon segments ever surveyed, lengths of segments included
+
+## Afternoon smamms
+
+```{r afternoon smamm}
+small.mamms.afternoon <- env %>%
+  filter(Survey_Type == "Afternoon") %>%
+  select(Station, Date, Number_of_Small_Mammals_Spotted)
+
+#ah ok we only ever saw one smamm in the afternoon. Gonna disregard the afternoon smamm data.
+
+rm(small.mamms.afternoon)
+
+# FLAG: Can this chunk be deleted in entirety?
+
+# T response - yep as long as you remember we checked this already bc I won't
+```
+
+## Merge night and afternoon
+
+```{r join night and afternoon surv and seg data}
+
+# reduce columns for simplicity
+afternoon_2025 <- afternoon_2025 %>% 
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Seg_dist_m, Parent_Trail)
+
+afternoon_2025 <- afternoon_2025 %>%
+  rename(Parent_Trail_LongName = Parent_Trail)
+
+amph_lz <- amph_lz %>%
+  rename(Parent_Trail_LongName = Trail_Walked)
+
+segments_master <- segments_master %>% 
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Seg_dist_m, Parent_Trail_LongName)
+
+all_surv_records <- full_join(segments_master, afternoon_2025)
+
+# is every segment accounted for?
+
+# Segments in snakes.sur but not in all surv records?
+anti_join(snakes.sur, all_surv_records, by = "Segment") # looks good
+
+# and with the amph lz data?
+anti_join(amph_lz, all_surv_records, by = "Segment") # looks good
+
+# and with the amph lz data?
+anti_join(all_surv_records, amph_lz, by = "Segment") 
+
+# date name fixes real quick so they match
+amph_lz$Start_Date <- amph_lz$Date
+amph_lz$End_Date <- amph_lz$Date
+
+missing<-anti_join(amph_lz, all_surv_records, by =c("Start_Date", "Segment"))
+
+# dang there are still a few records missing
+# try to put those into all_surv_records (except the morning survey, we don't need that)
+
+missing <- missing %>%
+  filter(Survey_Type != "Morning") %>% 
+  select(Station, Survey_Type, Start_Date, Survey_Start_Time, End_Date, Survey_End_Time, Segment, Parent_Trail_LongName)
+
+#all surv records has the lengths we need so just pull those out and add the column to temp missing distances df
+
+missing_distances <- all_surv_records %>%
+  select(Segment, Seg_dist_m) %>% distinct()
+
+# add together
+
+missing <- left_join(missing, missing_distances)
+
+# merge with the all_surv_records
+all_surv_records <- rbind(all_surv_records, missing)
+
+# make sure no duplicates
+all_surv_records <- all_surv_records %>%
+  distinct()
+
+# clean
+rm(afternoon_2025, segments_master, segs, missing, missing_distances)
+
+# rename env and enviro to be less confusing
+env_2025 <- env
+env_24_25_nights <- enviro
+
+rm(env, enviro)
+```
+
+# Sampling Effort Summaries
+
+```{r get effort fixed}
+
+all_surv_records$Start_Date_Start_Time=paste(all_surv_records$Start_Date, all_surv_records$Survey_Start_Time, sep=" ")
+
+all_surv_records$Start_Date_Start_Time=ymd_hm(all_surv_records$Start_Date_Start_Time)
+
+all_surv_records$End_Date_End_Time=paste(all_surv_records$End_Date, all_surv_records$Survey_End_Time, sep=" ")
+
+all_surv_records$End_Date_End_Time=ymd_hm(all_surv_records$End_Date_End_Time)
+```
+
+```{r mean efforts}
+
+all_surv_records$Effort_hrs <- difftime(all_surv_records$End_Date_End_Time, all_surv_records$Start_Date_Start_Time, units="hours")
+
+# mean and sd search effort per station per survey type
+all_surv_records %>%
+  group_by(Station, Survey_Type) %>%
+  summarize(mean_search_time_hrs = mean(Effort_hrs),
+            sd = sd(Effort_hrs))
+
+# mean and sd meters searched per station per survey type
+temp <-all_surv_records %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  summarize(total_meters_surveyed = sum(Seg_dist_m))
+
+temp %>%
+  group_by(Station, Survey_Type) %>%
+  summarize(mean_length = mean(total_meters_surveyed),
+            sd_length = sd(total_meters_surveyed))
+
+rm(temp)
+
+all_surv_records %>%
+  group_by(Station, Survey_Type) %>%
+  summarize(cumulative_m = sum(Seg_dist_m),
+            cumulative_surveys = n_distinct(Start_Date_Start_Time))
+
+```
+
+# Small Mammals
+
+## Summarize
+
+```{r summarize small mammal numbers}
+
+#Raw mammal counts
+
+sum(small.mamms.df$Number_of_Small_Mammals_Spotted[small.mamms.df$Station == "YRS"])
+
+sum(small.mamms.df$Number_of_Small_Mammals_Spotted[small.mamms.df$Station == "TBS"])
+
+# I think this is good to report (total numbers) but maybe also with mean and sd of n encountered per survey at each station:
+
+env_24_25_nights %>%
+  group_by(Station) %>%
+  summarise(mean_detections_per_survey = mean(Number_of_Small_Mammals_Spotted),
+            standard_deviation = sd(Number_of_Small_Mammals_Spotted))
+
+```
+
+## Model
+
+```{r small mammal model}
+
+# note: nbinom2 with offset term and zero inflation term will run and seems okay, but it doesn't pass validation cleanly. Other attempts (with and without random effects) cause model convergence problems. 
+
+# Model as continuous response variable rather than raw count data
+
+smam.cont <- glmmTMB(smammals.hr ~ Station + (1|Parent_Trail_LongName), data = small.mamms.df, family = tweedie(link = "log"))
+
+sim <- simulateResiduals(fittedModel = smam.cont, plot = T)
+
+summary(smam.cont) # great, can report this
+
+testDispersion(smam.cont, plot = F)
+testZeroInflation(smam.cont, plot = F)
+
+#https://stats.stackexchange.com/questions/603155/seeking-feedback-on-the-interpretation-and-reporting-of-a-glmm-output
+
+```
+
+## Small Mammal Figure
+
+```{r small mammal figure}
+
+smams.mean.se <- small.mamms.df %>%
+  group_by(Station) %>%
+  summarise(mean = mean(smammals.hr),
+            sd = sd(smammals.hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = small.mamms.df, 
+              aes(x = Station, y = smammals.hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) + coord_fixed(ratio = 0.75) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small mammals") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) +
+  geom_signif(
+    y_position = 5, xmin = 1, xmax = 2,
+    annotation = "***")
+
+smamm.fig
+
+#ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 6)
+
+```
+
+# Prep frog, lizard, and env data
+
+```{r amph lz raw detection rates}
+
+# add segment distance data
+
+segments <- all_surv_records %>%
+  select(Segment, Effort_hrs, Seg_dist_m) %>%
+  distinct()
+
+amph_lz <- left_join(amph_lz, segments)
+
+# columns are crazy, reduce and simplify
+
+amph_lz <- amph_lz %>%
+  select(Station, Start_Date, End_Date, Start_Date_Start_Time, End_Date_End_Time, Effort_hrs, Survey_Type, Gross_ID, Common_Name, Family, Genus, Species, Segment, Seg_dist_m, Parent_Trail_LongName, Height_of_Individual)
+
+# tallies
+amph_lz_counts <- amph_lz %>%
+  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Effort_hrs, Segment, Seg_dist_m, Gross_ID, Height_of_Individual) %>% tally()
+
+zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
+
+amph_lz_wide <- amph_lz_counts %>%
+  pivot_wider(
+    names_from = c(Gross_ID), 
+    values_from = n, 
+    values_fill = 0)
+
+# prep to add in the zeros, pull out columns I want
+zeros <- zeros %>%
+  select(Station, Start_Date, Survey_Type, Effort_hrs, Segment, Seg_dist_m, Parent_Trail_LongName) 
+
+#bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
+amph_lz_wide <- rbind(amph_lz_wide, zeros)
+
+#clean
+rm(zeros)
+
+# make NA cases (from when I added in the zeros) to zero
+amph_lz_wide<- amph_lz_wide %>% mutate(across(c(Lizard, Frog, Salamander), ~replace_na(.x, 0)))
+
+# look at per hour detection rates
+amph_lz_detections <- amph_lz_wide %>%
+  group_by(Start_Date, Station, Effort_hrs, Survey_Type, Parent_Trail_LongName, Height_of_Individual) %>%
+  summarize(n_frogs = sum(Frog),
+            n_sal = sum(Salamander),
+            n_liz = sum(Lizard))
+
+amph_lz_detections <- amph_lz_detections %>%
+  mutate(n_frogs_hr = n_frogs/as.numeric(Effort_hrs),
+         n_sal_hr = n_sal/as.numeric(Effort_hrs),
+           n_liz_hr = n_liz/as.numeric(Effort_hrs))
+```
+
+Need to check models with the temperature and humidity data
+
+```{r amph lz model prep}
+
+humidity_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Humidity_1:Humidity_8, Humidity_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Humidity_1:Humidity_Final,
+               values_to = "Humidity", names_repair = "unique")
+# remove NAs
+
+humidity_long <- humidity_long %>%
+  na.omit()
+
+# fix date
+humidity_long$Start_Date <- mdy(humidity_long$Date)
+humidity_long <- humidity_long %>%
+  select(-Date)
+
+# repeat with temp
+temp_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Temperature_1:Temperature_8, Temperature_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Temperature_1:Temperature_Final,
+               values_to = "Temperature", names_repair = "unique")
+
+# remove NAs
+temp_long <- temp_long %>%
+  na.omit()
+# date
+temp_long$Start_Date <- mdy(temp_long$Date)
+temp_long <- temp_long %>%
+  select(-Date)
+
+# understory
+
+understory_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Understory_Density_1:Understory_Density_Final,
+               values_to = "Understory", names_repair = "unique")
+# remove NAs
+
+understory_long <- understory_long %>%
+  na.omit()
+
+# fix date
+understory_long$Start_Date <- mdy(understory_long$Date)
+understory_long <- understory_long %>%
+  select(-Date)
+
+# 2024 data
+
+# pull out 2024 year only
+env_24_25_nights$Year<- factor(format(env_24_25_nights$Start_Date, "%Y"))
+  
+env_2024 <- env_24_25_nights %>%
+  filter(Year == "2024")
+
+# humidity - 2024 - pivot
+
+# simplify
+env_2024 <- env_2024 %>%
+  select(-Effort_hrs, -Notes, -Number_of_Small_Mammals_Spotted, -Number_of_Water_Bodies_Spotted, -Surveyors, -Searching_Time, -Meters, -Order, -Survey_Start_Time, -Survey_End_Time)
+
+humidity_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Humidity_1:Humidity_8, Humidity_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Humidity_1:Humidity_Final,
+               values_to = "Humidity", names_repair = "unique")
+# remove NAs
+
+humidity_long_2024 <- humidity_long_2024 %>%
+  na.omit()
+
+# repeat with temp
+temperature_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Temperature_1:Temperature_8, Temperature_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Temperature_1:Temperature_Final,
+               values_to = "Temperature", names_repair = "unique")
+# remove NAs
+
+temperature_long_2024 <- temperature_long_2024 %>%
+  na.omit()
+
+# repeat with understory
+understory_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Understory_Density_1:Understory_Density_Final,
+               values_to = "Understory", names_repair = "unique")
+# remove NAs
+
+understory_long_2024 <- understory_long_2024 %>%
+  na.omit()
+
+# join
+# add survey type column to 2024 env data
+humidity_long_2024$Survey_Type <-"Night"
+temperature_long_2024$Survey_Type <-"Night"
+understory_long_2024$Survey_Type <-"Night"
+
+humidity_all <- rbind(humidity_long, humidity_long_2024)
+temperature_all <- rbind(temp_long, temperature_long_2024)
+understory_all <-rbind(understory_long, understory_long_2024)
+
+# get means
+
+humidity_means <- humidity_all %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  summarize(mean_relative_humidity = mean(Humidity))
+
+temperature_means <- temperature_all %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  summarize(mean_temp_F = mean(Temperature))
+
+understory_means <- understory_all %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  summarize(mean_understory_leaves = mean(Understory))
+
+# add to the amph lz detection data
+amph_lz_detections <- left_join(amph_lz_detections, humidity_means)
+
+amph_lz_detections <- left_join(amph_lz_detections, temperature_means)
+
+amph_lz_detections <- left_join(amph_lz_detections, understory_means)
+```
+
+```{r hum and temp and und}
+
+humidity_all$Year <- factor(format(humidity_all$Start_Date, "%Y"))
+
+temperature_all$Year <- factor(format(temperature_all$Start_Date, "%Y"))
+
+understory_all$Year <- factor(format(understory_all$Start_Date, "%Y"))
+
+
+humidity_all <- humidity_all %>%
+  filter(Survey_Type != "Morning")
+
+humidity_summary_yr_survey_type <- humidity_all %>%
+  filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
+  filter(!(Survey_Type == "Morning")) %>%
+  group_by(Station, Survey_Type, Year) %>%
+  summarize(mean_humidity = mean(Humidity),
+            sd = sd(Humidity),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+# temperature
+temperature_all <- temperature_all %>%
+  filter(Survey_Type != "Morning")
+
+temperature_summary_yr_survey_type <- temperature_all %>%
+  filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
+  filter(!(Survey_Type == "Morning")) %>%
+  group_by(Station, Survey_Type, Year) %>%
+  summarize(mean_temperature = mean(Temperature),
+            sd = sd(Temperature),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+# understory
+understory_all <- understory_all %>%
+  filter(Survey_Type != "Morning")
+
+understory_summary_yr_survey_type <- understory_all %>%
+  filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
+  filter(!(Survey_Type == "Morning")) %>%
+  group_by(Station, Survey_Type, Year) %>%
+  summarize(mean_understory = mean(Understory),
+            sd = sd(Understory),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+```{r temperature fig}
+
+temp.fig <- ggplot(temperature_summary_yr_survey_type, aes(x=Station, y=mean_temperature, fill = Survey_Type)) + geom_jitter(data = temperature_all, aes( x = Station, y = Temperature), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
+  scale_fill_manual(values = c("Chocolate", "blue3")) + 
+  geom_errorbar(aes(ymin=mean_temperature-se, ymax=mean_temperature+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Temperature (F)") + ggtitle("Survey temperature ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
+
+temp.fig
+
+#ggsave(temp.fig, file="Figures/temperature_fig_updatedJune2026.png", width = 6,  height = 4)
+
+```
+
+```{r hum fig}
+
+hum.fig <- ggplot(humidity_summary_yr_survey_type, aes(x=Station, y=mean_humidity, fill = Survey_Type)) + geom_jitter(data = humidity_all, aes( x = Station, y = Humidity), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
+  scale_fill_manual(values = c("Chocolate", "blue3")) + 
+  geom_errorbar(aes(ymin=mean_humidity-se, ymax=mean_humidity+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Relative humidity (%)") + ggtitle("Survey humidity ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
+
+hum.fig
+
+#ggsave(hum.fig, file="Figures/humidity_fig_updatedJune2026.png", width = 6,  height = 4)
+
+```
+
+```{r und fig}
+und.fig <- ggplot(understory_summary_yr_survey_type, aes(x=Station, y=mean_understory, fill = Survey_Type)) + geom_jitter(data = understory_all, aes( x = Station, y = Understory), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
+  scale_fill_manual(values = c("Chocolate", "blue3")) + 
+  geom_errorbar(aes(ymin=mean_understory-se, ymax=mean_understory+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
+  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Survey understory density ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
+
+und.fig
+
+#ggsave(und.fig, file="Figures/understory_fig_updatedJune2026.png", width = 6,  height = 4)
+```
+
+# Frogs per hour
+
+## Summarize
+
+```{r summarize frogs}
+
+amph_lz_detections %>%
+  filter(Survey_Type != "Morning") %>%
+  na.omit() %>%
+  group_by(Station, Survey_Type) %>%
+  summarise(mean_frogs = mean(n_frogs),
+            sd = sd(n_frogs),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+## Model
+
+Look at response variable as continuous (n per hour) to be consistent with small mammal models
+
+```{r frog model continuous}
+
+amph_lz_detections <- amph_lz_detections %>%
+  na.omit() %>%
+  filter(Survey_Type != "Morning") %>%
+  filter(Height_of_Individual != "")
+
+# start simple, only hunting status (station) and survey type
+frog.cont.mod1 <- glmmTMB(n_frogs_hr ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod1, plot = T)
+# passes validation
+
+summary(frog.cont.mod1)
+# AIC 448.1 
+# no sig effect of station on frog detections
+
+# make model more complex, add interaction effect of hunting status with survey type
+frog.cont.mod2 <- glmmTMB(n_frogs_hr ~ Station/Survey_Type + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod2, plot = T)
+# passes
+# AIC worse: 451.1
+summary(frog.cont.mod2)
+
+#drop survey type bc doesn't improve model fit
+
+#investigate humidity
+frog.cont.mod3 <- glmmTMB(n_frogs_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod3, plot = T)
+# passes validation
+# AIC 447.3 but barely (dAIC = 0.8)
+summary(frog.cont.mod3)
+
+# keep humidity, add temp
+frog.cont.mod4 <- glmmTMB(n_frogs_hr ~ Station*mean_relative_humidity + mean_temp_F/Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod4, plot = T)
+# doesnt pass validation
+# AIC  worse 450.6, so remove temperature
+summary(frog.cont.mod4)
+
+# ground versus understory versus canopy
+frog.cont.mod5 <- glmmTMB(n_frogs_hr ~ Station*mean_relative_humidity + Station:Height_of_Individual + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.cont.mod5, plot = T)
+# does not pass validation
+# we don't have a specific hypothesis relating to ground versus understory versus canopy frog presence anyway
+# I think we can move on without complicating things and considering this
+
+#make sure top model (mod 1) isn't over dispersed or zero inflated
+testDispersion(frog.cont.mod1, plot = F)
+testZeroInflation(frog.cont.mod1, plot = F)
+
+#looks good
+```
+This investigates models with the response as count data (n frogs per survey) and effort accounted for as an offset in the models. This is less preferred simply because it doesn't match what we did with the small mammals, which couldn't be modeled with count data due to convergence issues. 
+
+```{r frog model count data}
+
+amph_lz_detections <- amph_lz_detections %>%
+  na.omit() %>%
+  filter(Survey_Type != "Morning") %>%
+  filter(Height_of_Individual != "")
+
+# start simple, only hunting status (station) and survey type
+frog.mod1 <- glmmTMB(n_frogs ~ Station + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
+
+sim1 <- simulateResiduals(fittedModel = frog.mod1, plot = T)
+# passes validation
+
+summary(frog.mod1)
+# AIC  675.9
+# no sig effect of station on frog detections
+
+# make model more complex, add interaction effect of hunting status with survey type
+frog.mod2 <- glmmTMB(n_frogs ~ Station/Survey_Type + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
+
+sim2 <- simulateResiduals(fittedModel = frog.mod2, plot = T)
+# passes
+# AIC worse: 679
+summary(frog.mod2)
+
+#drop survey type bc doesn't improve model fit
+
+#investigate humidity
+frog.mod3 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
+
+sim3 <- simulateResiduals(fittedModel = frog.mod3, plot = T)
+# passes validation
+# AIC better 675.1 but barely
+summary(frog.mod3)
+
+# keep humidity, add temp
+frog.mod4 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + mean_temp_F/Station + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
+
+sim4 <- simulateResiduals(fittedModel = frog.mod4, plot = T)
+# passes validation
+# AIC  worse 678.6, so remove temperature
+summary(frog.mod4)
+
+# ground versus understory versus canopy
+frog.mod5 <- glmmTMB(n_frogs ~ Station*mean_relative_humidity + Station:Height_of_Individual + offset(log(as.numeric(Effort_hrs))) + (1|Parent_Trail_LongName), data = amph_lz_detections, family = nbinom2)
+
+sim5 <- simulateResiduals(fittedModel = frog.mod5, plot = T)
+# does not pass validation
+# we don't have a specific hypothesis relating to ground versus understory versus canopy frog presence anyway
+# I think we can move on without complicating things and considering this
+
+#make sure top model (model 3) isn't over dispersed or zero inflated
+testDispersion(frog.mod3, plot = F)
+testZeroInflation(frog.mod3, plot = F)
+
+#looks good
+```
+
+## Figure
+
+```{r frog plots}
+
+frogs.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_frogs_hr),
+            sd = sd(n_frogs_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_frogs_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frogs") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) +
+  geom_signif(
+    y_position = 7.5, xmin = 1, xmax = 2,
+    annotation = "N.S.")
+
+frog.fig1
+
+```
+
+# Lizards per hour
+
+## Summarize
+
+```{r summarize Lizards}
+
+amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(
+    tot_liz = sum(n_liz),
+    mean_Lizards = mean(n_liz),
+            sd = sd(n_liz),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+## Model
+
+```{r lz mod}
+
+# start simple, only hunting status (station) and survey type
+liz.cont.mod1 <- glmmTMB(n_liz_hr ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.cont.mod1, plot = T)
+# passes validation
+
+summary(liz.cont.mod1)
+# AIC 275.8  
+# sig effect of station
+
+# make model more complex, add interaction effect of hunting status with survey type, thing on left of / is fixed effect, 
+liz.cont.mod2 <- glmmTMB(n_liz_hr ~ Station/Survey_Type + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.cont.mod2, plot = T)
+# passes
+# AIC:  278.1 (worse)
+summary(liz.cont.mod2)
+
+#drop survey type bc doesn't improve model fit
+
+#investigate humidity
+liz.cont.mod3 <- glmmTMB(n_liz_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.cont.mod3, plot = T)
+# passes validation
+# AIC 279.6 (worse)
+summary(liz.cont.mod3)
+
+# temp?
+liz.cont.mod4 <- glmmTMB(n_liz_hr ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.cont.mod4, plot = T)
+# doesnt pass validation
+# AIC  270.5, substantial improvement! this is top mod, difference appear to be drive by temperature
+summary(liz.cont.mod4)
+
+#make sure top model (mod 1) isn't over dispersed or zero inflated
+testDispersion(liz.cont.mod4, plot = F)
+testZeroInflation(liz.cont.mod4, plot = F)
+
+#looks good: Get scatterplot about lixzard tedections with temp, how different are they between day and night
+```
+
+## Figure
+
+```{r liz plots}
+
+liz.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_liz_hr),
+            sd = sd(n_liz_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+liz.fig1 <- ggplot(liz.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_liz_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Lizards") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) +
+  geom_signif(
+    y_position = 4, xmin = 1, xmax = 2,
+    annotation = "N.S.")
+
+liz.fig1 
+
+```
+
+# Snakes per hour
+
+```{r snake detection wide df}
+# First, need to make a wide dataframe similar to amph_lz_detections
+
+# Have to keep zeros and fix repeat SK04 and SK05 observations
+
+snakes.sur2 <- snakes.sur %>%
+  distinct() %>%
+  mutate(n = if_else(is.na(Snake_ID), 0L, 1L))
+
+snake_counts <- snakes.sur2 %>%
+  group_by(Station, Start_Date, Parent_Trail_LongName) %>%
+  summarise(n_snakes = sum(n), .groups = "drop")
+
+# sanity check to make sure correct number of observations is here 
+
+sum(snake_counts$n_snakes)
+
+# Okay now time to add environmental variables: 
+
+humidity_night <- humidity_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    humidity_night %>%
+      select(Station, Start_Date, mean_relative_humidity),
+    by = c("Station", "Start_Date")
+  )
+
+temp_night <- temperature_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    temp_night %>%
+      select(Station, Start_Date, mean_temp_F), 
+    by = c("Station", "Start_Date")
+  )
+
+understory_night <- understory_means %>%
+  filter(Survey_Type == "Night")
+
+snake_counts <- snake_counts %>%
+  left_join(
+    understory_night %>%
+      select(Station, Start_Date, mean_understory_leaves), 
+    by = c("Station", "Start_Date")
+  )
+
+# Almost ready: now just need to add in the Effort column and Meters column from the enviro sheet and then get n_snakes per hour 
+
+snake_counts <- snake_counts %>%
+  left_join(
+    env_24_25_nights %>%
+      select(
+        Station,
+        Start_Date,
+        Parent_Trail_LongName,
+        Meters,
+        Effort_hrs
+      ),
+    by = c("Station", "Start_Date", "Parent_Trail_LongName")
+  )
+
+snake_counts <- snake_counts %>%
+  mutate(n_snakes_hr = n_snakes / Effort_hrs)
+```
+
+## Summarize
+
+```{r snake summaries}
+
+snake_counts %>%
+  group_by(Station) %>%
+  summarise(
+    tot_snake = sum(n_snakes),
+    mean_snake = mean(n_snakes),
+            sd = sd(n_snakes),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+## Model
+
+```{r snake models}
+
+# start simple, only hunting status (station) and survey type
+snake.mod1 <- glmmTMB(n_snakes_hr ~ Station + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod1, plot = T)
+# passes validation
+
+summary(snake.mod1)
+# AIC 129.3
+
+# Okay so station doesn't determine any significant differences I don't think
+
+snake.mod2 <- glmmTMB(n_snakes_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod2, plot = T)
+# passes validation
+# AIC 130.1 but barely (dAIC = 0.8)
+summary(snake.mod2)
+
+# Humidity doesn't seem to impact detections when looking at station differences
+
+# Time to check temp
+
+snake.mod3 <- glmmTMB(n_snakes_hr ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod3, plot = T)
+# passes validation
+# AIC 130.9 
+summary(snake.mod3)
+
+# Lastly understory density
+
+snake.mod4 <- glmmTMB(n_snakes_hr ~ Station*mean_understory_leaves + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.mod4, plot = T)
+# passes validation
+# AIC 129.8
+summary(snake.mod4)
+```
+
+# Snakes per guild per hour
+
+## Format
+
+```{r detections pr hr by guild split into three categories}
+
+# effort hours
+snakes.sur <- left_join(snakes.sur, effort)
+
+# isolate surveys for which no snakes were found
+zeros.3.diets <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station, Diet_Type_3categories, Parent_Trail_LongName, Effort_hrs)
+
+# get them into the format we want (tally doesn't actually matter here)
+z.tally.no.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Station, Parent_Trail_LongName, Diet_Type_3categories, Effort_hrs) %>% tally()
+
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
+
+# no mammals
+z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
+
+# mostly mammals
+z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Station, Diet_Type_3categories, Parent_Trail_LongName, Effort_hrs) %>% tally()
+
+z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
+
+# mixed
+z.tally.mixed.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date,Station, Parent_Trail_LongName, Diet_Type_3categories, Effort_hrs) %>% tally()
+
+z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
+
+# stack them together
+z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+#clean
+rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies.3 <- z.tallies.3 %>%
+  select(!n)
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally.3 <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Parent_Trail_LongName, Diet_Type_3categories, Effort_hrs) %>% tally()
+
+# now, we can add the surveys and the segments with zero detections back
+
+snake_guild_per_hr <- full_join(z.tallies.3, survey.tally.3)
+
+# make NAs zeros
+snake_guild_per_hr <- snake_guild_per_hr %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+snake_guild_per_hr$snakes_hr <- snake_guild_per_hr$n/snake_guild_per_hr$Effort_hrs
+
+rm(z.tallies.3, zeros.3.diets, survey.tally.3)
+```
+
+## Summarize
+
+```{r summarize snakes per hr per guild}
+
+snake_guild_per_hr %>%
+  group_by(Station, Diet_Type_3categories) %>%
+  summarise(
+    tot_snakes_per_surv = sum(n),
+    mean_snakes_per_surv = mean(n),
+            sd = sd(n),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+## Model
+
+```{r snakes per guild mod}
+
+snakes.3.guilds.m1 <- glmmTMB(n ~ Station/Diet_Type_3categories + (1|Parent_Trail_LongName) + offset(log(Effort_hrs)), data = snake_guild_per_hr, family = nbinom2)
+
+sim <- simulateResiduals(fittedModel = snakes.3.guilds.m1, plot = T)
+# passes validation
+
+summary(snakes.3.guilds.m1)
+
+Anova(snakes.3.guilds.m1)
+
+# significant interaction effect
+
+```
+
+## Figure
+
+```{r snake guild figure}
+
+snakes.per.guild.mean.se <- snake_guild_per_hr %>%
+  group_by(Station, Diet_Type_3categories) %>%
+  summarise(mean = mean(snakes_hr),
+            sd = sd(snakes_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake.guild.fig <- ggplot(snakes.per.guild.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = snake_guild_per_hr, 
+              aes(x = Station, y = snakes_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by feeding guild") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12)))
+
+# Create a custom dataframe for annotations
+ann_df <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS", "TBS", "YRS"),
+  Diet_Type_3categories = c("mixed", "mostly_mammals", "no_mammals"),          # The faceting variable
+  start_group = c("TBS", "TBS", "TBS"),    # Left side of bracket
+  end_group   = c("YRS", "YRS", "YRS"),    # Right side of bracket
+  y_position  = c(0.9, 0.9, 2.6),       # Tailored height for each individual facet
+  label       = c("N.S.", "***", "N.S.") # Custom text or stars
+)
+
+snake.guild.fig.final <- snake.guild.fig +
+  geom_signif(
+    data = ann_df,
+    aes(xmin = 1, xmax = 2, y_position = y_position, annotations = label),
+    manual = TRUE) + facet_wrap(~Diet_Type_3categories, scales = "free", labeller = labeller(Diet_Type_3categories = 
+    c("mixed" = "Mixed diet",
+      "mostly_mammals" = "Primarily mammal diet",
+      "no_mammals" = "Non-mammal diet")
+  )) 
+
+```
+
+# Snakes per family per hour
+
+## Format
+
+```{r format data per family}
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+# SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally <- surveys.no.zeros %>%
+  filter(Family != "Viperidae") %>%
+filter(Family != "Elapidae") %>%
+  group_by(Start_Date, Station, Family, Parent_Trail_LongName, Effort_hrs) %>% tally()
+
+# generate all possible combinations based on family to get zeros
+
+snake.family.tallies <- survey.tally %>%
+  as_tibble() %>%
+  complete(Family, nesting(Start_Date, Station, Effort_hrs, Parent_Trail_LongName), fill = list(n = 0))
+
+# get rate per hour
+
+snake.family.tallies$n_hr <- snake.family.tallies$n/snake.family.tallies$Effort_hrs
+
+```
+
+## Summarize
+
+```{r snakes per fam summary}
+snake.family.tallies %>%
+  group_by(Station, Family) %>%
+  summarise(
+    tot_per_fam = sum(n),
+    mean_per_fam_per_surv = mean(n),
+            sd = sd(n),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+## Model
+
+```{r model dets per fam}
+snakes.fam.m1 <- glmmTMB(n ~ Station/Family + (1|Parent_Trail_LongName) + offset(log(Effort_hrs)), data = snake.family.tallies, ziformula = ~1, family = nbinom2)
+
+sim <- simulateResiduals(fittedModel = snakes.fam.m1, plot = T)
+# passes validation
+
+summary(snakes.fam.m1)
+
+Anova(snakes.fam.m1)
+```
+
+## Figures
+
+```{r snake per fam det fig}
+
+snakes.per.fam.mean.se <- snake.family.tallies %>%
+  group_by(Station, Family) %>%
+  summarise(mean = mean(n_hr),
+            sd = sd(n_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake.fam.fig <- ggplot(snakes.per.fam.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = snake.family.tallies, 
+              aes(x = Station, y = n_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by family") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12)))
+
+# Create a custom dataframe for annotations
+ann_df2 <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS"),
+  Family = c("Boidae", "Colubridae"),          # The faceting variable
+  start_group = c("TBS", "TBS"),    # Left side of bracket
+  end_group = c("YRS", "YRS"),    # Right side of bracket
+  y_position = c(1, 2.6),       # Tailored height for each individual facet
+  label = c("***", "N.S.") # Custom text or stars
+)
+
+snake.fam.fig.final <- snake.fam.fig +
+  geom_signif(
+    data = ann_df2,
+    aes(xmin = 1, xmax = 2, y_position = y_position, annotations = label),
+    manual = TRUE) + facet_wrap(~Family, scales = "free")
+
+```
+
+# Detections Panel Figure
+
+```{r panel detections figure}
+library(patchwork)
+
+
+```
+
+# Density estimates
+
+Note I think it's a good idea to follow the methods in this paper: Hierarchical distance sampling to estimate population sizes of common lizards across a desert ecoregion (in Zotero shared library)
+
+## Binning
+
+First, create distance bins. Also look at some things.
+
+```{r review data more} 
+
+# pull out year to make a way to distinguish between seasons
+
+snakes.sur$Year <- factor(format(snakes.sur$Start_Date, "%Y"))
+
+snakes.sur %>%
+  group_by(Year, Station) %>%
+    reframe(N_surveys = length(unique(Start_Date))) #Effort comparisons between stations
+
+# Deciding on distance bins in distance sampling involves selecting cutpoints that adequately capture the shape of the detection function, typically ensuring more bins near the line (where detection probability changes rapidly) and fewer further away. The goal is to minimize bias from data rounding while ensuring enough observations per bin for accurate model fitting. 
+
+# Smaller bins closer to zero
+
+# Truncate your data to remove the farthest detections - WE CANNOT DO THIS DUE TO THE BOA BIAS THAT OWEN POINTED OUT
+
+# First, look at a histogram of distance from trail to get an idea of detection distribution
+
+hist(snakes.sur$Distance_From_Trail_m, breaks = seq(0, 12, by = 0.5))
+
+```
+
+
+```{r divide up bins broader}
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1", NA))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 2, "1_2", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 3, "2_3", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 3 & Distance_From_Trail_m <= 4, "3_4", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4 & Distance_From_Trail_m <= 5, "4_5", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 5, "5_8", Distance_bin_m))
+
+```
+
+
+## 3 Diet types
+
+Mixed, primarily mammal consumers, non-mammal consumers
+
+```{r format for unmarked 3 diet types}
+
+# isolate surveys for which no snakes were found
+zeros.3.diets <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m)
+
+# get them into the format we want (tally doesn't actually matter here)
+z.tally.no.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
+
+# no mammals
+z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
+
+# mostly mammals
+z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
+
+# mixed
+
+# mixed
+z.tally.mixed.3.diets <- zeros.3.diets %>%
+  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+
+z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
+
+# stack them together
+z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+#clean
+rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies.3 <- z.tallies.3 %>%
+  select(!n)
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally.3 <- surveys.no.zeros %>%
+  group_by(Start_Date, Year, Station, Diet_Type_3categories, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
+
+# pivot wider that wider
+density_est_df.3 <- survey.tally.3 %>% 
+  pivot_wider(names_from = Distance_bin_m,
+              values_from = n, 
+              values_fill = 0)
+
+# now, we can add the surveys and the segments with zero detections back
+
+density_est_df.3 <- full_join(z.tallies.3, density_est_df.3)
+
+# make NAs zeros - except the temp and humidty NAs
+
+density_est_df.3 <- density_est_df.3 %>%mutate_all(~replace(., is.na(.), 0))
+
+# clean
+rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
+```
+
+```{r make umf three diet types}
+
+density_est_df.3$Year <- as.factor(density_est_df.3$Year)
+density_est_df.3$Diet_Type_3categories <- as.factor(density_est_df.3$Diet_Type_3categories)
+density_est_df.3$Seg_dist_m <- as.numeric(density_est_df.3$Seg_dist_m)
+density_est_df.3$Segment <- as.factor(density_est_df.3$Segment)
+density_est_df.3$Station <- as.factor(density_est_df.3$Station)
+
+# separate out the covariates
+covs.3 <- density_est_df.3[,c("Station", "Year", "Diet_Type_3categories", "Segment", "Seg_dist_m")]
+
+umf.3 <- unmarkedFrameDS(y=as.matrix(density_est_df.3[,7:ncol(density_est_df.3)]), siteCovs=data.frame(covs.3), dist.breaks=c(0, 1, 2, 3, 4, 5, 8), unitsIn="m", survey="line", tlength=covs.3$Seg_dist_m)
+
+hist(umf.3, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
+
+```
+
+### GOF function
+
+Goodness of fit tests
+
+```{r gof function}
+
+# using this resource: https://www.montana.edu/screel/teaching/bioe-440r-521/bioe-440-distance-sampling.html
+
+# Goodness of fit test: good fit if results of these tests show p > 0.05. First, fit a model: use your best-supported model (Lowest AIC). Then check GOF for that model.
+
+# Function returning three fit-statistics.
+
+fitstats <- function(fm) {
+
+  observed <- getY(fm@data)
+
+  expected <- fitted(fm)
+
+  resids <- residuals(fm)
+
+  sse <- sum(resids^2)
+
+  chisq <- sum((observed - expected)^2 / expected)
+
+  freeTuke <- sum((sqrt(observed) - sqrt(expected))^2)
+
+  out <- c(SSE=sse, Chisq=chisq, freemanTukey=freeTuke)
+
+  return(out)
+
+}
+
+```
+
+
+## Model 3 Diet Types
+
+```{r mods three diet types no env covs}
+
+null.3 <- distsamp(~1 ~ 1, umf.3, unitsOut = "kmsq")
+summary(null.3)
+
+Diet_det <- distsamp(~ Diet_Type_3categories ~ 1, umf.3, unitsOut = "kmsq")
+summary(Diet_det)# diet type as detection covariate improves model
+
+Year.3 <- distsamp(~ Diet_Type_3categories ~ Year, umf.3, unitsOut = "kmsq")
+summary(Year.3)
+# doesn't significantly improve fit (< 2 AIC)
+
+Station.3 <- distsamp(~Diet_Type_3categories ~ Station, umf.3, unitsOut = "kmsq")
+summary(Station.3)
+# station makes things worse
+
+StationXGuild.3 <- distsamp(~Diet_Type_3categories ~ Station/Diet_Type_3categories, umf.3, unitsOut = "kmsq")
+summary(StationXGuild.3)
+# Make a table to compare models
+
+# put mods in a list
+mod.set.3diets <- list(null.3 = null.3, Year.3 = Year.3, StationXGuild.3 = StationXGuild.3, Station.3 = Station.3, Diet_det = Diet_det)
+
+# make table
+aic_table.3 <- aictab(cand.set = mod.set.3diets, sort = TRUE)
+
+aic_table.3
+
+```
+
+### GOF 3 diet types
+
+```{r goodness of fit three guilds}
+#pb_3cats <- parboot(StationXGuild.3, fitstats, nsim=1000)
+#pb_3cats
+# fine
+```
+
+
+## Predicted vals 3 diet types
+
+```{r predicted values three guilds}
+
+new.data3 <- density_est_df.3 %>%
+  ungroup() %>%
+  dplyr::select(Station, Diet_Type_3categories) %>%
+  distinct()
+
+#Predict
+
+predictions3 <- predict(StationXGuild.3, type="state", newdata=new.data3, appendData=TRUE)
+
+```
+
+```{r plot three guilds, message=FALSE, warning=FALSE}
+predictions3$Diet_Type_3categories <- factor(
+  predictions3$Diet_Type_3categories,
+  levels = c("no_mammals", "mixed", "mostly_mammals", 
+  labels = c("No Mammals", "Mixed", "Mostly Mammals"))
+) #make sure that the order goes nomamm > mixed > mostly mamm
+
+p_3cats<-ggplot(predictions3, aes(x=Station, y=Predicted, fill = Diet_Type_3categories, group = Station)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 4) + theme_bw() + scale_fill_manual(values = c("goldenrod1", "green4", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake Density Estimates by Dietary Guild") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(text = element_text(family = "Tahoma")) + theme(axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12, margin = margin(b = 10))) + scale_fill_manual(
+  name = "Diet Type",
+  values = c("goldenrod1", "green4", "black"),
+  labels = c("No mammals", "Mixed", "Mostly mammals")
+) + facet_wrap(~Diet_Type_3categories, scales = "free", labeller = labeller(Diet_Type_3categories = c(
+    no_mammals = "No Mammals",
+    mixed = "Mixed",
+    mostly_mammals = "Mostly Mammals"
+  ))
+)
+
+p_3cats
+
+#ggsave(p_3cats, file="snk_dens_3diet.png", width = 8, height = 5)
+
+
+```
+
+Appears to be elevated numbers in hunted forest in the guild that is mostly mammal consumers.
+
+
+## Family level
+
+The two most detected families are Boidae and Colubridae. Limitting the analysis to these 2 families allows the models to run without error with Family as a covariate. Including all families detected creates model issues with uncertainty because the other families were only detected 1 or 2 times. 
+
+```{r format for unmarked based on fams}
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m <= 1, "0_1", NA))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 1 & Distance_From_Trail_m <= 2, "2", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 2 & Distance_From_Trail_m <= 4, "2_4", Distance_bin_m))
+
+snakes.sur <- snakes.sur %>%
+  mutate(Distance_bin_m = ifelse(Distance_From_Trail_m > 4, "4_8", Distance_bin_m))
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+# SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally <- surveys.no.zeros %>%
+  filter(Family != "Viperidae") %>%
+filter(Family != "Elapidae") %>%
+  group_by(Start_Date, Year, Station, Family, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
+
+# generate all possible combinations based on family to get zeros
+
+df_long <- survey.tally %>%
+  as_tibble() %>%
+  complete(Family, Distance_bin_m, nesting(Start_Date, Year, Station, Segment, Seg_dist_m), fill = list(n = 0))
+
+# also, which families eat what?
+snakes.sur %>%
+  group_by(Family) %>%
+  reframe(unique(Diet_Type)) # colubridae is only possibility for mixed in our data?
+
+# pivot wider that wider
+density_fam_df <- df_long %>% 
+  pivot_wider(names_from = Distance_bin_m,
+              values_from = n, 
+              values_fill = 0)
+```
+
+
+## Model family level density
+
+```{r model at fam level}
+# separate out the covariates
+
+# model not running bc of sparse data at fam level - removed elapidae, which only had 1 detection, and Viperidae which only had 2
+
+covs.fam <- density_fam_df[,c("Station", "Year", "Family", "Segment", "Seg_dist_m")]
+
+umf.fam <- unmarkedFrameDS(y=as.matrix(density_fam_df[,7:ncol(density_fam_df)]), siteCovs=data.frame(covs.fam), dist.breaks=c( 0,1,2,4,8), unitsIn="m", survey="line", tlength=covs.fam$Seg_dist_m)
+
+# run models
+# null
+null.fam <- distsamp(~1 ~ 1, umf.fam, unitsOut = "kmsq")
+summary(null.fam)
+
+# family as detection covariate, no density covariate
+fam.null  <- distsamp(~Family ~ 1, umf.fam, unitsOut = "kmsq")
+summary(fam.null)
+
+# add year as density covariate
+year <- distsamp(~ Family ~ Year, umf.fam, unitsOut = "kmsq")
+summary(year)
+
+# add station as density covariate
+station <- distsamp(~Family ~ Station, umf.fam, unitsOut = "kmsq")
+summary(station)
+
+# add station and station x family interaction term 
+
+station_stationXfam <- distsamp(~Family~ Station/Family, umf.fam, unitsOut = "kmsq")
+
+summary(station_stationXfam)
+# best mod by far
+
+# put mods in a list
+mod.set.family <- list(null.fam = null.fam, fam.null = fam.null, year = year, station = station, station_stationXfam = station_stationXfam)
+
+# make table
+aic_table.fam <- aictab(cand.set = mod.set.family, sort = TRUE)
+
+aic_table.fam
+```
+
+
+## Predicted vals fam
+
+```{r predicted values three guilds}
+
+new.data.fam <- density_fam_df %>%
+  ungroup() %>%
+  dplyr::select(Station, Family) %>%
+  distinct()
+  
+
+#Predict
+
+predictions.fam <- predict(station_stationXfam, type="state", newdata=new.data.fam, appendData=TRUE)
+
+
+```
+
+
+```{r plot fam, message=FALSE, warning=FALSE}
+
+p_3cats_fam<-ggplot(predictions.fam, aes(x=Station, y=Predicted, fill = Family, group = Station)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("purple2","goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake Density Estimates by Family") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(text = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5,face = "bold", size = 12)) 
+
+p_3cats_fam
+
+#ggsave(p_3cats_fam, file="snk_dens_3diet_fam.png", width = 8, height = 5)
+```
+
+Appears to be elevated numbers in hunted forest in the family that is mostly mammal consumers.
+
+
+# Community composition
+
+## Pie Charts
+
+Below I mess around with some basic community composition visualizations.
+
+```{r species occurrences}
+
+# just get an idea of n detections from all survey types per station, including the instances with no ID
+raw_count <- snakes.master %>%
+  group_by(Station) %>%
+  reframe(n = n())
+
+# total at YRS is 111, at TBS is 108 (great, super comparable numbers when pooled)
+
+# subfamily level may help
+# create this column and populate it:
+snakes.master$Subfamily <- NA
+snakes.master <- snakes.master %>%
+  dplyr::mutate(Subfamily = ifelse(Genus == "Siphlophis" | Genus == "Imantodes" | Genus == "Dipsas" | Genus == "Drepanoides" | Genus == "Oxyrhopus" | Genus == "Leptodeira" | Genus == "Hydrops" | Genus == "Helicops" | Genus == "Atractus" | Genus == "Erythrolamprus" | Genus == "Taeniophallus" | Genus == "Pseudoboa", "Dipsadinae", 
+                            ifelse(Genus == "Epicrates" | Genus == "Corallus" | Genus == "Eunectes", "Boinae",
+                                   ifelse(Genus == "Chironius" | Genus == "Drymobius" | Genus == "Tantilla" | Genus == "Drymarchon" | Genus == "Oxybelis" | Genus == "Spilotes" | Genus == "Dendrophidion" | Genus =="Leptophis", "Colubrinae",
+                                          ifelse(Genus == "Bothrops" | Genus == "Bothrocophias", "Crotalinae",
+                                                 ifelse(Genus == "Xenoxybelis", "Xenodontinae",
+                                                        ifelse(Genus == "Micrurus", "Elapinae", Subfamily)))))))
+
+#Siphlophis = Dipsadinae
+#Imantodes = Dipsadinae 
+#Epicrates = Boinae
+#Dipsas = Dipsadinae
+#Drepanoides = Dipsadinae  
+#Chironius = Colubrinae
+#Corallus = Boinae
+#Oxyrhopus = Dipsadinae
+#Leptodeira = Dipsadinae
+#Hydrops = Dipsadinae
+#Bothrops = Crotalinae
+#Xenoxybelis = Xenodontinae
+#Drymobius = Colubrinae
+#Micrurus = Elapinae
+#Helicops = Dipsadinae
+#Eunectes = Boinae   
+#Atractus = Dipsadinae
+#Tantilla = Colubrinae
+#Drymarchon = Colubrinae
+#Erythrolamprus = Dipsadinae
+#Taeniophallus = Dipsadinae
+#Bothrocophias = Crotalinae
+#Spilotes = Colubrinae
+#Pseudoboa = Dipsadinae
+#Oxybelis = Colubrinae
+#Dendrophidion = Colubrinae
+#Leptophis = Colubrinae
+#Bothrocophias = Crotalinae
+
+# make an edge list of n times an individual was seen at each station for each subfamily group
+sub.fam.edgelist <- snakes.master %>%
+  group_by(Station, Subfamily) %>%
+  tally() %>%
+  na.omit() 
+
+# piechart
+ggplot(sub.fam.edgelist, aes(x="", y= n, fill=Subfamily)) +
+  geom_bar(stat="identity", width=0.5, color="black") +
+  coord_polar("y", start=0) +
+  theme_void() + facet_wrap(~Station) + # remove background, grid, numeric labels
+  scale_fill_brewer(palette="Set1") # remove background, grid, numeric labels
+
+# only the survey snake data, at subfamily level
+surveys <- snakes.master %>%
+  filter(Method_of_Detection == "Found on survey") %>%
+  group_by(Station, Subfamily) %>%
+  tally() %>%
+  na.omit() 
+
+# pie chart
+ggplot(surveys, aes(x="", y= n, fill=Subfamily)) +
+  geom_bar(stat="identity", width=0.5, color="black") +
+  coord_polar("y", start=0) +
+  theme_void() + facet_wrap(~Station) + 
+  scale_fill_brewer(palette="Set1") 
+
+# Genus level, all detection methods:
+all.genus <- snakes.master %>%
+  group_by(Station, Genus) %>%
+  tally() %>%
+  na.omit() 
+
+# pie chart
+ggplot(all.genus, aes(x="", y= n, fill=Genus)) +
+  geom_bar(stat="identity", width=0.5, color="black") +
+  coord_polar("y", start=0) +
+  theme_void() + facet_wrap(~Station)
+
+# Genus level, surveys only:
+surveys.genus <- snakes.master %>%
+  filter(Method_of_Detection == "Found on survey") %>%
+  group_by(Station, Genus) %>%
+  tally() %>%
+  na.omit() 
+
+# pie chart
+ggplot(surveys.genus, aes(x="", y= n, fill=Genus)) +
+  geom_bar(stat="identity", width=0.5, color="black") +
+  coord_polar("y", start=0) +
+  theme_void() + facet_wrap(~Station) 
+
+# family
+
+surveys.family <- snakes.master %>%
+  filter(Method_of_Detection == "Found on survey") %>%
+  group_by(Station, Family) %>%
+  tally() %>%
+  na.omit() 
+
+# pie chart
+ggplot(surveys.family, aes(x="", y= n, fill=Family)) +
+  geom_bar(stat="identity", width=0.5, color="black") +
+  coord_polar("y", start=0) +
+  theme_void() + facet_wrap(~Station) 
+```
+
+
+## All records community composition
+
+### Jaccard PERMANOVA 
+
+```{r jaccard permanova}
+
+# going to re-run this since some snakes were missing previously
+snakes.master$ID <- paste(snakes.master$Station, snakes.master$Date, snakes.master$Snake_ID, sep = "//")
+
+edgelist.full <- snakes.master %>%
+  filter(Genus != "unknown") %>%
+  group_by(Station, Species, Date, ID) %>%
+  tally() %>%
+  na.omit()
+
+# now, let's use dplyr again to transpose (flip) your sp.abun dataframe so that now, you have the species as column names and the number of times they were found at each trail and date will be the data reported (expect lots of 0s and 1s)
+
+snake.occ.mat <- edgelist.full %>% 
+  pivot_wider(names_from = Species, #makes the column into the rownames
+              values_from = n, 
+              values_fill = 0) %>% #will fill spaces with no snakes as 0
+  column_to_rownames(var = "ID") #will make this new combo the unique identifier as rownames
+
+community <- snake.occ.mat[, c(3:42)] #made matrix from all data columns with n snake data
+
+predictors <- snake.occ.mat[, c(1,2)] #separating non-snake stuff (station and zone)
+
+j.dis.mat <- vegdist(community, method = "jaccard") #jaccard only accounts for presence absence 
+
+pnova.j <- adonis2(j.dis.mat ~ predictors$Station) #adonis looks at specific differences between groups, our group factor is station
+
+# look at results
+print(pnova.j) # marginally sig/nonsig
+```
+
+### Jaccard NMDS
+
+```{r jaccard nmds visual}
+
+```
+
+## Survey records community composition
+
+### Jaccard PERMANOVA
+
+### Jaccard NMDS
+
+### Horn-Morisita PERMANOVA
+
+### Horn-Morisita NMDS
+
+# Diversity
+
+```{r diversity & hill numbers}
+
+# Diversity
+
+# need data in a new species x site matrix
+unique(snakes.sur$Species)
+
+temp <- snakes.sur %>%
+  group_by(Station, Species) %>% tally()
+
+temp <- temp %>%
+  na.omit()
+
+# Need to modify the matrix so we have an n column, etc.
+
+
+# get the new format, species as row names, station as columns
+div.mat <- temp %>% 
+  pivot_wider(names_from = Station, 
+              values_from = n, 
+              values_fill = 0) %>%
+  column_to_rownames(var = "Species")
+
+# now we use div.mat to get the diversity and 95% CIs
+# new function uses iNEXT package (confusingly also the name of the function)
+species.diversity = iNEXT(div.mat, q = c(0,1,2), datatype = "abundance", nboot = 200)
+
+# extract values we need
+species.diversity.output <- species.diversity[["iNextEst"]][["coverage_based"]]
+
+div.vals <- species.diversity.output %>% 
+  filter(Assemblage == "TBS" & m == 100 | Assemblage == "YRS" & m == 100)
+
+# plot diversity
+diversity.plot <- ggplot(data = div.vals, aes(x = Assemblage, y = qD, fill = as.factor(Order.q), shape = as.factor(Order.q))) + theme_light() + geom_pointrange(aes(ymin = qD.LCL, ymax = qD.UCL), position = position_dodge2(width = 0.35), color = "black", size = 0.6) + xlab(NULL) + ylab("Effective Number of Species") + scale_x_discrete(labels = c("Unhunted", "Hunted")) + scale_fill_manual(values = c("red", "goldenrod", "cornflowerblue"), labels = c("q = 0\n(richness)", "q = 1\n(exp. Shannon)", "q = 2\n(inv. Simpson)")) + coord_fixed(ratio = 0.1) + scale_shape_manual(values = c(21, 22, 23)) +
+  theme(axis.title.y = element_text(size = 11, colour = "black", family = "Tahoma", 
+                                    margin = margin(r = 10))) +
+  theme(axis.title.x = element_text(size = 11, colour = "black", family = "Tahoma")) +
+  theme(axis.text = element_text(size = 11, colour = "black", family = "Tahoma")) +
+  theme(strip.text.x = element_text(size = 11, colour = "black", family = "Tahoma")) + 
+  theme(legend.title = element_blank()) + theme(legend.text = element_text(size = 10)) +
+  theme(plot.title = element_text(size = 11, colour = "black", family = "Tahoma", 
+                                  hjust = .5, face = "bold")) + theme(legend.position = "bottom") +
+  guides(fill = guide_legend(override.aes = list(shape = c(21, 22, 23)))) + guides(shape = "none") + ggtitle(str_wrap("Station-Level Diversity Measured with Hill Numbers (q = 0, 1, 2)", width=40))
+
+diversity.plot
+
+#ggsave("snk_diversity_plot.png", plot = diversity.plot, width = 6, height = 6.5)
+
+```
+
+Species accumulation curves
+
+```{r accum curves}
+
+ggiNEXT(species.diversity, type=1, facet.var="Order.q", grey=TRUE) 
+
+```
+
+Right so no difference there.
