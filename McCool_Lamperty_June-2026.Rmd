@@ -1380,8 +1380,13 @@ density_est_df.3 <- full_join(z.tallies.3, density_est_df.3)
 
 density_est_df.3 <- density_est_df.3 %>%mutate_all(~replace(., is.na(.), 0))
 
+# pivot wider # NOTE TO OWEN USE THIS
+test_tallies <- survey.tally.3 %>% 
+  pivot_wider(names_from = Diet_Type_3categories,
+              values_from = n, 
+              values_fill = 0)
 # clean
-rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
+# rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
 ```
 
 ```{r make umf three diet types}
@@ -2113,4 +2118,12 @@ sim <- simulateResiduals(fittedModel = snake.mod4, plot = T)
 # passes validation
 # AIC 129.8
 summary(snake.mod4)
+
+test_tallies <- survey.tally.3 %>% 
+  pivot_wider(names_from = Diet_Type_3categories,
+              values_from = n, 
+              values_fill = 0)
+
+test_tallies <- test_tallies %>%
+  pivot_longer(cols = )
 ```
