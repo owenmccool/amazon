@@ -25,8 +25,11 @@ library(unmarked) #density estimates with hierarchical distance sampling models
 library(tidyr)
 library(AICcmodavg) # has convenient functions for comparing models based on AIC
 library(showtext)
+library(patchwork)
+library(ggsignif)
 showtext_auto()
 font_add(family = "Tahoma", regular = "tahoma.ttf")
+
 ```
 
 # Project Overview
@@ -1452,6 +1455,7 @@ snake.guild.fig.final <- snake.guild.fig +
       "no_mammals" = "Non-mammal diet")
   )) 
 
+snake.guild.fig.final
 ```
 
 # Snakes per family per hour
@@ -1562,7 +1566,7 @@ library(patchwork)
 
 # Density estimates
 
-Note I think it's a good idea to follow the methods in this paper: Hierarchical distance sampling to estimate population sizes of common lizards across a desert ecoregion (in Zotero shared library)
+Note I think it's a good idea to follow the methods in this paper: Hierarchical distance sampling to estimate population sizes of common lizards across a desert ecoregion (in Zotero shared library): OWEN sounds like a plan I can read that this weekend. 
 
 ## Binning
 
