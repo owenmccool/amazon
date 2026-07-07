@@ -532,9 +532,7 @@ env_24_25_nights <- enviro
 rm(env, enviro)
 ```
 
-# Data summaries
-
-## Sampling Time and Distance
+# Sampling Effort Summaries
 
 ```{r get effort fixed}
 
@@ -576,7 +574,9 @@ all_surv_records %>%
 
 ```
 
-## Small mammals
+# Small Mammals
+
+## Summarize
 
 ```{r summarize small mammal numbers}
 
@@ -595,57 +595,7 @@ env_24_25_nights %>%
 
 ```
 
-# Small Mammals
-
-## Smamm Per hr boxplot
-
-```{r small mammal boxplot}
-
-# make a boxplot!
-
-smammals.plot <- ggplot(data = small.mamms.df, aes(x = Station, y = smammals.hr, fill = Station)) + geom_boxplot() + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1"), labels = c("Unhunted", "Hunted")) + xlab("Station") +
-  theme(legend.title=element_blank()) + ylab("N Small Mammals Detected Per Hour") + ggtitle("Small Mammal Detection Rates by Station") 
-
-smammals.plot #view the plot
-
-# clean
-rm(smammals.plot)
-
-# save plot to computer files
-#ggsave(smammals.plot, file="small_mammal_plot.png", width = 6, 
-      # height = 4)
-# can add dimension specifications with width = x and height = x
-```
-
-## Smamm Per hr mean and se
-
-```{r smamm per hr se and mean}
-
-# another way to plot that makes judging significance easier NEEDS EXPLAINING
-smams.mean.se <- small.mamms.df %>%
-  group_by(Station) %>%
-  summarise(mean = mean(smammals.hr),
-            sd = sd(smammals.hr),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
-  geom_jitter(data = small.mamms.df, 
-              aes(x = Station, y = smammals.hr), 
-              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small Mammal Detections in Hunted\nand Unhunted Forest") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
-
-smamm.fig #view plot, also seems significant NEED TO UNDERSTAND GGPLOT CODE
-
-#ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 6)
-
-rm(smams.mean.se, smamm.fig)
-```
-
-## Smamm Model
+## Model
 
 ```{r small mammal model}
 
@@ -666,9 +616,32 @@ testZeroInflation(smam.cont, plot = F)
 
 ```
 
+## Small Mammal Figure
 
-```{r clean env after smamm}
-rm(sim, smam.cont, small.mamms.df)
+```{r small mammal figure}
+
+smams.mean.se <- small.mamms.df %>%
+  group_by(Station) %>%
+  summarise(mean = mean(smammals.hr),
+            sd = sd(smammals.hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = small.mamms.df, 
+              aes(x = Station, y = smammals.hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) + coord_fixed(ratio = 0.75) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small mammals") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) +
+  geom_signif(
+    y_position = 5, xmin = 1, xmax = 2,
+    annotation = "***")
+
+smamm.fig
+
+#ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 6)
+
 ```
 
 # Prep frog, lizard, and env data
@@ -1088,7 +1061,7 @@ testZeroInflation(frog.mod3, plot = F)
 #looks good
 ```
 
-## Figures
+## Figure
 
 ```{r frog plots}
 
@@ -1102,61 +1075,17 @@ frogs.mean.se <- amph_lz_detections %>%
 frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
   geom_jitter(data = amph_lz_detections, 
               aes(x = Station, y = n_frogs_hr), 
-              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frog Detections in Hunted\nand Unhunted Forest") +
+              width = 0.15, size = 1.5, alpha = 0.3) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frogs") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
     legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) +
+  geom_signif(
+    y_position = 7.5, xmin = 1, xmax = 2,
+    annotation = "N.S.")
 
 frog.fig1
 
-```
-
-Also just because I'm curious, look at things broken down by survey type and height of individual at time of detection (ground, understory, or canopy)
-
-```{r more frog plots}
-
-frogs.mean.se2 <- amph_lz_detections %>%
-  filter(Survey_Type !="Morning") %>%
-  filter(Height_of_Individual != "") %>%
-  group_by(Station, Survey_Type, Height_of_Individual) %>%
-  summarise(mean = mean(n_frogs_hr),
-            sd = sd(n_frogs_hr),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-frog.fig.complicated <- ggplot(frogs.mean.se2, aes(x=Station, y=mean, fill = Survey_Type)) +
-  geom_jitter(data = amph_lz_detections, 
-              aes(x = Station, y = n_frogs_hr), 
-              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frog Detections in Hunted\nand Unhunted Forest") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme( axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) + labs(fill = "Survey Type")
-
-frog.fig.complicated + facet_wrap(~Height_of_Individual)
-
-```
-
-```{r another frog fig}
-frogs.mean.se3 <- amph_lz_detections %>%
-  filter(Survey_Type !="Morning") %>%
-  filter(Height_of_Individual != "") %>%
-  group_by(Station, Height_of_Individual) %>%
-  summarise(mean = mean(n_frogs_hr),
-            sd = sd(n_frogs_hr),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-frog.fig2 <- ggplot(frogs.mean.se3, aes(x=Station, y=mean, fill = Height_of_Individual)) +
-  geom_jitter(data = amph_lz_detections, 
-              aes(x = Station, y = n_frogs_hr), 
-              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "gray")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frog Detections in Hunted\nand Unhunted Forest") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme( axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) + labs(fill = "Height of Individual")
-
-frog.fig2 + facet_wrap(~Height_of_Individual)
-citation()
 ```
 
 # Lizards per hour
@@ -1223,7 +1152,7 @@ testZeroInflation(liz.cont.mod4, plot = F)
 #looks good: Get scatterplot about lixzard tedections with temp, how different are they between day and night
 ```
 
-## Figures
+## Figure
 
 ```{r liz plots}
 
@@ -1237,17 +1166,18 @@ liz.mean.se <- amph_lz_detections %>%
 liz.fig1 <- ggplot(liz.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
   geom_jitter(data = amph_lz_detections, 
               aes(x = Station, y = n_liz_hr), 
-              width = 0.15, size = 1.5, alpha = 0.5) + coord_fixed(ratio = 0.75) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Lizard Detections in Hunted\nand Unhunted Forest") +
+              width = 0.15, size = 1.5, alpha = 0.3) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Lizards") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
     legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) +
+  geom_signif(
+    y_position = 4, xmin = 1, xmax = 2,
+    annotation = "N.S.")
 
 liz.fig1 
 
 ```
-
-
 
 # Snakes per hour
 
@@ -1470,108 +1400,164 @@ snake_guild_per_hr %>%
 
 ```{r snakes per guild mod}
 
-snakes.3.guilds.m1 <- glmmTMB(n ~ Diet_Type_3categories:Station + (1|Parent_Trail_LongName) + offset(log(Effort_hrs)), data = snake_guild_per_hr, family = nbinom2)
+snakes.3.guilds.m1 <- glmmTMB(n ~ Station/Diet_Type_3categories + (1|Parent_Trail_LongName) + offset(log(Effort_hrs)), data = snake_guild_per_hr, family = nbinom2)
 
 sim <- simulateResiduals(fittedModel = snakes.3.guilds.m1, plot = T)
 # passes validation
 
 summary(snakes.3.guilds.m1)
 
-# T stopping here July 3, 2026
-# I think this needs some more trouble shooting to investigate if I should be concerned about rank difficient cols being dropped; also, had more trouble with continue response (n per hour) relative to the count data with the offset term - so that may be the way to go
+Anova(snakes.3.guilds.m1)
+
+# significant interaction effect
 
 ```
 
-```{r raw detection per unit distance}
+## Figure
 
-# isolate surveys for which no snakes were found
-zeros.3.diets <- snakes.sur %>%
-  filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m)
+```{r snake guild figure}
 
-# get them into the format we want (tally doesn't actually matter here)
-z.tally.no.mammals.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+snakes.per.guild.mean.se <- snake_guild_per_hr %>%
+  group_by(Station, Diet_Type_3categories) %>%
+  summarise(mean = mean(snakes_hr),
+            sd = sd(snakes_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
 
-# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
+snake.guild.fig <- ggplot(snakes.per.guild.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = snake_guild_per_hr, 
+              aes(x = Station, y = snakes_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by feeding guild") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12)))
 
-# no mammals
-z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
+# Create a custom dataframe for annotations
+ann_df <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS", "TBS", "YRS"),
+  Diet_Type_3categories = c("mixed", "mostly_mammals", "no_mammals"),          # The faceting variable
+  start_group = c("TBS", "TBS", "TBS"),    # Left side of bracket
+  end_group   = c("YRS", "YRS", "YRS"),    # Right side of bracket
+  y_position  = c(0.9, 0.9, 2.6),       # Tailored height for each individual facet
+  label       = c("N.S.", "***", "N.S.") # Custom text or stars
+)
 
-# mostly mammals
-z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+snake.guild.fig.final <- snake.guild.fig +
+  geom_signif(
+    data = ann_df,
+    aes(xmin = 1, xmax = 2, y_position = y_position, annotations = label),
+    manual = TRUE) + facet_wrap(~Diet_Type_3categories, scales = "free", labeller = labeller(Diet_Type_3categories = 
+    c("mixed" = "Mixed diet",
+      "mostly_mammals" = "Primarily mammal diet",
+      "no_mammals" = "Non-mammal diet")
+  )) 
 
-z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
+```
 
-# mixed
+# Snakes per family per hour
 
-# mixed
-z.tally.mixed.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date,Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+## Format
 
-z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
-
-# stack them together
-z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
-
-#clean
-rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
-
-# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
-
-# remove the n column (meaningless)
-z.tallies.3 <- z.tallies.3 %>%
-  select(!n)
+```{r format data per family}
 
 # also isolate surveys that DID have snakes detected
 surveys.no.zeros <- snakes.sur %>%
   filter(!is.na(Snake_ID))
 
-length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
+# SK04 and SK05 are duplicated
 # remove the duplicate entries
 
 surveys.no.zeros <- surveys.no.zeros %>%
   filter(!duplicated(Snake_ID))
 
 # tally counts - df without zeros
-survey.tally.3 <- surveys.no.zeros %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
+survey.tally <- surveys.no.zeros %>%
+  filter(Family != "Viperidae") %>%
+filter(Family != "Elapidae") %>%
+  group_by(Start_Date, Station, Family, Parent_Trail_LongName, Effort_hrs) %>% tally()
 
-# now, we can add the surveys and the segments with zero detections back
+# generate all possible combinations based on family to get zeros
 
-raw_detection_df <- full_join(z.tallies.3, survey.tally.3)
+snake.family.tallies <- survey.tally %>%
+  as_tibble() %>%
+  complete(Family, nesting(Start_Date, Station, Effort_hrs, Parent_Trail_LongName), fill = list(n = 0))
 
-# make NAs zeros
-raw_detection_df <- raw_detection_df %>%
-  mutate(n = ifelse(is.na(n), 0, n))
+# get rate per hour
 
-# I did this fast and it should be checked
+snake.family.tallies$n_hr <- snake.family.tallies$n/snake.family.tallies$Effort_hrs
 
-detection_rates <- raw_detection_df %>%
-  group_by(Station, Diet_Type_3categories, Start_Date) %>%
-  summarize(meters_surveyed = sum(Seg_dist_m),
-            individuals_found = sum(n))
+```
 
-sum(detection_rates$individuals_found)
-detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
+## Summarize
 
-sum(detection_rates$individuals_found)
-detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
-
-detection_rates$n_per_1000m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*10000
-# summarize and visualize
-detections.mean.se <- detection_rates %>%
-  group_by(Station, Diet_Type_3categories) %>%
-  summarise(mean = mean(n_per_1000m),
-            sd = sd(n_per_1000m),
+```{r snakes per fam summary}
+snake.family.tallies %>%
+  group_by(Station, Family) %>%
+  summarise(
+    tot_per_fam = sum(n),
+    mean_per_fam_per_surv = mean(n),
+            sd = sd(n),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-ggplot(detections.mean.se, aes(x=Station, y=mean, fill = Diet_Type_3categories)) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Detections/1km") + ggtitle("Snake Detections per 1km by Diet Type") + facet_wrap(~Diet_Type_3categories, scales = "free")
+```
 
-# need to also report raw overall detections regardless of diet type per station 
+## Model
+
+```{r model dets per fam}
+snakes.fam.m1 <- glmmTMB(n ~ Station/Family + (1|Parent_Trail_LongName) + offset(log(Effort_hrs)), data = snake.family.tallies, ziformula = ~1, family = nbinom2)
+
+sim <- simulateResiduals(fittedModel = snakes.fam.m1, plot = T)
+# passes validation
+
+summary(snakes.fam.m1)
+
+Anova(snakes.fam.m1)
+```
+
+## Figures
+
+```{r snake per fam det fig}
+
+snakes.per.fam.mean.se <- snake.family.tallies %>%
+  group_by(Station, Family) %>%
+  summarise(mean = mean(n_hr),
+            sd = sd(n_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake.fam.fig <- ggplot(snakes.per.fam.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = snake.family.tallies, 
+              aes(x = Station, y = n_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by family") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12)))
+
+# Create a custom dataframe for annotations
+ann_df2 <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS"),
+  Family = c("Boidae", "Colubridae"),          # The faceting variable
+  start_group = c("TBS", "TBS"),    # Left side of bracket
+  end_group = c("YRS", "YRS"),    # Right side of bracket
+  y_position = c(1, 2.6),       # Tailored height for each individual facet
+  label = c("***", "N.S.") # Custom text or stars
+)
+
+snake.fam.fig.final <- snake.fam.fig +
+  geom_signif(
+    data = ann_df2,
+    aes(xmin = 1, xmax = 2, y_position = y_position, annotations = label),
+    manual = TRUE) + facet_wrap(~Family, scales = "free")
+
+```
+
+# Detections Panel Figure
+
+```{r panel detections figure}
+library(patchwork)
+
+
 ```
 
 # Density estimates
@@ -1702,13 +1688,8 @@ density_est_df.3 <- full_join(z.tallies.3, density_est_df.3)
 
 density_est_df.3 <- density_est_df.3 %>%mutate_all(~replace(., is.na(.), 0))
 
-# pivot wider # NOTE TO OWEN USE THIS
-test_tallies <- survey.tally.3 %>% 
-  pivot_wider(names_from = Diet_Type_3categories,
-              values_from = n, 
-              values_fill = 0)
 # clean
-# rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
+rm(survey.tally.3, surveys.no.zeros, z.tallies.3, zeros.3.diets)
 ```
 
 ```{r make umf three diet types}
@@ -2217,237 +2198,3 @@ ggiNEXT(species.diversity, type=1, facet.var="Order.q", grey=TRUE)
 ```
 
 Right so no difference there.
-<<<<<<< HEAD
-
-# Raw detection rates over distance
-
-```{r raw detection rates}
-
-# isolate surveys for which no snakes were found
-zeros.3.diets <- snakes.sur %>%
-  filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m)
-
-# get them into the format we want (tally doesn't actually matter here)
-z.tally.no.mammals.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
-
-# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
-
-# no mammals
-z.tally.no.mammals.3.diets$Diet_Type_3categories <- "no_mammals"
-
-# mostly mammals
-z.tally.mostly.mammals.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
-
-z.tally.mostly.mammals.3.diets$Diet_Type_3categories <- "mostly_mammals"
-
-# mixed
-
-# mixed
-z.tally.mixed.3.diets <- zeros.3.diets %>%
-  group_by(Start_Date,Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
-
-z.tally.mixed.3.diets$Diet_Type_3categories <- "mixed"
-
-# stack them together
-z.tallies.3 <- rbind(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
-
-#clean
-rm(z.tally.no.mammals.3.diets, z.tally.mostly.mammals.3.diets, z.tally.mixed.3.diets)
-
-# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
-
-# remove the n column (meaningless)
-z.tallies.3 <- z.tallies.3 %>%
-  select(!n)
-
-# also isolate surveys that DID have snakes detected
-surveys.no.zeros <- snakes.sur %>%
-  filter(!is.na(Snake_ID))
-
-length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
-# remove the duplicate entries
-
-surveys.no.zeros <- surveys.no.zeros %>%
-  filter(!duplicated(Snake_ID))
-
-# tally counts - df without zeros
-survey.tally.3 <- surveys.no.zeros %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, Segment, Seg_dist_m) %>% tally()
-
-# now, we can add the surveys and the segments with zero detections back
-
-raw_detection_df <- full_join(z.tallies.3, survey.tally.3)
-
-# make NAs zeros
-raw_detection_df <- raw_detection_df %>%
-  mutate(n = ifelse(is.na(n), 0, n))
-
-# I did this fast and it should be checked
-
-detection_rates <- raw_detection_df %>%
-  group_by(Station, Diet_Type_3categories, Start_Date) %>%
-  summarize(meters_surveyed = sum(Seg_dist_m),
-            individuals_found = sum(n))
-
-sum(detection_rates$individuals_found)
-detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
-
-sum(detection_rates$individuals_found)
-detection_rates$n_per_500m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*500
-
-detection_rates$n_per_1000m <- (detection_rates$individuals_found/detection_rates$meters_surveyed)*10000
-# summarize and visualize
-detections.mean.se <- detection_rates %>%
-  group_by(Station, Diet_Type_3categories) %>%
-  summarise(mean = mean(n_per_1000m),
-            sd = sd(n_per_1000m),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-ggplot(detections.mean.se, aes(x=Station, y=mean, fill = Diet_Type_3categories)) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("cornflowerblue", "goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Detections/1km") + ggtitle("Snake Detections per 1km by Diet Type") + facet_wrap(~Diet_Type_3categories, scales = "free")
-
-# need to also report raw overall detections regardless of diet type per station 
-```
-
-# Snakes
-
-## Snake detections dataframe creation
-
-```{r snake detection wide df}
-# First, need to make a wide dataframe similar to amph_lz_detections
-
-# Have to keep zeros and fix repeat SK04 and SK05 observations
-
-snakes.sur2 <- snakes.sur %>%
-  distinct() %>%
-  mutate(n = if_else(is.na(Snake_ID), 0L, 1L))
-
-snake_counts <- snakes.sur2 %>%
-  group_by(Station, Start_Date, Parent_Trail_LongName) %>%
-  summarise(n_snakes = sum(n), .groups = "drop")
-
-# sanity check to make sure correct number of observations is here 
-
-sum(snake_counts$n_snakes)
-
-# Okay now time to add environmental variables: 
-
-humidity_night <- humidity_means %>%
-  filter(Survey_Type == "Night")
-
-snake_counts <- snake_counts %>%
-  left_join(
-    humidity_night %>%
-      select(Station, Start_Date, mean_relative_humidity),
-    by = c("Station", "Start_Date")
-  )
-
-temp_night <- temperature_means %>%
-  filter(Survey_Type == "Night")
-
-snake_counts <- snake_counts %>%
-  left_join(
-    temp_night %>%
-      select(Station, Start_Date, mean_temp_F), 
-    by = c("Station", "Start_Date")
-  )
-
-understory_night <- understory_means %>%
-  filter(Survey_Type == "Night")
-
-snake_counts <- snake_counts %>%
-  left_join(
-    understory_night %>%
-      select(Station, Start_Date, mean_understory_leaves), 
-    by = c("Station", "Start_Date")
-  )
-
-# Almost ready: now just need to add in the Effort column and Meters column from the enviro sheet and then get n_snakes per hour 
-
-snake_counts <- snake_counts %>%
-  left_join(
-    env_24_25_nights %>%
-      select(
-        Station,
-        Start_Date,
-        Parent_Trail_LongName,
-        Meters,
-        Effort_hrs
-      ),
-    by = c("Station", "Start_Date", "Parent_Trail_LongName")
-  )
-
-snake_counts <- snake_counts %>%
-  mutate(n_snakes_hr = n_snakes / Effort_hrs)
-```
-
-## Summarize
-
-```{r snake summaries}
-
-snake_counts %>%
-  group_by(Station) %>%
-  summarise(
-    tot_snake = sum(n_snakes),
-    mean_snake = mean(n_snakes),
-            sd = sd(n_snakes),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-```
-## Model
-
-```{r snake models}
-
-# start simple, only hunting status (station) and survey type
-snake.mod1 <- glmmTMB(n_snakes_hr ~ Station + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = snake.mod1, plot = T)
-# passes validation
-
-summary(snake.mod1)
-# AIC 129.3
-
-# Okay so station doesn't determine any significant differences I don't think
-
-snake.mod2 <- glmmTMB(n_snakes_hr ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = snake.mod2, plot = T)
-# passes validation
-# AIC 130.1 but barely (dAIC = 0.8)
-summary(snake.mod2)
-
-# Humidity doesn't seem to impact detections when looking at station differences
-
-# Time to check temp
-
-snake.mod3 <- glmmTMB(n_snakes_hr ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = snake.mod3, plot = T)
-# passes validation
-# AIC 130.9 
-summary(snake.mod3)
-
-# Lastly understory density
-
-snake.mod4 <- glmmTMB(n_snakes_hr ~ Station*mean_understory_leaves + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = snake.mod4, plot = T)
-# passes validation
-# AIC 129.8
-summary(snake.mod4)
-
-test_tallies <- survey.tally.3 %>% 
-  pivot_wider(names_from = Diet_Type_3categories,
-              values_from = n, 
-              values_fill = 0)
-
-test_tallies <- test_tallies %>%
-  pivot_longer(cols = ) #OWEN: search for pivot_longer, find place where you take three diet types and change it to single diet type column, now has zeros
-```
-=======
->>>>>>> 93ef30f27a137892d069533c1981f913397b7ce1
