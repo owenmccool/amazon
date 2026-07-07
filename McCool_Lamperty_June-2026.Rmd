@@ -2125,5 +2125,5 @@ test_tallies <- survey.tally.3 %>%
               values_fill = 0)
 
 test_tallies <- test_tallies %>%
-  pivot_longer(cols = )
+  pivot_longer(cols = ) #OWEN: search for pivot_longer, find place where you take three diet types and change it to single diet type column, now has zeros
 ```
