@@ -1694,8 +1694,6 @@ snake.fam.fig.final <- snake.fam.fig +
 # Detections Panel Figure
 
 ```{r panel detections figure}
-library(patchwork)
-library(ggpubr)
 
 # ok so we have frog.fig1, liz.fig1, smamm.fig, snake.fam.fig.final, snake.guild.fig.final
 
