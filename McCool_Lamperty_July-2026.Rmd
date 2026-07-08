@@ -174,14 +174,14 @@ unique(snakes.master$Diet_Type)
 # keep original too
 snakes.master$Diet_Type_3categories <- snakes.master$Diet_Type
 
-# mixed = "includes mammals"
+# mixed = "consumes mammals"
 snakes.master <- snakes.master %>%
   mutate(Diet_Type = ifelse(Diet_Type == "mixed", 
-                          "includes_mammals", Diet_Type)) 
-# mostly mammals = includes mammals
+                          "consumes_mammals", Diet_Type)) 
+# mostly mammals = consumes mammals
 snakes.master <- snakes.master %>%
   mutate(Diet_Type = ifelse(Diet_Type == "mostly_mammals", 
-                          "includes_mammals", Diet_Type))
+                          "consumes_mammals", Diet_Type))
 
 # sampling effort
 snakes.sur <- snakes.master %>%
@@ -1310,7 +1310,7 @@ sim <- simulateResiduals(fittedModel = snake.mod4, plot = T)
 summary(snake.mod4)
 ```
 
-# Snakes per guild per hour
+# Snakes per 3 guilds per hour
 
 ## Format
 
@@ -1402,8 +1402,7 @@ snake_guild_per_hr %>%
 ## Model
 
 ```{r snakes per guild mod}
-
-snakes.3.guilds.m1 <- glmmTMB(n ~ Station/Diet_Type_3categories + (1|Parent_Trail_LongName) + offset(log(Effort_hrs)), data = snake_guild_per_hr, family = nbinom2)
+snakes.3.guilds.m1 <- glmmTMB(snakes_hr ~ Station/Diet_Type_3categories + (1|Parent_Trail_LongName), data = snake_guild_per_hr, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = snakes.3.guilds.m1, plot = T)
 # passes validation
@@ -1411,8 +1410,6 @@ sim <- simulateResiduals(fittedModel = snakes.3.guilds.m1, plot = T)
 summary(snakes.3.guilds.m1)
 
 Anova(snakes.3.guilds.m1)
-
-# significant interaction effect
 
 ```
 
@@ -1452,11 +1449,149 @@ snake.guild.fig.final <- snake.guild.fig +
     manual = TRUE) + facet_wrap(~Diet_Type_3categories, scales = "free", labeller = labeller(Diet_Type_3categories = 
     c("mixed" = "Mixed diet",
       "mostly_mammals" = "Primarily mammal diet",
-      "no_mammals" = "Non-mammal diet")
-  )) 
+      "no_mammals" = "Non-mammal diet"))) + theme(strip.text = element_text(size = 12))
 
 snake.guild.fig.final
 ```
+
+# Snakes per 2 guilds per hour
+
+## Format
+
+```{r detections pr hr by guild split into two categories}
+
+# isolate surveys for which no snakes were found
+zeros.2.diets <- snakes.sur %>%
+  filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station, Diet_Type, Parent_Trail_LongName, Effort_hrs)
+
+# get them into the format we want (tally doesn't actually matter here)
+z.tally.no.mammals.2.diets <- zeros.2.diets %>%
+  group_by(Start_Date, Station, Parent_Trail_LongName, Diet_Type, Effort_hrs) %>% tally()
+
+# for the nights when 0 snakes were found, make a dataframe of instances that specifies zero found for each diet type category
+
+# no mammals
+z.tally.no.mammals.2.diets$Diet_Type <- "no_mammals"
+
+# mostly mammals
+z.tally.mammals.2.diets <- zeros.2.diets %>%
+  group_by(Start_Date, Station, Diet_Type, Parent_Trail_LongName, Effort_hrs) %>% tally()
+
+z.tally.mammals.2.diets$Diet_Type <- "consumes_mammals"
+
+# stack them together
+z.tallies.2 <- rbind(z.tally.no.mammals.2.diets, z.tally.mammals.2.diets)
+
+# also, figure out why the zero detections on CHIO-03 6-11-2024 are entered twice, as are 6-23 MAPO03, 6-23 MURC-01, and 6-23 PUEN-01 (all 2024) - ignoring for now bc it's an error I'm pretty sure
+
+# remove the n column (meaningless)
+z.tallies.2 <- z.tallies.2 %>%
+  select(!n)
+
+# also isolate surveys that DID have snakes detected
+surveys.no.zeros <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+length(surveys.no.zeros$Snake_ID) # SK04 and SK05 are duplicated
+# remove the duplicate entries
+
+surveys.no.zeros <- surveys.no.zeros %>%
+  filter(!duplicated(Snake_ID))
+
+# tally counts - df without zeros
+survey.tally.2 <- surveys.no.zeros %>%
+  group_by(Start_Date, Station, Parent_Trail_LongName, Diet_Type, Effort_hrs) %>% tally()
+
+# now, we can add the surveys and the segments with zero detections back
+
+snake_2guilds_per_hr <- full_join(z.tallies.2, survey.tally.2)
+
+# make NAs zeros
+snake_2guilds_per_hr <- snake_2guilds_per_hr %>%
+  mutate(n = ifelse(is.na(n), 0, n))
+
+snake_2guilds_per_hr$snakes_hr <- snake_2guilds_per_hr$n/snake_2guilds_per_hr$Effort_hrs
+
+# clean
+rm(z.tallies.2, zeros.2.diets, survey.tally.2)
+```
+
+## Summarize
+
+```{r summarize snakes per hr per two feeding guilds}
+
+snake_2guilds_per_hr %>%
+  group_by(Station, Diet_Type) %>%
+  summarise(
+    tot_snakes_per_surv = sum(n),
+    mean_snakes_per_surv = mean(n),
+            sd = sd(n),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+## Model
+
+```{r snakes per guild mod}
+
+snakes.2.guilds.m1 <- glmmTMB(snakes_hr ~ Station/Diet_Type + (1|Parent_Trail_LongName), data = snake_2guilds_per_hr, family = tweedie)
+
+sim <- simulateResiduals(fittedModel = snakes.2.guilds.m1, plot = T)
+# passes validation
+
+summary(snakes.2.guilds.m1)
+
+Anova(snakes.2.guilds.m1)
+
+# significant interaction effect
+
+```
+
+## Figure
+
+```{r snake guild figure}
+
+snakes.per.2guilds.mean.se <- snake_2guilds_per_hr %>%
+  group_by(Station, Diet_Type) %>%
+  summarise(mean = mean(snakes_hr),
+            sd = sd(snakes_hr),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake.2guilds.fig <- ggplot(snakes.per.2guilds.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = snake_2guilds_per_hr, 
+              aes(x = Station, y = snakes_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by feeding guild") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12)))
+
+snake.2guilds.fig 
+
+# Create a custom dataframe for annotations
+ann_df2 <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS", "TBS", "YRS"),
+  Diet_Type = c("consumes_mammals", "no_mammals"),          # The faceting variable
+  start_group = c("TBS", "TBS", "TBS"),    # Left side of bracket
+  end_group   = c("YRS", "YRS", "YRS"),    # Right side of bracket
+  y_position  = c(1.5, 3),       # Tailored height for each individual facet
+  label       = c("***", "N.S.") # Custom text or stars
+)
+
+snake.2guilds.fig.final <- snake.2guilds.fig +
+  geom_signif(
+    data = ann_df2,
+    aes(xmin = 1, xmax = 2, y_position = y_position, annotations = label),
+    manual = TRUE) + facet_wrap(~Diet_Type, scales = "free", labeller = labeller(Diet_Type = 
+    c("consumes_mammals" = "Consumes mammals",
+      "no_mammals" = "Non-mammal diet")
+  )) 
+
+snake.2guilds.fig.final
+```
+
 
 # Snakes per family per hour
 
@@ -1552,7 +1687,7 @@ snake.fam.fig.final <- snake.fam.fig +
   geom_signif(
     data = ann_df2,
     aes(xmin = 1, xmax = 2, y_position = y_position, annotations = label),
-    manual = TRUE) + facet_wrap(~Family, scales = "free")
+    manual = TRUE) + facet_wrap(~Family, scales = "free") + theme(strip.text = element_text(size = 12))
 
 ```
 
@@ -1560,8 +1695,15 @@ snake.fam.fig.final <- snake.fam.fig +
 
 ```{r panel detections figure}
 library(patchwork)
+library(ggpubr)
 
+# ok so we have frog.fig1, liz.fig1, smamm.fig, snake.fam.fig.final, snake.guild.fig.final
 
+# is it possible to make that all into 1 figure?
+panel1 <- ggarrange(frog.fig1, liz.fig1, smamm.fig)
+
+panel 
+ggsave(panel, filename = "Figures/Panel_detections.png", height = 8, width = 8)
 ```
 
 # Density estimates
