@@ -16,16 +16,15 @@ library(vegan)
 library(stringr)
 library(ggplot2)
 library(tidyverse)
+library(ggpubr)
 library(iNEXT) # species diversity
 library(hillR) # species diversity
 library(DHARMa) # checking models
 library(car) # reporting model stats
 library(glmmTMB)
 library(unmarked) #density estimates with hierarchical distance sampling models
-library(tidyr)
 library(AICcmodavg) # has convenient functions for comparing models based on AIC
 library(showtext)
-library(patchwork)
 library(ggsignif)
 showtext_auto()
 font_add(family = "Tahoma", regular = "tahoma.ttf")
@@ -630,7 +629,9 @@ smams.mean.se <- small.mamms.df %>%
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+# figure version 1
+
+ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
   geom_jitter(data = small.mamms.df, 
               aes(x = Station, y = smammals.hr), 
               width = 0.15, size = 1.5, alpha = 0.3) + coord_fixed(ratio = 0.75) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small mammals") +
@@ -641,10 +642,20 @@ smamm.fig <- ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group 
     y_position = 5, xmin = 1, xmax = 2,
     annotation = "***")
 
+# simplifying figure code
+
+smamm.fig<-ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = small.mamms.df, 
+              aes(x = Station, y = smammals.hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Small mammals") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12)) +
+  geom_signif(
+    y_position = 5, xmin = 1, xmax = 2,
+    annotation = "***")
+
 smamm.fig
-
-#ggsave(smamm.fig, file="small-mammal-mean-se.png", width = 6,  height = 6)
-
 ```
 
 # Prep frog, lizard, and env data
@@ -1089,6 +1100,21 @@ frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group 
 
 frog.fig1
 
+# simplifying code below
+frog.fig2 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_frogs_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Frogs") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12)) +
+  geom_signif(
+    y_position = 7.5, xmin = 1, xmax = 2,
+    annotation = "N.S.")
+
+frog.fig2
+
 ```
 
 # Lizards per hour
@@ -1180,6 +1206,21 @@ liz.fig1 <- ggplot(liz.mean.se, aes(x=Station, y=mean, fill = Station, group = S
 
 liz.fig1 
 
+# simplifying code:
+
+liz.fig2 <- ggplot(liz.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_liz_hr), 
+              width = 0.15, size = 1.5, alpha = 0.3) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Lizards") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12)) +
+  geom_signif(
+    y_position = 4, xmin = 1, xmax = 2,
+    annotation = "N.S.")
+
+liz.fig2
 ```
 
 # Snakes per hour
@@ -1430,8 +1471,8 @@ snake.guild.fig <- ggplot(snakes.per.guild.mean.se, aes(x=Station, y=mean, fill 
               width = 0.15, size = 1.5, alpha = 0.3) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by feeding guild") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12)))
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold"))
 
 # Create a custom dataframe for annotations
 ann_df <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS", "TBS", "YRS"),
@@ -1566,8 +1607,8 @@ snake.2guilds.fig <- ggplot(snakes.per.2guilds.mean.se, aes(x=Station, y=mean, f
               width = 0.15, size = 1.5, alpha = 0.3) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by feeding guild") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12)))
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12))
 
 snake.2guilds.fig 
 
@@ -1671,8 +1712,8 @@ snake.fam.fig <- ggplot(snakes.per.fam.mean.se, aes(x=Station, y=mean, fill = St
               width = 0.15, size = 1.5, alpha = 0.3) +
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by family") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12)))
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12))
 
 # Create a custom dataframe for annotations
 ann_df2 <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS"),
@@ -1697,10 +1738,12 @@ snake.fam.fig.final <- snake.fam.fig +
 
 # ok so we have frog.fig1, liz.fig1, smamm.fig, snake.fam.fig.final, snake.guild.fig.final
 
-# is it possible to make that all into 1 figure?
-panel1 <- ggarrange(frog.fig1, liz.fig1, smamm.fig)
+#make data in plots closer together
 
-panel 
+panel1 <- ggarrange(frog.fig2, liz.fig2, smamm.fig, snake.fam.fig.final, snake.guild.fig.final, labels = "auto")
+
+panel1 
+
 ggsave(panel, filename = "Figures/Panel_detections.png", height = 8, width = 8)
 ```
 
