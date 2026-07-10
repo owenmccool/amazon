@@ -1472,7 +1472,7 @@ snake.guild.fig <- ggplot(snakes.per.guild.mean.se, aes(x=Station, y=mean, fill 
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by feeding guild") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
     legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold"))
+      hjust = 0.5))
 
 # Create a custom dataframe for annotations
 ann_df <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS", "TBS", "YRS"),
@@ -1713,7 +1713,7 @@ snake.fam.fig <- ggplot(snakes.per.fam.mean.se, aes(x=Station, y=mean, fill = St
   geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/Hour") + ggtitle("Snakes by family") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
     legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5, face = "bold", size = 12))
+      hjust = 0.5, size = 12))
 
 # Create a custom dataframe for annotations
 ann_df2 <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS"),
@@ -1738,13 +1738,10 @@ snake.fam.fig.final <- snake.fam.fig +
 
 # ok so we have frog.fig1, liz.fig1, smamm.fig, snake.fam.fig.final, snake.guild.fig.final
 
-#make data in plots closer together
 
-panel1 <- ggarrange(frog.fig2, liz.fig2, smamm.fig, snake.fam.fig.final, snake.guild.fig.final, labels = "auto")
+panel1<-ggarrange(snake.fam.fig.final, snake.guild.fig.final, NULL, smamm.fig2, frog.fig2, liz.fig2, ncol=3, nrow = 2, labels = "auto")
 
-panel1 
-
-ggsave(panel, filename = "Figures/Panel_detections.png", height = 8, width = 8)
+#ggsave(panel1, filename = "Figures/Panel_detections.png", height = 8, width = 8)
 ```
 
 # Density estimates
