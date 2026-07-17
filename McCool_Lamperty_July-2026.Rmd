@@ -600,7 +600,7 @@ env_24_25_nights %>%
 
 ```
 
-## Model
+ ## Model
 
 ```{r small mammal model}
 
@@ -668,7 +668,6 @@ smamm.fig<-ggplot(smams.mean.se, aes(x=Station, y=mean, fill = Station, group = 
     annotation = "***")
 
 smamm.fig
-
 
 # over distance not search hours
 
@@ -972,6 +971,21 @@ und.fig
 
 #ggsave(und.fig, file="Figures/understory_fig_updatedJune2026.png", width = 6,  height = 4)
 ```
+# Edit amph_lz_detections dataframe
+
+```{r add meters to dataframe}
+head(amph_lz_detections)
+
+# Because meter info is split across multiple files, I will just manually enter the meterage
+
+# write.csv(amph_lz_detections, file = "amph_lz_detections.csv")
+
+amph_lz_detections <- read.csv("amph_lz_detections.csv")
+amph_lz_detections <- amph_lz_detections[,-1] #remove wonky column of indexing
+
+#WARNING: For whatevr reason, data from June 5th 2025 is missing for the afternoon survey
+```
+
 
 # Frogs per hour
 
@@ -996,10 +1010,14 @@ Look at response variable as continuous (n per hour) to be consistent with small
 
 ```{r frog model continuous}
 
+# MODELING: FUNCTION OF TIME
+
 amph_lz_detections <- amph_lz_detections %>%
   na.omit() %>%
   filter(Survey_Type != "Morning") %>%
   filter(Height_of_Individual != "")
+
+amph_lz_detections$n_frogs_500m <- (amph_lz_detections$n_frogs / amph_lz_detections$Meters) * 500
 
 # start simple, only hunting status (station) and survey type
 frog.cont.mod1 <- glmmTMB(n_frogs_hr ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
@@ -1327,6 +1345,8 @@ snake_counts <- snake_counts %>%
 
 snake_counts <- snake_counts %>%
   mutate(n_snakes_hr = n_snakes / Effort_hrs)
+
+
 ```
 
 ## Summarize
