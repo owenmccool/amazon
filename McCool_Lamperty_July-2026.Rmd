@@ -1279,7 +1279,9 @@ amph_lz_detections %>%
 
 ```
 
-## Model
+## Models
+
+### Time
 
 ```{r lz mod}
 
@@ -1326,7 +1328,7 @@ testZeroInflation(liz.cont.mod4, plot = F)
 #looks good: Get scatterplot about lixzard tedections with temp, how different are they between day and night
 ```
 
-## Figure
+### Figure
 
 ```{r liz plots}
 
@@ -1367,6 +1369,56 @@ liz.fig2 <- ggplot(liz.mean.se, aes(x=Station, y=mean, fill = Station, group = S
 
 liz.fig2
 ```
+### Distance
+
+```{r lz mod dist}
+
+# start simple, only hunting status (station) and survey type
+liz.dist.mod1 <- glmmTMB(n_liz_500m ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.dist.mod1, plot = T)
+# passes validation
+
+summary(liz.dist.mod1)
+# AIC 188.4  
+# sig effect of station
+
+# make model more complex, add interaction effect of hunting status with survey type, thing on left of / is fixed effect, 
+liz.dist.mod2 <- glmmTMB(n_liz_500m ~ Station/Survey_Type + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.dist.mod2, plot = T)
+# passes
+# AIC:  191.8 (worse)
+summary(liz.dist.mod2)
+
+#drop survey type bc doesn't improve model fit
+
+#investigate humidity
+liz.dist.mod3 <- glmmTMB(n_liz_500m ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.dist.mod3, plot = T)
+# passes validation
+# AIC 192.1 (worse)
+summary(liz.dist.mod3)
+
+# temp?
+liz.dist.mod4 <- glmmTMB(n_liz_500m ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.dist.mod4, plot = T)
+# doesnt pass validation
+# AIC  185.5, substantial improvement! this is top mod, difference appear to be drive by temperature
+summary(liz.dist.mod4)
+
+#make sure top model (mod 1) isn't over dispersed or zero inflated
+testDispersion(liz.dist.mod4, plot = F)
+testZeroInflation(liz.dist.mod4, plot = F)
+
+#looks good: Get scatterplot about lixzard tedections with temp, how different are they between day and night
+```
+
+### Figure 
+
+
 
 # Snakes per hour
 
@@ -1455,7 +1507,7 @@ snake_counts %>%
 
 ```
 
-## Model
+## Model snakes per hour
 
 ```{r snake models}
 
@@ -1587,7 +1639,7 @@ snake_guild_per_hr %>%
 
 ```
 
-## Model
+## Model snake guilds per hour
 
 ```{r snakes per guild mod}
 snakes.3.guilds.m1 <- glmmTMB(snakes_hr ~ Station/Diet_Type_3categories + (1|Parent_Trail_LongName), data = snake_guild_per_hr, family = tweedie())
@@ -1898,6 +1950,24 @@ panel2
 
 #ggsave(panel2, filename = "Figures/prey_detections.png", height = 2.5, width = 5)
 ```
+
+
+# Snakes per 500m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Density estimates
 
