@@ -1873,7 +1873,7 @@ snake.family.tallies$n_hr <- snake.family.tallies$n/snake.family.tallies$Effort_
 
 ```
 
-## Summarize
+## Summarize & some modeling
 
 ```{r snakes per fam summary}
 snake.family.tallies %>%
@@ -1884,6 +1884,16 @@ snake.family.tallies %>%
             sd = sd(n),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
+
+#Extract meters and dates to mertge to snake_tallies_family
+snake_surv_distances <- snake_counts %>%
+  select(Start_Date, Meters)
+
+snake.family.tallies <- left_join(snake.family.tallies, snake_surv_distances)
+
+snake.family.tallies$n_snakes_500m <- (snake.family.tallies$n/snake.family.tallies$Meters)*500
+
+
 
 ```
 
@@ -2013,15 +2023,98 @@ summary(snake.dist.mod3)
 
 ```
 
-## Per 3 diet types
+## Per family
 
 ```{r mod snakes per 3 guilds}
 
+# null
+#snake.dist.null <- glmmTMB(n_snakes_500m ~ 1 + (1|Parent_Trail_LongName), data = snake.family.tallies, ziformula = ~ 1, family = tweedie())
 
+sim <- simulateResiduals(fittedModel = snake.dist.null, plot = T)
+# doesn't pass
+
+summary(snake.dist.null)
+
+# 
+
+# mod 1 Station
+snake.dist.mod1 <- glmmTMB(n_snakes_500m ~ Station/Family + (1|Parent_Trail_LongName), data = snake.family.tallies, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.dist.mod1, plot = T)
+# passes
+
+summary(snake.dist.mod1)
+# AIC 50.1
+
+Anova(snake.dist.mod1)
+
+testDispersion(snake.dist.mod1, plot = F)
+testZeroInflation(snake.dist.mod1, plot = F)
+
+
+
+
+# Station makes model worse, so omit
+
+# Investigate temperature
+snake.dist.mod2 <- glmmTMB(n_snakes_500m ~ mean_temp_F + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.dist.mod2, plot = T)
+# passes validation
+
+summary(snake.dist.mod2)
+# AIC 68.8
+# doesn't improve fit
+
+# Investigate humidity
+snake.dist.mod3 <- glmmTMB(n_snakes_500m ~ mean_relative_humidity + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.dist.mod3, plot = T)
+# passes validation
+
+summary(snake.dist.mod3)
+# AIC 68.5
 
 ```
 
+# Figure 
 
+```{r snake per fam det fig}
+
+snakes.per.fam.mean.se <- snake.family.tallies %>%
+  group_by(Station, Family) %>%
+  summarise(mean = mean(n_snakes_500m),
+            sd = sd(n_snakes_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake.fam.fig <- ggplot(snakes.per.fam.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = snake.family.tallies, 
+              aes(x = Station, y = n_snakes_500m), 
+              width = 0.15, alpha = 0.2) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + ggtitle("Snakes by family") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, size = 12))
+
+snake.fam.fig + facet_wrap( ~ Family, scales = "free")
+
+# Create a custom dataframe for annotations
+ann_df2 <- data.frame(Station = c("TBS", "YRS", "TBS", "YRS"),
+  Family = c("Boidae", "Colubridae"),          # The faceting variable
+  start_group = c("TBS", "TBS"),    # Left side of bracket
+  end_group = c("YRS", "YRS"),    # Right side of bracket
+  y_position = c(1, 2.6),       # Tailored height for each individual facet
+  label = c("***", "N.S.") # Custom text or stars
+)
+
+snake.fam.fig.final <- snake.fam.fig +
+  geom_signif(
+    data = ann_df2,
+    aes(xmin = 1, xmax = 2, y_position = y_position, annotations = label),
+    manual = TRUE) + facet_wrap(~Family, scales = "free") + theme(strip.text = element_text(size = 12))
+
+```
 
 
 
