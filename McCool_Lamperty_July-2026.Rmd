@@ -1010,7 +1010,7 @@ amph_lz_detections %>%
 
 Look at response variable as continuous (n per hour) to be consistent with small mammal models. Add in columns representing n individuals/500m
 
-```{r frog model continuous: time}
+```{r frog model continuous time}
 
 # MODELING: FUNCTION OF TIME
 
@@ -1069,9 +1069,10 @@ testZeroInflation(frog.cont.mod1, plot = F)
 
 #looks good
 ```
+
 This investigates models with the response as count data (n frogs per survey) and effort accounted for as an offset in the models. This is less preferred simply because it doesn't match what we did with the small mammals, which couldn't be modeled with count data due to convergence issues. 
 
-```{r frog model count data: time}
+```{r frog model count data time}
 
 amph_lz_detections <- amph_lz_detections %>%
   na.omit() %>%
@@ -1170,13 +1171,11 @@ frog.fig2 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group 
 frog.fig2
 
 ```
-### Distance /500m
+### Distance per 500m
 
 Look at response variable as a function of distance now to be consistent with small mammal models. Add in columns representing n individuals/500m first
 
-```{r frog model continuous: time}
-
-# MODELING: FUNCTION OF TIME
+```{r frog detections per 500m mods}
 
 amph_lz_detections <- amph_lz_detections %>%
   na.omit() %>%
@@ -1184,16 +1183,26 @@ amph_lz_detections <- amph_lz_detections %>%
   filter(Height_of_Individual != "")
 
 # Add in columns for detections per 500m 
-
 amph_lz_detections$n_frogs_500m <- (amph_lz_detections$n_frogs / amph_lz_detections$Meters) * 500
 
 amph_lz_detections$n_liz_500m <- (amph_lz_detections$n_liz / amph_lz_detections$Meters) * 500
+
+# null
+frog.dist.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.dist.null, plot = T)
+# passess
+summary(frog.dist.null)
+# AIC 297.4
 
 # start simple, only hunting status (station) and survey type
 frog.dist.mod1 <- glmmTMB(n_frogs_500m ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = frog.dist.mod1, plot = T)
-# passes validation
+# just barely fails validation; if you remove the random effect it passes
+testDispersion(frog.dist.mod1, plot = F) # just barely fails, is a tad overdispersed potentially
+
+testZeroInflation(frog.dist.mod1, plot = F)
 
 summary(frog.dist.mod1)
 # AIC 299.3 
@@ -1204,8 +1213,9 @@ frog.dist.mod2 <- glmmTMB(n_frogs_500m ~ Station/Survey_Type + (1|Parent_Trail_L
 
 sim <- simulateResiduals(fittedModel = frog.dist.mod2, plot = T)
 # passes
-# AIC worse: 302.2
+
 summary(frog.dist.mod2)
+# AIC worse: 302.2
 
 #drop survey type bc doesn't improve model fit
 
@@ -1221,23 +1231,10 @@ summary(frog.dist.mod3)
 frog.dist.mod4 <- glmmTMB(n_frogs_500m ~ Station*mean_relative_humidity + mean_temp_F/Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = frog.dist.mod4, plot = T)
-# doesnt pass validation
+# passes validation
 # AIC  worse 301.2, so remove temperature
 summary(frog.dist.mod4)
 
-# ground versus understory versus canopy
-frog.dist.mod5 <- glmmTMB(n_frogs_500m ~ Station*mean_relative_humidity + Station:Height_of_Individual + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
-
-sim <- simulateResiduals(fittedModel = frog.dist.mod5, plot = T)
-# does not pass validation
-# we don't have a specific hypothesis relating to ground versus understory versus canopy frog presence anyway
-# I think we can move on without complicating things and considering this
-
-#make sure top model (mod 1) isn't over dispersed or zero inflated
-testDispersion(frog.dist.mod1, plot = F)
-testZeroInflation(frog.dist.mod1, plot = F)
-
-#looks good
 ```
 
 
@@ -1373,6 +1370,14 @@ liz.fig2
 
 ```{r lz mod dist}
 
+# null mod
+liz.dist.null <- glmmTMB(n_liz_500m ~ 1 + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = liz.dist.null, plot = T)
+# passes
+summary(liz.dist.null)
+# AIc 192.9
+
 # start simple, only hunting status (station) and survey type
 liz.dist.mod1 <- glmmTMB(n_liz_500m ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
@@ -1388,13 +1393,14 @@ liz.dist.mod2 <- glmmTMB(n_liz_500m ~ Station/Survey_Type + (1|Parent_Trail_Long
 
 sim <- simulateResiduals(fittedModel = liz.dist.mod2, plot = T)
 # passes
+
 # AIC:  191.8 (worse)
 summary(liz.dist.mod2)
 
 #drop survey type bc doesn't improve model fit
 
 #investigate humidity
-liz.dist.mod3 <- glmmTMB(n_liz_500m ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+liz.dist.mod3 <- glmmTMB(n_liz_500m ~ Station/mean_relative_humidity + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = liz.dist.mod3, plot = T)
 # passes validation
@@ -1405,7 +1411,7 @@ summary(liz.dist.mod3)
 liz.dist.mod4 <- glmmTMB(n_liz_500m ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = liz.dist.mod4, plot = T)
-# doesnt pass validation
+
 # AIC  185.5, substantial improvement! this is top mod, difference appear to be drive by temperature
 summary(liz.dist.mod4)
 
@@ -1954,14 +1960,66 @@ panel2
 
 # Snakes per 500m
 
+## Overall regardless of species
+
+```{r mod overall snake detections per 500m}
+
+# Add in columns for detections per 500m 
+snake_counts$n_snakes_500m <- (snake_counts$n_snakes/snake_counts$Meters)*500
+
+# look at data
+hist(snake_counts$n_snakes_500m) # tweedie should be ok
+
+# null
+snake.dist.null <- glmmTMB(n_snakes_500m ~ 1 + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.dist.null, plot = T)
+# passes
+
+summary(snake.dist.null)
+# AIC 67.3
+
+# mod 1 Station
+snake.dist.mod1 <- glmmTMB(n_snakes_500m ~ Station + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.dist.mod1, plot = T)
+# passes
+
+summary(snake.dist.mod1)
+# AIC 69.2
+
+# Station makes model worse, so omit
+
+# Investigate temperature
+snake.dist.mod2 <- glmmTMB(n_snakes_500m ~ mean_temp_F + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.dist.mod2, plot = T)
+# passes validation
+
+summary(snake.dist.mod2)
+# AIC 68.8
+# doesn't improve fit
+
+# Investigate humidity
+snake.dist.mod3 <- glmmTMB(n_snakes_500m ~ mean_relative_humidity + (1|Parent_Trail_LongName), data = snake_counts, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = snake.dist.mod3, plot = T)
+# passes validation
+
+summary(snake.dist.mod3)
+# AIC 68.5
+
+# Null is actually the best fit model for overall snake detections regardless of species
+
+```
+
+## Per 3 diet types
+
+```{r mod snakes per 3 guilds}
 
 
 
-
-
-
-
-
+```
 
 
 
