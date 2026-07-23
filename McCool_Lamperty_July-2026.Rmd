@@ -987,7 +987,7 @@ amph_lz_detections <- amph_lz_detections[,-1] #remove wonky column of indexing
 ```
 
 
-# Frogs per hour
+# Frog Detections
 
 ## Summarize
 
@@ -1004,11 +1004,13 @@ amph_lz_detections %>%
 
 ```
 
-## Model
+## Models
 
-Look at response variable as continuous (n per hour) to be consistent with small mammal models
+### Time
 
-```{r frog model continuous}
+Look at response variable as continuous (n per hour) to be consistent with small mammal models. Add in columns representing n individuals/500m
+
+```{r frog model continuous: time}
 
 # MODELING: FUNCTION OF TIME
 
@@ -1016,8 +1018,6 @@ amph_lz_detections <- amph_lz_detections %>%
   na.omit() %>%
   filter(Survey_Type != "Morning") %>%
   filter(Height_of_Individual != "")
-
-amph_lz_detections$n_frogs_500m <- (amph_lz_detections$n_frogs / amph_lz_detections$Meters) * 500
 
 # start simple, only hunting status (station) and survey type
 frog.cont.mod1 <- glmmTMB(n_frogs_hr ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
@@ -1071,7 +1071,7 @@ testZeroInflation(frog.cont.mod1, plot = F)
 ```
 This investigates models with the response as count data (n frogs per survey) and effort accounted for as an offset in the models. This is less preferred simply because it doesn't match what we did with the small mammals, which couldn't be modeled with count data due to convergence issues. 
 
-```{r frog model count data}
+```{r frog model count data: time}
 
 amph_lz_detections <- amph_lz_detections %>%
   na.omit() %>%
@@ -1129,7 +1129,7 @@ testZeroInflation(frog.mod3, plot = F)
 #looks good
 ```
 
-## Figure
+### Figure
 
 ```{r frog plots}
 
@@ -1170,6 +1170,97 @@ frog.fig2 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group 
 frog.fig2
 
 ```
+### Distance /500m
+
+Look at response variable as a function of distance now to be consistent with small mammal models. Add in columns representing n individuals/500m first
+
+```{r frog model continuous: time}
+
+# MODELING: FUNCTION OF TIME
+
+amph_lz_detections <- amph_lz_detections %>%
+  na.omit() %>%
+  filter(Survey_Type != "Morning") %>%
+  filter(Height_of_Individual != "")
+
+# Add in columns for detections per 500m 
+
+amph_lz_detections$n_frogs_500m <- (amph_lz_detections$n_frogs / amph_lz_detections$Meters) * 500
+
+amph_lz_detections$n_liz_500m <- (amph_lz_detections$n_liz / amph_lz_detections$Meters) * 500
+
+# start simple, only hunting status (station) and survey type
+frog.dist.mod1 <- glmmTMB(n_frogs_500m ~ Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.dist.mod1, plot = T)
+# passes validation
+
+summary(frog.dist.mod1)
+# AIC 299.3 
+# no sig effect of station on frog detections
+
+# make model more complex, add interaction effect of hunting status with survey type
+frog.dist.mod2 <- glmmTMB(n_frogs_500m ~ Station/Survey_Type + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.dist.mod2, plot = T)
+# passes
+# AIC worse: 302.2
+summary(frog.dist.mod2)
+
+#drop survey type bc doesn't improve model fit
+
+#investigate humidity
+frog.dist.mod3 <- glmmTMB(n_frogs_500m ~ Station*mean_relative_humidity + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.dist.mod3, plot = T)
+# passes validation
+# AIC 297.5 
+summary(frog.dist.mod3)
+
+# keep humidity, add temp
+frog.dist.mod4 <- glmmTMB(n_frogs_500m ~ Station*mean_relative_humidity + mean_temp_F/Station + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.dist.mod4, plot = T)
+# doesnt pass validation
+# AIC  worse 301.2, so remove temperature
+summary(frog.dist.mod4)
+
+# ground versus understory versus canopy
+frog.dist.mod5 <- glmmTMB(n_frogs_500m ~ Station*mean_relative_humidity + Station:Height_of_Individual + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = frog.dist.mod5, plot = T)
+# does not pass validation
+# we don't have a specific hypothesis relating to ground versus understory versus canopy frog presence anyway
+# I think we can move on without complicating things and considering this
+
+#make sure top model (mod 1) isn't over dispersed or zero inflated
+testDispersion(frog.dist.mod1, plot = F)
+testZeroInflation(frog.dist.mod1, plot = F)
+
+#looks good
+```
+
+
+
+
+
+
+
+### Figure
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Lizards per hour
 
