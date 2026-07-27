@@ -391,6 +391,19 @@ und.fig
 
 #ggsave(und.fig, file="Figures/understory_fig_updatedJune2026.png", width = 6,  height = 4)
 ```
+
+```{r summarize per survey not per segment}
+
+liz_frog_dets_surv <- liz_frog_dets %>%
+  filter(Survey_Type != "Morning") %>%
+  group_by(Start_Date, Station, Survey_Type, Parent_Trail_LongName, mean_relative_humidity, mean_understory_leaves, mean_temp_F) %>%
+  summarize(total_m = sum(Seg_dist_m),
+            n_frogs_tot = sum(n_frogs),
+            n_lizards_tot = sum(n_liz),
+            n_frogs_500m = (n_frogs_tot/total_m)*500,
+            n_liz_500m = (n_lizards_tot/total_m)*500)
+
+```
 ## Clean
 
 ```{r clean after env org}
@@ -403,12 +416,12 @@ rm(understory_long_2024, understory_long, understory_means, understory_summary_y
 
 ```{r summarize frogs}
 
-amph_lz_detections %>%
+liz_frog_dets_surv %>%
   filter(Survey_Type != "Morning") %>%
   na.omit() %>%
   group_by(Station, Survey_Type) %>%
-  summarise(mean_frogs = mean(n_frogs),
-            sd = sd(n_frogs),
+  summarise(mean_frogs = mean(n_frogs_tot),
+            sd = sd(n_frogs_tot),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
@@ -420,60 +433,42 @@ Look at response variable as a function of distance now to be consistent with sm
 
 ```{r frog detections per 500m mods}
 
-liz_frog_dets <- liz_frog_dets %>%
-  na.omit() %>%
-  filter(Survey_Type != "Morning") %>%
-  filter(Height_of_Individual != "") %>%
+hist(liz_frog_dets_surv$n_frogs_500m)
 
-hist(liz_frog_dets$n_frogs_500m)
-# null
-frog.dist.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), data = liz_frog_dets, ziformula = ~1, family = lognormal())
+# null with tweedie
+frog.dist.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), data = liz_frog_dets_surv, family = tweedie)
 
 sim <- simulateResiduals(fittedModel = frog.dist.null, plot = T)
 
 summary(frog.dist.null)
-# AIC  1430.0
+# AIC  236.9 
 
-# start simple, only hunting status (station) and survey type
-frog.dist.mod1 <- glmmTMB(n_frogs_500m ~ Station + (1|Parent_Trail_LongName), data = liz_frog_dets,  ziformula = ~1, family = lognormal())
+# this could be okay but it isn't a perfect model for sure
 
-sim <- simulateResiduals(fittedModel = frog.dist.mod1, plot = T)
-# is ok
+# try with zero inflated log normal
+frog.dist.null.zi.ln <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), data = liz_frog_dets_surv, ziformula = ~1, family = lognormal())
 
-summary(frog.dist.mod1)
-# AIC 1430.1 
-# no sig effect of station on frog detections
+sim <- simulateResiduals(fittedModel = frog.dist.null.zi.ln, plot = T)
+# doesn't pass, though it's not horrible
+summary(frog.dist.null.zi.ln)
+# AIC 212.7
 
-# make model more complex, add interaction effect of hunting status with survey type
-frog.dist.mod2 <- glmmTMB(n_frogs_500m ~ Station/Survey_Type + (1|Parent_Trail_LongName), data = liz_frog_dets, ziformula = ~1, family = lognormal())
-
-sim <- simulateResiduals(fittedModel = frog.dist.mod2, plot = T)
-# passes
-
-summary(frog.dist.mod2)
-# AIC worse: 1433
-
-#drop survey type bc doesn't improve model fit
-
-#investigate humidity
-
-frog.dist.mod3 <- glmmTMB(n_frogs_500m ~ mean_relative_humidity + (1|Parent_Trail_LongName), data = liz_frog_dets, ziformula = ~1, family = lognormal())
-
-sim <- simulateResiduals(fittedModel = frog.dist.mod3, plot = T)
-# nope, terrible
-
-# temp
-frog.dist.mod4 <- glmmTMB(n_frogs_500m ~ mean_temp_F + (1|Parent_Trail_LongName), data = liz_frog_dets, ziformula = ~1, family = lognormal())
-
-sim <- simulateResiduals(fittedModel = frog.dist.mod4, plot = T)
-# passes validation
-# AIC  worse 301.2, so remove temperature
-summary(frog.dist.mod4)
 
 ```
 
+```{r frog det mods cont}
+
+# try with zero inflated log normal
+frog.dist.zi.ln.mod1 <- glmmTMB(n_frogs_500m ~ Station + (1|Parent_Trail_LongName), data = liz_frog_dets_surv, ziformula = ~1, family = lognormal())
+
+sim <- simulateResiduals(fittedModel = frog.dist.zi.ln.mod1, plot = T)
+# doesn't pass, though it's not horrible
+
+summary(frog.dist.zi.ln.mod1)
+# AIC 212.7
 
 
+```
 
 
 
