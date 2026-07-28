@@ -1191,6 +1191,7 @@ amph_lz_detections$n_liz_500m <- (amph_lz_detections$n_liz / amph_lz_detections$
 frog.dist.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = frog.dist.null, plot = T)
+
 # passess
 summary(frog.dist.null)
 # AIC 297.4
@@ -1200,6 +1201,7 @@ frog.dist.mod1 <- glmmTMB(n_frogs_500m ~ Station + (1|Parent_Trail_LongName), da
 
 sim <- simulateResiduals(fittedModel = frog.dist.mod1, plot = T)
 # just barely fails validation; if you remove the random effect it passes
+
 testDispersion(frog.dist.mod1, plot = F) # just barely fails, is a tad overdispersed potentially
 
 testZeroInflation(frog.dist.mod1, plot = F)
@@ -1224,7 +1226,7 @@ frog.dist.mod3 <- glmmTMB(n_frogs_500m ~ Station*mean_relative_humidity + (1|Par
 
 sim <- simulateResiduals(fittedModel = frog.dist.mod3, plot = T)
 # passes validation
-# AIC 297.5 
+# AIC 297.5 # top model
 summary(frog.dist.mod3)
 
 # keep humidity, add temp
@@ -1237,27 +1239,47 @@ summary(frog.dist.mod4)
 
 ```
 
-
-
-
-
-
-
 ### Figure
 
+```{r frog distance plots}
 
+frogs.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_frogs_500m),
+            sd = sd(n_frogs_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
 
+frog.fig1 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_frogs_500m), 
+              width = 0.15, alpha = 0.2) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + ggtitle("Frogs") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) +
+  geom_signif(
+    y_position = 7.5, xmin = 1, xmax = 2,
+    annotation = "N.S.")
 
+frog.fig1
 
+# simplifying code below
+frog.fig2 <- ggplot(frogs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_frogs_500m), 
+              width = 0.15, alpha = 0.2) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + ggtitle("Frogs") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12)) +
+  geom_signif(
+    y_position = 7.5, xmin = 1, xmax = 2,
+    annotation = "N.S.")
 
+frog.fig2
 
-
-
-
-
-
-
-
+```
 
 # Lizards per hour
 
@@ -1310,7 +1332,7 @@ sim <- simulateResiduals(fittedModel = liz.cont.mod3, plot = T)
 # AIC 279.6 (worse)
 summary(liz.cont.mod3)
 
-# temp?
+# Temp?
 liz.cont.mod4 <- glmmTMB(n_liz_hr ~ Station*mean_temp_F + (1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = liz.cont.mod4, plot = T)
@@ -1366,6 +1388,7 @@ liz.fig2 <- ggplot(liz.mean.se, aes(x=Station, y=mean, fill = Station, group = S
 
 liz.fig2
 ```
+
 ### Distance
 
 ```{r lz mod dist}
@@ -1424,7 +1447,54 @@ testZeroInflation(liz.dist.mod4, plot = F)
 
 ### Figure 
 
+```{r lizard plots}
 
+liz.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_liz_500m),
+            sd = sd(n_liz_500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+liz.fig1 <- ggplot(lizs.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_lizs_500m), 
+              width = 0.15, alpha = 0.2) + coord_fixed(ratio = 0.75) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + ggtitle("Lizards") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma", margin = margin(t = 8)), axis.text.y = element_text(family = "Tahoma", margin = margin(l = 8)), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12, margin = margin(b = 12))) +
+  geom_signif(
+    y_position = 7.5, xmin = 1, xmax = 2,
+    annotation = "N.S.")
+
+liz.fig1
+
+# simplifying code below
+liz.fig2 <- ggplot(liz.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+  geom_jitter(data = amph_lz_detections, 
+              aes(x = Station, y = n_liz_500m), 
+              width = 0.15, alpha = 0.2) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + ggtitle("Lizards") +
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
+    legend.position = "none", legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12)) +
+  geom_signif(
+    y_position = 2, xmin = 1, xmax = 2,
+    annotation = "N.S.")
+
+liz.fig2
+```
+
+```{r lizard temp scatter plot}
+
+liz.fig3 <- ggplot(amph_lz_detections, aes(x=mean_temp_F, y=n_liz_500m)) + geom_smooth(method = "glm", linewidth = 0.5, color = "black") +
+  geom_point(aes(fill = Station), pch = 21,  size = 1.5) + theme_bw() + scale_fill_manual(values = c("blue", "orange"), labels = c("Unhunted", "Hunted")) + xlab("") + scale_color_discrete(labels = "") + xlab("Temperature (F)") + ylab("Individuals/500m") + ggtitle("Lizard detections") + theme(legend.title = element_blank(), axis.text.x = element_text(family = "Tahoma"), axis.text.y = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
+      hjust = 0.5, face = "bold", size = 12)) 
+
+liz.fig3
+
+```
 
 # Snakes per hour
 
