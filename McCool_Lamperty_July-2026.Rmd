@@ -680,17 +680,25 @@ smams.distance.mean.se <- small.mamms.df %>%
 
 # figure version 1
 
-ggplot(smams.distance.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
+smam_distfig <- ggplot(smams.distance.mean.se, aes(x=Station, y=mean, fill = Station, group = Station)) +
   geom_jitter(data = small.mamms.df, 
               aes(x = Station, y = smamm.500m), 
-              width = 0.15, alpha = 0.2) + coord_fixed(ratio = 0.75) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21) + theme_bw() + scale_fill_manual(values = c("lightgrey", "black")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + ggtitle("Small mammals") +
+              width = 0.15, alpha = 0.2) + coord_fixed(ratio = 0.75) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = .2) + geom_point(pch = 21, size = 2.3) + theme_bw(base_family = "Tahoma") + scale_fill_manual(values = c("goldenrod1", "cornflowerblue")) + xlab("") + scale_color_discrete(labels = "") + ylab("Individuals/500m") + ggtitle("Small Mammal Detection Rates") +
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(
-    legend.position = "none", legend.title = element_blank()) +
+    legend.position = "none", 
+    legend.title = element_blank(), 
+    plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), 
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14)
+  ) +
   geom_signif(
     y_position = 2.5, xmin = 1, xmax = 2,
     annotation = "***")
 
-
+smam_distfig
+?ggsave
+ggsave("smam_distfig.jpg", smam_distfig, width = 6, height = 6, scale = 1.5)
 ```
 
 # Prep frog, lizard, and env data
