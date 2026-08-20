@@ -160,7 +160,7 @@ env_24_25_nights %>%
 
 ```
 
-# Prep frog, lizard, and env data
+# Prep frog and lizard data
 
 ```{r amph lz raw detection rates}
 
@@ -214,6 +214,7 @@ amph_lz_detections <- amph_lz_detections %>%
          n_sal_500m = 500*(n_sal/Seg_dist_m),
            n_liz_500m = 500*(n_liz/Seg_dist_m))
 ```
+
 # Prep snake survey data
 
 ### 3 guilds
@@ -254,9 +255,10 @@ n_snakes_per_3guilds %>%
 
 ```
 
-Need to check models with the temperature and humidity data
 
-```{r env data model prep}
+# Env data
+
+```{r prep env and join to obs dfs}
 
 humidity_long <- env_2025 %>%
   select(Date, Station, Survey_Type, 
@@ -382,11 +384,13 @@ understory_means <- understory_all %>%
   group_by(Station, Start_Date, Survey_Type) %>%
   summarize(mean_understory_leaves = mean(Understory))
 
+
+
 # add to the amph lz detection data
 amph_lz_detections$Start_Date <- ymd(amph_lz_detections$Start_Date)
 
 amph_lz_detections <- left_join(amph_lz_detections, humidity_means)
-
+amph_lz_detections_all_env <- left_join(amph_lz_detections, humidity_all)
 amph_lz_detections <- left_join(amph_lz_detections, temperature_means)
 
 amph_lz_detections <- left_join(amph_lz_detections, understory_means)
@@ -400,7 +404,7 @@ n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, understory_means)
 
 ```
 
-```{r hum and temp and und}
+```{r summarize hum and temp and und}
 
 humidity_all$Year <- factor(format(humidity_all$Start_Date, "%Y"))
 
@@ -449,6 +453,8 @@ understory_summary_yr_survey_type <- understory_all %>%
 
 ```
 
+## Env figures
+
 ```{r temperature fig}
 
 temp.fig <- ggplot(temperature_summary_yr_survey_type, aes(x=Station, y=mean_temperature, fill = Survey_Type)) + geom_jitter(data = temperature_all, aes( x = Station, y = Temperature), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
@@ -477,6 +483,7 @@ hum.fig
 
 ```
 
+
 ```{r und fig}
 und.fig <- ggplot(understory_summary_yr_survey_type, aes(x=Station, y=mean_understory, fill = Survey_Type)) + geom_jitter(data = understory_all, aes( x = Station, y = Understory), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
   scale_fill_manual(values = c("Chocolate", "blue3")) + 
@@ -494,6 +501,8 @@ und.fig
 ## frog summary data
 
 ```{r summarize frogs}
+
+# summarize by day versus night
 amph_lz_detections %>%
   filter(Survey_Type != "Morning") %>%
   na.omit() %>%
@@ -503,6 +512,18 @@ amph_lz_detections %>%
            n = n()) %>%
   mutate(se = sd / sqrt(n))
 
+# and just overall at each station
+amph_lz_detections %>%
+  filter(Survey_Type != "Morning") %>%
+  na.omit() %>%
+  group_by(Station) %>%
+  summarise(mean_frogs = mean(n_frogs),
+         sd = sd(n_frogs),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+# maybe a bit fewer frogs in the afternoons at YRS? otherwise, means are very consistent
+
+# make a summary dataframe for plotting later
 frogs.mean.se <- amph_lz_detections %>%
   group_by(Station) %>%
   summarise(mean = mean(n_frogs_500m),
@@ -513,125 +534,151 @@ frogs.mean.se <- amph_lz_detections %>%
 
 ## frog models
 
+```{r explore}
+
+frogs <- amph_lz_detections %>%
+  select(Station, Start_Date, Parent_Trail_LongName, Survey_Type, mean_relative_humidity, mean_temp_F, mean_understory_leaves, n_frogs, n_frogs_500m)
+
+```
 
 ```{r null model}
-
+# look at distribution - models are giving me issues
 hist(amph_lz_detections$n_frogs_500m)
-# remove morning
+
+# unremarkable, typical Gamma or Tweedie should work
+
+# make sure we have factors and numeric variables
+amph_lz_detections$Station<- as.factor(amph_lz_detections$Station)
+amph_lz_detections$Survey_Type<- as.factor(amph_lz_detections$Survey_Type)
+amph_lz_detections$n_frogs<- as.numeric(amph_lz_detections$n_frogs)
+amph_lz_detections$n_frogs_500m<- as.numeric(amph_lz_detections$n_frogs_500m)
+amph_lz_detections$mean_relative_humidity<- as.numeric(amph_lz_detections$mean_relative_humidity)
+amph_lz_detections$mean_temp_F<- as.numeric(amph_lz_detections$mean_temp_F)
+
+# remove morning and instances where env data are missing
 amph_lz_detections <- amph_lz_detections %>%
   na.omit()
-# null
-# n frogs per 500
+
+# scale and center predictors
+amph_lz_detections$humidity_scaled <- scale(amph_lz_detections$mean_relative_humidity)
+amph_lz_detections$temp_scaled <- scale(amph_lz_detections$mean_temp_F)
+amph_lz_detections$understory_scaled <- scale(amph_lz_detections$mean_understory_leaves)
+
+# null model
+# response variable: n frogs per 500
 # log normal distribution (zero inflated)
+
 frog.null1 <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), ziformula=~1, data = amph_lz_detections, family = lognormal)
 
-sim <- simulateResiduals(fittedModel = frog.null1, plot = T)
+simulateResiduals(fittedModel = frog.null1, plot = T)
 # passes
+
+# Other models with continuous response variable that I attempted that didn't work:
 
 # null
 # n frogs per 500
 # tweedie distribution
-frog.null2 <- glmmTMB(n_frogs_500m ~ 1 +(1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
+#frog.null2 <- glmmTMB(n_frogs_500m ~ 1 +(1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
 
-sim <- simulateResiduals(fittedModel = frog.null2, plot = T)
+#sim <- simulateResiduals(fittedModel = frog.null2, plot = T)
 # fails
 
 # null
 # n frogs per 500
 # zero inflated Gamma distribution
-frog.null3 <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = ziGamma(link="log"))
+#frog.null3 <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = ziGamma(link="log"))
 
-sim <- simulateResiduals(fittedModel = frog.null3, plot = T)
+#sim <- simulateResiduals(fittedModel = frog.null3, plot = T)
 # fails
 
+############ model with discrete data?
+
 ## what about n frogs (discrete, not continuous) and accounting for variation in effort with an offset?
+# None of the following worked. 
 
 # poisson?
-frog.null4 <- glmmTMB(n_frogs ~1 +(1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = poisson())
+#frog.null4 <- glmmTMB(n_frogs ~1 +(1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = poisson())
 
-sim <- simulateResiduals(fittedModel = frog.null4, plot = T)
+#sim <- simulateResiduals(fittedModel = frog.null4, plot = T)
 # fails
 
 # negative binomial?
-frog.null5 <- glmmTMB(n_frogs ~1 + Survey_Type+ (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = nbinom2())
+#frog.null5 <- glmmTMB(n_frogs ~1 + Survey_Type+ (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = nbinom2())
 
-sim <- simulateResiduals(fittedModel = frog.null5, plot = T)
+#sim <- simulateResiduals(fittedModel = frog.null5, plot = T)
 # still fails
 
 # zero inflated poisson?
-# poisson
+#frog.null6 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), ziformula = ~1, data = amph_lz_detections, family = poisson())
 
-frog.null8 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), ziformula = ~1, data = amph_lz_detections, family = poisson())
-
-sim <- simulateResiduals(fittedModel = frog.null8, plot = T)
+#sim <- simulateResiduals(fittedModel = frog.null6, plot = T)
 # still fails
 
 # what about tweedie with count?
-frog.null9 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = tweedie())
+#frog.null7 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = tweedie())
 
-sim <- simulateResiduals(fittedModel = frog.null9, plot = T)
+#sim <- simulateResiduals(fittedModel = frog.null7, plot = T)
 # still fails
 
 # compois
-frog.null10 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = compois)
+#frog.null8 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = compois)
 
-sim <- simulateResiduals(fittedModel = frog.null10, plot = T)
+#sim <- simulateResiduals(fittedModel = frog.null8, plot = T)
 # still fails
 
 # genpois
-frog.null11 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = genpois())
+#frog.null9 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = genpois())
 
-sim <- simulateResiduals(fittedModel = frog.null11, plot = T)
+#sim <- simulateResiduals(fittedModel = frog.null9, plot = T)
 # still fails
 ```
 
 ```{r frog model comparison}
 # null
-# n frogs per 500
-# log normal distribution (zero inflated)
-frog.null1 <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), ziformula=~1, data = amph_lz_detections, family = lognormal)
+frog.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-sim <- simulateResiduals(fittedModel = frog.null1, plot = T)
-# passes
+# survey type
+frog.survey <-glmmTMB(n_frogs_500m ~ Survey_Type + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-summary(frog.null1)
-# AIC 1220.2
+# station + survey type
+frog.survey.station <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-# start simple, only hunting status (station) and survey type
-fm2 <- glmmTMB(n_frogs_500m ~ Station + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal)
+# compare
+frog_mod_names <- c("frog.null", "frog.survey", "frog.survey.station")
+aictab(cand.set = list(frog.null, frog.survey, frog.survey.station), modnames = frog_mod_names)
+# station does not improve model fit, and survey does
 
-sim <- simulateResiduals(fittedModel = fm2, plot = T)
-# passes kind of
-summary(fm2)
-# AIC 1220.3
+# survey type + humidity
+frog.survey.humidity <- glmmTMB(n_frogs_500m ~ Survey_Type + humidity_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-# no sig effect of station on frog detections
+# survey type + understory
+frog.survey.understory <- glmmTMB(n_frogs_500m ~ Survey_Type + understory_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-# make model more complex, add interaction effect of hunting status with survey type
-fm3 <- glmmTMB(n_frogs_500m ~ Station + Survey_Type + (1|Parent_Trail_LongName), ziformula=~1, data = amph_lz_detections, family = lognormal)
+frog_mod_names <- c("frog.null", "frog.survey", "frog.survey.humidity", "frog.survey.understory")
+aictab(cand.set = list(frog.null, frog.survey, frog.survey.humidity, frog.survey.understory), modnames = frog_mod_names)
 
-sim <- simulateResiduals(fittedModel = fm3, plot = T)
-# passes
+# humidity improves model fit, try it without survey type
+# humidity
+frog.humidity <- glmmTMB(n_frogs_500m ~ humidity_scaled + (1|Parent_Trail_LongName),  data = amph_lz_detections, ziformula = ~1, family = lognormal)
 
-summary(fm3)
-# AIC 1218.4 # improvement
+# look at just understory too
+frog.understory <- glmmTMB(n_frogs_500m ~ understory_scaled + (1|Parent_Trail_LongName),  data = amph_lz_detections, ziformula = ~1, family = lognormal)
 
-#investigate humidity
-frog.dist.mod3 <- glmmTMB(n_frogs_500m ~ Survey_Type + mean_relative_humidity + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal)
+# look at temp too
 
-sim <- simulateResiduals(fittedModel = frog.dist.mod3, plot = T)
-summary(frog.dist.mod3)
-# AIC 1217.7 # improvement
-# top model is here
+# look at just understory too
+frog.temp <- glmmTMB(n_frogs_500m ~ temp_scaled + (1|Parent_Trail_LongName),  data = amph_lz_detections, ziformula = ~1, family = lognormal)
 
-# keep humidity, add temp
-frog.dist.mod4 <- glmmTMB(n_frogs_500m ~ Survey_Type + mean_relative_humidity + mean_temp_F + (1|Parent_Trail_LongName), data = amph_lz_detections, ziformula = ~1, family = lognormal())
+frog_mod_names <- c("frog.null", "frog.survey", "frog.humidity", "frog.understory", "frog.temp")
+aictab(cand.set = list(frog.null, frog.survey, frog.humidity, frog.understory, frog.temp), modnames = frog_mod_names)
 
-sim <- simulateResiduals(fittedModel = frog.dist.mod4, plot = T)
-# passes validation
-# AIC  1218.2, worse
-summary(frog.dist.mod4)
+# humidity only is best so far, though that model does not completely pass validation steps (it looks ok enough though); including another variable (survey type, or understory) allows the model to pass though, which further makes me think that humidity only model is good to use (since the other variables that do allow the model to pass in combination with humidity are not significant, and qualitatively, results are the same)
 
+# doesn't improve things, so top model is just humidity. Make sure it passes validation steps:
+simulateResiduals(frog.humidity, plot = TRUE) # ugh it does not, but there is only slight deviations and nothing seems to fix this issue, so I think this is good and it also matches data visualizations
+
+summary(frog.humidity) # positive effect of humidity on frog detections per 500m
+Anova(frog.humidity)
 ```
 
 
@@ -766,7 +813,7 @@ sim <- simulateResiduals(fittedModel = m2, plot = T)
 summary(m2)
 ```
 
-#Figures
+# Figures
 
 ```{r combine detection df}
 
@@ -789,7 +836,7 @@ frogs.mean.se$taxa <- "frogs"
 detection.means.se <- rbind(snakes.mean.se, liz.mean.se, smams.distance.mean.se, frogs.mean.se)
 ```
 
-```{r plot}
+```{r plot detections together}
 
 # Specify your exact panel layout order here
 custom_order <- c("non-mammal-eating snakes", "generalist snakes", "mammal-eating snakes", "small mammals", "lizards", "frogs")
@@ -807,5 +854,14 @@ p + facet_wrap(~taxa, scales = "free") + theme_bw() + theme(axis.text.x = elemen
 
 #ggsave(file="Figures/detections_panel_updatedAug2026.png", width = 4,  height = 3)
 
+```
+
+```{r plot humidity and frog trend}
+# NOTE there was one survey in 2025 where the humidity readings appear to be outliers.There's a fuckton of humidity data and I am not worried about removing the outliers, so doing that here:
+
+amph_lz_detections_plotting_df <- amph_lz_detections %>%
+  filter(!mean_relative_humidity < 75 )
+
+ggplot(amph_lz_detections_plotting_df, aes(x = mean_relative_humidity, y = n_frogs_500m)) + geom_point() + ylab("Frogs detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
 ```
 
