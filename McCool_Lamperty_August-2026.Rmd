@@ -534,13 +534,6 @@ frogs.mean.se <- amph_lz_detections %>%
 
 ## frog models
 
-```{r explore}
-
-frogs <- amph_lz_detections %>%
-  select(Station, Start_Date, Parent_Trail_LongName, Survey_Type, mean_relative_humidity, mean_temp_F, mean_understory_leaves, n_frogs, n_frogs_500m)
-
-```
-
 ```{r null model}
 # look at distribution - models are giving me issues
 hist(amph_lz_detections$n_frogs_500m)
@@ -640,61 +633,47 @@ frog.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName) , ziformula = 
 # survey type
 frog.survey <-glmmTMB(n_frogs_500m ~ Survey_Type + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
+# station
+frog.station <-glmmTMB(n_frogs_500m ~ Station + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+
 # station + survey type
 frog.survey.station <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
 # compare
-frog_mod_names <- c("frog.null", "frog.survey", "frog.survey.station")
-aictab(cand.set = list(frog.null, frog.survey, frog.survey.station), modnames = frog_mod_names)
-# station does not improve model fit, and survey does
+frog_mod_names <- c("frog.null", "frog.survey", "frog.survey.station", "frog.station")
+aictab(cand.set = list(frog.null, frog.survey, frog.survey.station, frog.station), modnames = frog_mod_names)
+# survey + station fit best, do they interact?
 
-# survey type + humidity
-frog.survey.humidity <- glmmTMB(n_frogs_500m ~ Survey_Type + humidity_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+# survey type + station + humidity
+frog.sur.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + humidity_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-# survey type + understory
-frog.survey.understory <- glmmTMB(n_frogs_500m ~ Survey_Type + understory_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+# survey type + station + temp
+frog.sur.temp.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-frog_mod_names <- c("frog.null", "frog.survey", "frog.survey.humidity", "frog.survey.understory")
-aictab(cand.set = list(frog.null, frog.survey, frog.survey.humidity, frog.survey.understory), modnames = frog_mod_names)
+# survey type + station + temp + hum
+frog.sur.temp.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + humidity_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-# humidity improves model fit, try it without survey type
-# humidity
-frog.humidity <- glmmTMB(n_frogs_500m ~ humidity_scaled + (1|Parent_Trail_LongName),  data = amph_lz_detections, ziformula = ~1, family = lognormal)
+frog_mod_names <- c("frog.null", "frog.survey", "frog.station", "frog.survey.station", "frog.sur.hum.st", "frog.sur.temp.st", "frog.sur.temp.hum.st")
+aictab(cand.set = list(frog.null, frog.survey, frog.station, frog.survey.station, frog.sur.hum.st, frog.sur.temp.st, frog.sur.temp.hum.st), modnames = frog_mod_names)
 
-# look at just understory too
-frog.understory <- glmmTMB(n_frogs_500m ~ understory_scaled + (1|Parent_Trail_LongName),  data = amph_lz_detections, ziformula = ~1, family = lognormal)
-
-# look at temp too
-
-# look at just understory too
-frog.temp <- glmmTMB(n_frogs_500m ~ temp_scaled + (1|Parent_Trail_LongName),  data = amph_lz_detections, ziformula = ~1, family = lognormal)
-
-frog_mod_names <- c("frog.null", "frog.survey", "frog.humidity", "frog.understory", "frog.temp")
-aictab(cand.set = list(frog.null, frog.survey, frog.humidity, frog.understory, frog.temp), modnames = frog_mod_names)
-
-# humidity only is best so far, though that model does not completely pass validation steps (it looks ok enough though); including another variable (survey type, or understory) allows the model to pass though, which further makes me think that humidity only model is good to use (since the other variables that do allow the model to pass in combination with humidity are not significant, and qualitatively, results are the same)
-
-# doesn't improve things, so top model is just humidity. Make sure it passes validation steps:
-simulateResiduals(frog.humidity, plot = TRUE) # ugh it does not, but there is only slight deviations and nothing seems to fix this issue, so I think this is good and it also matches data visualizations
-
-summary(frog.humidity) # positive effect of humidity on frog detections per 500m
-Anova(frog.humidity)
+# top model based on lowest AIC is survey type + temperature + station
+# top model based on lowest AIC and simplest model is survey type + station
 ```
-
 
 # Lizards
 
 ## lizard summary data
 
 ```{r liz summaries}
+
 amph_lz_detections %>%
   filter(Survey_Type != "Morning") %>%
-  na.omit() %>%
   group_by(Station, Survey_Type) %>%
-  summarise(mean_liz = mean(n_liz),
-         sd = sd(n_liz),
-           n = n()) %>%
-  mutate(se = sd / sqrt(n))
+  reframe(mean_liz_500m = mean(n_liz_500m),
+         sd = sd(n_liz_500m),
+           sample_size = n(),
+         n_found = sum(n_liz)) %>%
+  mutate(se = sd / sqrt(sample_size))
 
 liz.mean.se <- amph_lz_detections %>%
   group_by(Station) %>%
@@ -705,54 +684,52 @@ liz.mean.se <- amph_lz_detections %>%
 
 ```
 
-##lizard models
+## lizard models
 
-```{r lz mod dist}
+```{r lizard models}
 
 # null mod
-liz.dist.null <- glmmTMB(n_liz_500m ~ 1 + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal())
+liz.null <- glmmTMB(n_liz_500m ~ 1 + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal())
 
-sim <- simulateResiduals(fittedModel = liz.dist.null, plot = T)
-# passes
-summary(liz.dist.null)
-# AIC 634
-
-# start simple, only hunting status (station) and survey type
-liz.dist.mod1 <- glmmTMB(n_liz_500m ~ Station + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal())
-
-sim <- simulateResiduals(fittedModel = liz.dist.mod1, plot = T)
-# passes validation
-
-summary(liz.dist.mod1)
-# AIC 635.9 # worse (seems odd)
-
-
-#add survey type
-liz.dist.mod2 <- glmmTMB(n_liz_500m ~ Survey_Type + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal())
-sim <- simulateResiduals(fittedModel = liz.dist.mod2, plot = T)
+simulateResiduals(fittedModel = liz.null, plot = T)
 # passes
 
-# AIC is better 633.9
-summary(liz.dist.mod2)
+# add survey type
+liz.survey <-glmmTMB(n_liz_500m ~ Survey_Type + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-#investigate humidity
-liz.dist.mod3 <- glmmTMB(n_liz_500m ~Survey_Type + mean_relative_humidity + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal())
+# doesn't improve fit
 
-sim <- simulateResiduals(fittedModel = liz.dist.mod3, plot = T)
-# passes validation
-# AIC 634 (worse)
-summary(liz.dist.mod3)
+# station
+liz.station <- glmmTMB(n_liz_500m ~ Station + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-# temp?
-liz.dist.mod4 <- glmmTMB(n_liz_500m ~ Survey_Type + mean_temp_F + (1|Parent_Trail_LongName),ziformula = ~1, data = amph_lz_detections, family = lognormal())
 
-sim <- simulateResiduals(fittedModel = liz.dist.mod4, plot = T)
+# compare
+liz_mod_names <- c("liz.null", "liz.survey", "liz.station")
+aictab(cand.set = list(liz.null, liz.survey, liz.station), modnames = liz_mod_names)
+# survey is a tiny bit better than null, and adding station increases AIC
 
-# AIC  633.8 which is better
-summary(liz.dist.mod4)
+# survey + humidity?
+liz.survey.humidity <-glmmTMB(n_liz_500m ~ Survey_Type + humidity_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+
+# compare
+liz_mod_names <- c("liz.null", "liz.survey", "liz.survey.humidity")
+aictab(cand.set = list(liz.null, liz.survey, liz.survey.humidity), modnames = liz_mod_names)
+# humidity actually doesn't help things
+
+# what about temperature?
+
+# survey + temp
+liz.survey.temp  <-glmmTMB(n_liz_500m ~ Survey_Type + temp_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+
+# compare
+liz_mod_names <- c("liz.null", "liz.survey", "liz.survey.temp")
+aictab(cand.set = list(liz.null, liz.survey, liz.survey.temp), modnames = liz_mod_names)
+
+# temperature also doesn't seem to improve fit...
+# if you look at the plots, it kind of makes sense
+
 
 ```
-
 
 # Snakes
 
@@ -761,10 +738,15 @@ summary(liz.dist.mod4)
 ```{r snake summaries}
 n_snakes_per_3guilds$n_snakes_500m <- 500*(n_snakes_per_3guilds$n_snakes/n_snakes_per_3guilds$Seg_dist_m)
 
+#scale and center predictors
+n_snakes_per_3guilds$temp_scaled <- scale(n_snakes_per_3guilds$mean_temp_F)
+n_snakes_per_3guilds$humidity_scaled <- scale(n_snakes_per_3guilds$mean_relative_humidity)
+
+
 n_snakes_per_3guilds %>%
   group_by(Station, Diet_Type_3categories) %>%
-  reframe(mean_snakes = mean(n_snakes),
-         sd = sd(n_snakes),
+  reframe(mean_snakes_500m = mean(n_snakes_500m),
+         sd = sd(n_snakes_500m),
            n = n()) %>%
   mutate(se = sd / sqrt(n))
 
@@ -781,36 +763,45 @@ snakes.mean.se <- n_snakes_per_3guilds %>%
 ## snake models
 
 ```{r snake mods}
+n_snakes_per_3guilds.na.removed <- n_snakes_per_3guilds %>%
+  na.omit()
 
 # null mod
-null <- glmmTMB(n_snakes ~ 1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = n_snakes_per_3guilds, ziformula = ~1, family = poisson())
+null <- glmmTMB(n_snakes_500m ~ 1 + (1|Parent_Trail_LongName), data = n_snakes_per_3guilds.na.removed, family = tweedie)
 
 sim <- simulateResiduals(fittedModel = null, plot = T)
 # passes
-summary(null)
-# AIC 743.9
 
 # guild and station
-m1 <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + (1|Parent_Trail_LongName), data =  n_snakes_per_3guilds, family = tweedie())
+guildXstation <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + (1|Parent_Trail_LongName), data =  n_snakes_per_3guilds.na.removed, family = tweedie())
 
-sim <- simulateResiduals(fittedModel = m1, plot = T)
+sim <- simulateResiduals(fittedModel = guildXstation, plot = T)
+# passes
+
+# compare
+snake_mod_names <- c("null", "guildXstation")
+aictab(cand.set = list(null, guildXstation), modnames = snake_mod_names)
+
+guildXstation.temp <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + temp_scaled + (1|Parent_Trail_LongName), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
+
+sim <- simulateResiduals(fittedModel = guildXstation.temp, plot = T)
 # passes validation
 
-summary(m1)
+# compare
+snake_mod_names <- c("null", "guildXstation", "guildXstation.temp")
+aictab(cand.set = list(null, guildXstation, guildXstation.temp), modnames = snake_mod_names)
 
-m2 <- glmmTMB(n_snakes ~ Diet_Type_3categories/Station + mean_temp_F + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data =  n_snakes_per_3guilds, family = nbinom2())
+# temp does not make model better
 
-sim <- simulateResiduals(fittedModel = m2, plot = T)
-# passes validation
+# humidity?
+guildXstation.hum <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + humidity_scaled + (1|Parent_Trail_LongName), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
 
-summary(m2)
+# compare
+snake_mod_names <- c("null", "guildXstation", "guildXstation.temp", "guildXstation.hum")
+aictab(cand.set = list(null, guildXstation, guildXstation.temp, guildXstation.hum), modnames = snake_mod_names)
 
-m2 <- glmmTMB(n_snakes ~ Diet_Type_3categories:Station + mean_temp_F + mean_relative_humidity + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), ziformula = ~1, data =  n_snakes_per_3guilds, family = nbinom2())
+# humidity makes it a tad better but not sig
 
-sim <- simulateResiduals(fittedModel = m2, plot = T)
-# passes validation
-
-summary(m2)
 ```
 
 # Figures
@@ -857,11 +848,43 @@ p + facet_wrap(~taxa, scales = "free") + theme_bw() + theme(axis.text.x = elemen
 ```
 
 ```{r plot humidity and frog trend}
+
 # NOTE there was one survey in 2025 where the humidity readings appear to be outliers.There's a fuckton of humidity data and I am not worried about removing the outliers, so doing that here:
 
 amph_lz_detections_plotting_df <- amph_lz_detections %>%
   filter(!mean_relative_humidity < 75 )
 
-ggplot(amph_lz_detections_plotting_df, aes(x = mean_relative_humidity, y = n_frogs_500m)) + geom_point() + ylab("Frogs detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
+ggplot(amph_lz_detections_plotting_df, aes(x = mean_relative_humidity, y = n_frogs_500m, color = Station)) + geom_point() + ylab("Frogs detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
 ```
 
+```{r lizard data}
+# humidity?
+ggplot(amph_lz_detections_plotting_df, aes(x = mean_relative_humidity, y = n_liz_500m, color = Station)) + geom_point() + ylab("Lizards detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
+
+# line is pretty flat
+
+# temperature?
+ggplot(amph_lz_detections_plotting_df, aes(x = mean_temp_F, y = n_liz_500m, color = Station)) + geom_point() + ylab("Lizards detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean temperature (F) per survey")
+
+# still looks slightly negative surprisingly
+
+# between stations?
+ggplot(amph_lz_detections_plotting_df, aes(x = Station, y = n_liz_500m, color = Survey_Type)) + geom_boxplot() + ylab("Lizards detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black")
+```
+
+```{r snakes}
+
+# humidity?
+# remove those outliers
+n_snakes_per_3guilds.na.removed.outlier.removed <- n_snakes_per_3guilds.na.removed %>%
+  filter(mean_relative_humidity > 75)
+ggplot(n_snakes_per_3guilds.na.removed.outlier.removed, aes(x = mean_relative_humidity, y = n_snakes_500m, color = Station)) + geom_point() + ylab("Snakes detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
+
+# line is pretty flat
+
+# temperature?
+ggplot(n_snakes_per_3guilds.na.removed, aes(x = mean_temp_F, y = n_snakes_500m, color = Station)) + geom_point() + ylab("Snakes detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean temperature (F) per survey")
+
+# super flat
+
+```
