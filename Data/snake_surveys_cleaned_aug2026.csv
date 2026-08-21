@@ -1,395 +1,393 @@
-"Start_Date","End_Date","Station","Parent_Trail_LongName","Segment","Survey_Start_Time","Survey_End_Time","Surveyors","Parent_Trail","Seg_dist_m","Snake_ID","Distance_From_Trail_m","Diet_Type","Diet_Type_3categories","Family","Genus","Species","Common_Name","Temperature_at_Time_of_Detection","Humidity_at_Time_of_Detection"
-2025-07-16,2025-07-16,"YRS","Coca-Ceiba-Peru-Renacuajo-Mirador","COCA-01","8:21 PM","10:24 PM","O,J,JP","Coca",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-16,2025-07-16,"YRS","Coca-Ceiba-Peru-Renacuajo-Mirador","CEIB-02","8:21 PM","10:24 PM","O,J,JP","Ceiba",463,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-16,2025-07-16,"YRS","Coca-Ceiba-Peru-Renacuajo-Mirador","PERU-01","8:21 PM","10:24 PM","O,J,JP","Peru",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-16,2025-07-16,"YRS","Coca-Ceiba-Peru-Renacuajo-Mirador","RENA-01","8:21 PM","10:24 PM","O,J,JP","Renacuajo",272,"SK99",3,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",74.3,97.8
-2025-07-16,2025-07-16,"YRS","Coca-Ceiba-Peru-Renacuajo-Mirador","MIRA-01","8:21 PM","10:24 PM","O,J,JP","Mirador",550,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-15,2025-07-15,"YRS","Chorongo-Kinkajou-Napo","YCHO-01","8:30 PM","10:12 PM","O,J,JP,Nora","Chorongo",1230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-15,2025-07-15,"YRS","Chorongo-Kinkajou-Napo","KINK-01","8:30 PM","10:12 PM","O,J,JP,Nora","Kinkajou",321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-15,2025-07-15,"YRS","Chorongo-Kinkajou-Napo","NAPO-05","8:30 PM","10:12 PM","O,J,JP,Nora","Napo",243,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-15,2025-07-15,"YRS","Chorongo-Kinkajou-Napo","NAPO-06","8:30 PM","10:12 PM","O,J,JP,Nora","Napo",290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-14,2025-07-14,"YRS","Mirador","MIRA-04","8:34 PM","10:56 PM","O,J,JP","Mirador",760,"SK97",3.8,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",76.1,97.5
-2025-07-14,2025-07-14,"YRS","Mirador","MIRA-03","8:34 PM","10:56 PM","O,J,JP","Mirador",158,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-14,2025-07-14,"YRS","Mirador","MIRA-02","8:34 PM","10:56 PM","O,J,JP","Mirador",592,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-14,2025-07-14,"YRS","Mirador","MIRA-01","8:34 PM","10:56 PM","O,J,JP","Mirador",550,"SK98",2.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",76.3,97.7
-2025-07-13,2025-07-13,"YRS","Botanico-Tinamou-Napo-Timatai-Bariso","BOTA-01","8:51 PM","10:41 PM","O,J,JP,Dillon","Botanico",142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-13,2025-07-13,"YRS","Botanico-Tinamou-Napo-Timatai-Bariso","TINA-01","8:51 PM","10:41 PM","O,J,JP,Dillon","Tinamou",65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-13,2025-07-13,"YRS","Botanico-Tinamou-Napo-Timatai-Bariso","TINA-02","8:51 PM","10:41 PM","O,J,JP,Dillon","Tinamou",509,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-13,2025-07-13,"YRS","Botanico-Tinamou-Napo-Timatai-Bariso","NAPO-01","8:51 PM","10:41 PM","O,J,JP,Dillon","Napo",135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-13,2025-07-13,"YRS","Botanico-Tinamou-Napo-Timatai-Bariso","NAPO-02","8:51 PM","10:41 PM","O,J,JP,Dillon","Napo",419,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-13,2025-07-13,"YRS","Botanico-Tinamou-Napo-Timatai-Bariso","TIMA-01","8:51 PM","10:41 PM","O,J,JP,Dillon","Timatai",128,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-13,2025-07-13,"YRS","Botanico-Tinamou-Napo-Timatai-Bariso","BARI-01","8:51 PM","10:41 PM","O,J,JP,Dillon","Bariso",340,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-11,2025-07-11,"YRS","Gawape-Chorongo-Kinkajou","GAWA-01","8:14 PM","10:40 PM","O,J,JP","Gawape",272,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-11,2025-07-11,"YRS","Gawape-Chorongo-Kinkajou","GAWA-02","8:14 PM","10:40 PM","O,J,JP","Gawape",650,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-11,2025-07-11,"YRS","Gawape-Chorongo-Kinkajou","GAWA-03","8:14 PM","10:40 PM","O,J,JP","Gawape",692,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-11,2025-07-11,"YRS","Gawape-Chorongo-Kinkajou","YCHO-02","8:14 PM","10:40 PM","O,J,JP","Chorongo",691,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-11,2025-07-11,"YRS","Gawape-Chorongo-Kinkajou","KINK-01","8:14 PM","10:40 PM","O,J,JP","Kinkajou",321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-09,2025-07-09,"YRS","Coca-Ceiba","COCA-01","8:45 PM","9:34 PM","O,J","Coca",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-09,2025-07-09,"YRS","Coca-Ceiba","CEIB-02","8:45 PM","9:34 PM","O,J","Ceiba",463,"SK96",0.2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",71.8,96.8
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","PANT-01","8:18 PM","10:59 PM","O,J,JP","Pantano",103,"SK93",0,"no_mammals","no_mammals","Colubridae","Dipsas","catesbyi","Catesby's_Snail_Eater",75.5,96.8
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","NAPO-01","8:18 PM","10:59 PM","O,J,JP","Napo",135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","NAPO-02","8:18 PM","10:59 PM","O,J,JP","Napo",419,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","NAPO-03","8:18 PM","10:59 PM","O,J,JP","Napo",157,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","BARI-02","8:18 PM","10:59 PM","O,J,JP","Bariso",183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","TIMA-01","8:18 PM","10:59 PM","O,J,JP","Timatai",128,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","TINA-02","8:18 PM","10:59 PM","O,J,JP","Tinamou",509,"SK94",2.3,"consumes_mammals","mostly_mammals","Boidae","Corallus","hortulanus","Amazon_Tree_Boa",74.4,97.9
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","TINA-02","8:18 PM","10:59 PM","O,J,JP","Tinamou",509,"SK95",1.7,"no_mammals","no_mammals","Colubridae","Xenoxybelis","argenteus","Striped_Sharpnose_Snake",76.9,93.9
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","TINA-01","8:18 PM","10:59 PM","O,J,JP","Tinamou",65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","BOTA-02","8:18 PM","10:59 PM","O,J,JP","Botanico",69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","BOTA-03","8:18 PM","10:59 PM","O,J,JP","Botanico",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","GRFI-01","8:18 PM","10:59 PM","O,J,JP","Gran Ficus",96,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-08,2025-07-08,"YRS","Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico","BOTA-01","8:18 PM","10:59 PM","O,J,JP","Botanico",142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-07,2025-07-07,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","TORR-01","8:26 PM","11:02 PM","O,J,JP","Torre",900,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-07,2025-07-07,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPPE-06","8:26 PM","11:02 PM","O,J,JP","Forest Plot Perimeter",69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-07,2025-07-07,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPPE-03","8:26 PM","11:02 PM","O,J,JP","Forest Plot Perimeter",88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-07,2025-07-07,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPIN-01","8:26 PM","11:02 PM","O,J,JP","Forest Plot Interior",1053,"SK92",3.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",74,94.8
-2025-07-07,2025-07-07,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPPE-05","8:26 PM","11:02 PM","O,J,JP","Forest Plot Perimeter",291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-07,2025-07-07,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPPE-01","8:26 PM","11:02 PM","O,J,JP","Forest Plot Perimeter",171,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-06,2025-07-06,"YRS","Chorongo-Kinkajou-Napo-Tucan-Garza-Napo","YCHO-01","8:13 PM","10:38 PM","O,J,JP","Chorongo",1230,"SK90",2.6,"no_mammals","no_mammals","Colubridae","Drepanoides","anomalus","Black-collared_Snake",75,95.7
-2025-07-06,2025-07-06,"YRS","Chorongo-Kinkajou-Napo-Tucan-Garza-Napo","KINK-01","8:13 PM","10:38 PM","O,J,JP","Kinkajou",321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-06,2025-07-06,"YRS","Chorongo-Kinkajou-Napo-Tucan-Garza-Napo","NAPO-05","8:13 PM","10:38 PM","O,J,JP","Napo",243,"SK91",2.8,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.3,94
-2025-07-06,2025-07-06,"YRS","Chorongo-Kinkajou-Napo-Tucan-Garza-Napo","TUCA-01","8:13 PM","10:38 PM","O,J,JP","Tucan",240,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-06,2025-07-06,"YRS","Chorongo-Kinkajou-Napo-Tucan-Garza-Napo","GARZ-02","8:13 PM","10:38 PM","O,J,JP","Garza",282,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-06,2025-07-06,"YRS","Chorongo-Kinkajou-Napo-Tucan-Garza-Napo","NAPO-06","8:13 PM","10:38 PM","O,J,JP","Napo",290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","COCA-01","8:26 PM","11:30 PM","O,J,JP","Coca",301,"SK86",2.3,"no_mammals","no_mammals","Colubridae","Chironius","multiventris","South_American_Sipo",76.8,91.3
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","COCA-01","8:26 PM","11:30 PM","O,J,JP","Coca",301,"SK87",11.5,"consumes_mammals","mostly_mammals","Boidae","Corallus","hortulanus","Amazon_Tree_Boa",76.8,91.3
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","COCA-01","8:26 PM","11:30 PM","O,J,JP","Coca",301,"SK88",3.5,"consumes_mammals","mixed","Colubridae","Oxyrhopus","occipitalis","Yellow-headed_Flame_Snake",74.6,92.5
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","COCA-01","8:26 PM","11:30 PM","O,J,JP","Coca",301,"SK89",4.4,"consumes_mammals","mostly_mammals","Boidae","Corallus","hortulanus","Amazon_Tree_Boa",75.6,93.3
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","CEIB-02","8:26 PM","11:30 PM","O,J,JP","Ceiba",463,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","PERU-01","8:26 PM","11:30 PM","O,J,JP","Peru",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","PERU-02","8:26 PM","11:30 PM","O,J,JP","Peru",738,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","PERU-03","8:26 PM","11:30 PM","O,J,JP","Peru",175,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","TIPU-01","8:26 PM","11:30 PM","O,J,JP","Tiputini",141,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","PERU-04","8:26 PM","11:30 PM","O,J,JP","Peru",259,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-05,2025-07-05,"YRS","Coca-Ceiba-Peru-Tiputini-Peru","PERU-05","8:26 PM","11:30 PM","O,J,JP","Peru",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-04,2025-07-04,"YRS","Forest Plot Perimeter","FPPE-03","8:21 PM","11:39 PM","O,J,JP","Forest Plot Perimeter",88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-04,2025-07-04,"YRS","Forest Plot Perimeter","FPPE-04","8:21 PM","11:39 PM","O,J,JP","Forest Plot Perimeter",662,"SK84",8.5,"consumes_mammals","mostly_mammals","Boidae","Corallus","hortulanus","Amazon_Tree_Boa",74.2,95
-2025-07-04,2025-07-04,"YRS","Forest Plot Perimeter","FPPE-05","8:21 PM","11:39 PM","O,J,JP","Forest Plot Perimeter",291,"SK85",1.5,"no_mammals","no_mammals","Colubridae","Xenoxybelis","argenteus","Striped_Sharpnose_Snake",72,95.9
-2025-07-04,2025-07-04,"YRS","Forest Plot Perimeter","FPPE-02","8:21 PM","11:39 PM","O,J,JP","Forest Plot Perimeter",2520,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-02,2025-07-02,"TBS","Anaconda-Lago","ANAC-01","8:06 PM","10:53 PM","O,J,JP","Anaconda",388,"SK83",5.2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",73.2,93.2
-2025-07-02,2025-07-02,"TBS","Anaconda-Lago","LAGO-02","8:06 PM","10:53 PM","O,J,JP","Lago",1450,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-02,2025-07-02,"TBS","Anaconda-Lago","LAGO-01","8:06 PM","10:53 PM","O,J,JP","Lago",719,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-01,2025-07-01,"TBS","Harpia Plot-Harpia","HAPL-01","8:48 PM","11:22 PM","O,J,JP","Harpia Plot",2220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-07-01,2025-07-01,"TBS","Harpia Plot-Harpia","HARP-01","8:48 PM","11:22 PM","O,J,JP","Harpia",483,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUMA-01","8:12 PM","11:15 PM","O,J,JP","Puma",750,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUPL-01","8:12 PM","11:15 PM","O,J,JP","Puma Plot",270,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUPL-02","8:12 PM","11:15 PM","O,J,JP","Puma Plot",652,"SK82",2.8,"consumes_mammals","mostly_mammals","Boidae","Corallus","hortulanus","Amazon_Tree_Boa",79.3,92.5
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUPL-04","8:12 PM","11:15 PM","O,J,JP","Puma Plot",411,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUPL-07","8:12 PM","11:15 PM","O,J,JP","Puma Plot",143,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUPL-05","8:12 PM","11:15 PM","O,J,JP","Puma Plot",105,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUPL-06","8:12 PM","11:15 PM","O,J,JP","Puma Plot",139,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUPL-10","8:12 PM","11:15 PM","O,J,JP","Puma Plot",248,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-30,2025-06-30,"TBS","Puma-Puma Plot","PUPL-12","8:12 PM","11:15 PM","O,J,JP","Puma Plot",108,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","MAPO-01","8:08 PM","11:03 PM","O,J,JP","Matapalo",53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","MAPO-02","8:08 PM","11:03 PM","O,J,JP","Matapalo",170,"SK79",2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",76.6,96.8
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","MANU-01","8:08 PM","11:03 PM","O,J,JP","Numa/Matapalo Connector",194,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","NUMA-02","8:08 PM","11:03 PM","O,J,JP","Numa",268,"SK80",2.4,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",75.7,93.4
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","CHIO-03","8:08 PM","11:03 PM","O,J,JP","Chichico",61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","CHIO-02","8:08 PM","11:03 PM","O,J,JP","Chichico",1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","CHIO-01","8:08 PM","11:03 PM","O,J,JP","Chichico",609,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","MAPO-06","8:08 PM","11:03 PM","O,J,JP","Matapalo",359,"SK81",2.2,"consumes_mammals","mixed","Colubridae","Chironius","fuscus","Brown_Sipo",74.8,96.9
-2025-06-29,2025-06-29,"TBS","Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa","NUMA-01","8:08 PM","11:03 PM","O,J,JP","Numa",290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-28,2025-06-28,"TBS","Guacamayo-Puma-Harpia-Chorongo","GUAC-03","8:17 PM","10:36 PM","O,J,JP","Guacamayo",279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-28,2025-06-28,"TBS","Guacamayo-Puma-Harpia-Chorongo","PUMA-01","8:17 PM","10:36 PM","O,J,JP","Puma",750,"SK77",1.6,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",74.2,95.1
-2025-06-28,2025-06-28,"TBS","Guacamayo-Puma-Harpia-Chorongo","PUMA-02","8:17 PM","10:36 PM","O,J,JP","Puma",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-28,2025-06-28,"TBS","Guacamayo-Puma-Harpia-Chorongo","HARP-05","8:17 PM","10:36 PM","O,J,JP","Harpia",740,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-28,2025-06-28,"TBS","Guacamayo-Puma-Harpia-Chorongo","TCHO-01","8:17 PM","10:36 PM","O,J,JP","Chorongo",481,"SK78",3.8,"no_mammals","no_mammals","Elapidae","Micrurus","helleri","Western_Ribbon_Coralsnake",75.4,95
-2025-06-27,2025-06-27,"TBS","Guacamayo-Danta-Lago","GUAC-01","8:10 PM","10:04 PM","O,J,JP","Guacamayo",230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-27,2025-06-27,"TBS","Guacamayo-Danta-Lago","GUAC-02","8:10 PM","10:04 PM","O,J,JP","Guacamayo",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-27,2025-06-27,"TBS","Guacamayo-Danta-Lago","DANT-01","8:10 PM","10:04 PM","O,J,JP","Danta",591,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-27,2025-06-27,"TBS","Guacamayo-Danta-Lago","LAGO-01","8:10 PM","10:04 PM","O,J,JP","Lago",719,"SK76",4.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",79.9,87.6
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-01","8:01 PM","10:51 PM","O,J,JP","Matapalo",53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-02","8:01 PM","10:51 PM","O,J,JP","Matapalo",170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-03","8:01 PM","10:51 PM","O,J,JP","Matapalo",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MURC-01","8:01 PM","10:51 PM","O,J,JP","Murcielago",156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MURC-02","8:01 PM","10:51 PM","O,J,JP","Murcielago",122,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","PUEN-01","8:01 PM","10:51 PM","O,J,JP","Puentes",144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MUPO-01","8:01 PM","10:51 PM","O,J,JP","Murcielago Pond",410,"SK74",3.6,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",76,92.4
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MUPO-01","8:01 PM","10:51 PM","O,J,JP","Murcielago Pond",410,"SK75",2.6,"no_mammals","no_mammals","Colubridae","Siphlophis","cervinus","Panama_Spotted_Nightsnake",76,92.4
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-04","8:01 PM","10:51 PM","O,J,JP","Matapalo",387,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-05","8:01 PM","10:51 PM","O,J,JP","Matapalo",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-06","8:01 PM","10:51 PM","O,J,JP","Matapalo",359,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","CHIO-03","8:01 PM","10:51 PM","O,J,JP","Chichico",61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-26,2025-06-26,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","NUMA-02","8:01 PM","10:51 PM","O,J,JP","Numa",268,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-25,2025-06-25,"TBS","Harpia Plot-Harpia","HAPL-01","8:00 PM","10:22 PM","O,J,JP","Harpia Plot",2220,"SK73",0,"no_mammals","no_mammals","Colubridae","Helicops","angulatus","Brown-banded_Watersnake",75.5,96.3
-2025-06-25,2025-06-25,"TBS","Harpia Plot-Harpia","HARP-01","8:00 PM","10:22 PM","O,J,JP","Harpia",483,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUMA-01","8:12 PM","11:04 PM","O,J,JP","Puma",750,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUPL-01","8:12 PM","11:04 PM","O,J,JP","Puma Plot",270,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUPL-02","8:12 PM","11:04 PM","O,J,JP","Puma Plot",652,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUPL-03","8:12 PM","11:04 PM","O,J,JP","Puma Plot",210,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUPL-04","8:12 PM","11:04 PM","O,J,JP","Puma Plot",411,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUPL-07","8:12 PM","11:04 PM","O,J,JP","Puma Plot",143,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUPL-05","8:12 PM","11:04 PM","O,J,JP","Puma Plot",105,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUPL-08","8:12 PM","11:04 PM","O,J,JP","Puma Plot",139,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-23,2025-06-23,"TBS","Puma-Puma Plot","PUPL-06","8:12 PM","11:04 PM","O,J,JP","Puma Plot",139,"SK72",1.4,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",83,82.4
-2025-06-21,2025-06-21,"TBS","Parahuaco","PARA-01","8:43 PM","11:53 PM","O,J,JP","Parahuaco",3522,"SK71",4.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",74.5,94.6
-2025-06-20,2025-06-20,"TBS","Guacamayo-Puma-Harpia-Chorongo","GUAC-03","8:23 PM","11:07 PM","O,J,JP","Guacamayo",279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-20,2025-06-20,"TBS","Guacamayo-Puma-Harpia-Chorongo","PUMA-01","8:23 PM","11:07 PM","O,J,JP","Puma",750,"SK68",0.7,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",79.1,83.7
-2025-06-20,2025-06-20,"TBS","Guacamayo-Puma-Harpia-Chorongo","PUMA-02","8:23 PM","11:07 PM","O,J,JP","Puma",388,"SK69",5,"no_mammals","no_mammals","Colubridae","Chironius","multiventris","South_American_Sipo",77.4,88.1
-2025-06-20,2025-06-20,"TBS","Guacamayo-Puma-Harpia-Chorongo","HARP-05","8:23 PM","11:07 PM","O,J,JP","Harpia",740,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-20,2025-06-20,"TBS","Guacamayo-Puma-Harpia-Chorongo","TCHO-01","8:23 PM","11:07 PM","O,J,JP","Chorongo",481,"SK70",0.6,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",80.1,85.3
-2025-06-18,2025-06-18,"YRS","Mirador","MIRA-04","8:47 PM","10:56 PM","O,J,Vicente,Nora,Dillon,Peter","Mirador",760,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-18,2025-06-18,"YRS","Mirador","MIRA-03","8:47 PM","10:56 PM","O,J,Vicente,Nora,Dillon,Peter","Mirador",158,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-18,2025-06-18,"YRS","Mirador","MIRA-02","8:47 PM","10:56 PM","O,J,Vicente,Nora,Dillon,Peter","Mirador",592,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-18,2025-06-18,"YRS","Mirador","MIRA-01","8:47 PM","10:56 PM","O,J,Vicente,Nora,Dillon,Peter","Mirador",550,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-17,2025-06-17,"YRS","Forest Plot Perimeter","FPPE-03","8:17 PM","11:35 PM","O,J","Forest Plot Perimeter",88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-17,2025-06-17,"YRS","Forest Plot Perimeter","FPPE-04","8:17 PM","11:35 PM","O,J","Forest Plot Perimeter",662,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-17,2025-06-17,"YRS","Forest Plot Perimeter","FPPE-05","8:17 PM","11:35 PM","O,J","Forest Plot Perimeter",291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-17,2025-06-17,"YRS","Forest Plot Perimeter","FPPE-02","8:17 PM","11:35 PM","O,J","Forest Plot Perimeter",2520,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-15,2025-06-15,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","TORR-01","8:34 PM","11:24 PM","O,J,Tristan,Fenton,Nora","Torre",900,"SK65",0.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.2,94.4
-2025-06-15,2025-06-15,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","TORR-01","8:34 PM","11:24 PM","O,J,Tristan,Fenton,Nora","Torre",900,"SK66",0.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.2,94.4
-2025-06-15,2025-06-15,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPPE-06","8:34 PM","11:24 PM","O,J,Tristan,Fenton,Nora","Forest Plot Perimeter",69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-15,2025-06-15,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPPE-03","8:34 PM","11:24 PM","O,J,Tristan,Fenton,Nora","Forest Plot Perimeter",88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-15,2025-06-15,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPIN-01","8:34 PM","11:24 PM","O,J,Tristan,Fenton,Nora","Forest Plot Interior",1053,"SK67",2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",76.2,96.2
-2025-06-15,2025-06-15,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPPE-05","8:34 PM","11:24 PM","O,J,Tristan,Fenton,Nora","Forest Plot Perimeter",291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-15,2025-06-15,"YRS","Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter","FPPE-01","8:34 PM","11:24 PM","O,J,Tristan,Fenton,Nora","Forest Plot Perimeter",171,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","BOTA-01","8:04 PM","10:40 PM","O,J","Botanico",142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","TINA-01","8:04 PM","10:40 PM","O,J","Tinamou",65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","TINA-02","8:04 PM","10:40 PM","O,J","Tinamou",509,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","NAPO-02","8:04 PM","10:40 PM","O,J","Napo",419,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","NAPO-03","8:04 PM","10:40 PM","O,J","Napo",157,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","BARI-02","8:04 PM","10:40 PM","O,J","Bariso",183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","TIMA-01","8:04 PM","10:40 PM","O,J","Timatai",128,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","NAPO-01","8:04 PM","10:40 PM","O,J","Napo",135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","PANT-01","8:04 PM","10:40 PM","O,J","Pantano",103,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","BOTA-03","8:04 PM","10:40 PM","O,J","Botanico",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","BOTA-02","8:04 PM","10:40 PM","O,J","Botanico",69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-14,2025-06-14,"YRS","Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus","GRFI-01","8:04 PM","10:40 PM","O,J","Gran Ficus",96,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GAWA-01","8:01 PM","10:53 PM","O,J","Gawape",272,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GAWA-02","8:01 PM","10:53 PM","O,J","Gawape",650,"SK63",0.3,"no_mammals","no_mammals","Colubridae","Drymobius","rhombifer","Diamond_Racer",81.7,82.5
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GAWA-02","8:01 PM","10:53 PM","O,J","Gawape",650,"SK64",1.1,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",81,85.4
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GAWA-03","8:01 PM","10:53 PM","O,J","Gawape",692,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","YCHO-02","8:01 PM","10:53 PM","O,J","Chorongo",691,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","KINK-01","8:01 PM","10:53 PM","O,J","Kinkajou",321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","NAPO-05","8:01 PM","10:53 PM","O,J","Napo",243,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","TUCA-01","8:01 PM","10:53 PM","O,J","Tucan",240,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-12,2025-06-12,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GARZ-01","8:01 PM","10:53 PM","O,J","Garza",223,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-10,2025-06-10,"YRS","Ceiba-Peru","CEIB-01","8:07 PM","10:33 PM","O,J","Ceiba",490,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-10,2025-06-10,"YRS","Ceiba-Peru","PERU-01","8:07 PM","10:33 PM","O,J","Peru",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-10,2025-06-10,"YRS","Ceiba-Peru","PERU-02","8:07 PM","10:33 PM","O,J","Peru",738,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-10,2025-06-10,"YRS","Ceiba-Peru","PERU-03","8:07 PM","10:33 PM","O,J","Peru",175,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-10,2025-06-10,"YRS","Ceiba-Peru","PERU-04","8:07 PM","10:33 PM","O,J","Peru",259,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-10,2025-06-10,"YRS","Ceiba-Peru","PERU-05","8:07 PM","10:33 PM","O,J","Peru",301,"SK62",1.5,"no_mammals","no_mammals","Colubridae","Leptodeira","approximans","Upper_Amazon_Cat-eyed_Snake",79.2,85.7
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","YCHO-01","8:15 PM","11:03 PM","O,J","Chorongo",1230,"SK57",1.4,"no_mammals","no_mammals","Colubridae","Hydrops","triangularis","Triangle_Watersnake",77.3,88.2
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","YCHO-01","8:15 PM","11:03 PM","O,J","Chorongo",1230,"SK58",6.8,"consumes_mammals","mixed","Viperidae","Bothrops","bilineatus","Two-lined_Forest_Pitviper",80.5,88.4
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","KINK-01","8:15 PM","11:03 PM","O,J","Kinkajou",321,"SK59",1.4,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",76.4,89.7
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","KINK-01","8:15 PM","11:03 PM","O,J","Kinkajou",321,"SK60",5.7,"consumes_mammals","mostly_mammals","Boidae","Corallus","hortulanus","Amazon_Tree_Boa",76.9,88.6
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","NAPO-04","8:15 PM","11:03 PM","O,J","Napo",220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BARI-02","8:15 PM","11:03 PM","O,J","Bariso",183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BARI-01","8:15 PM","11:03 PM","O,J","Bariso",340,"SK61",3.2,"consumes_mammals","mixed","Colubridae","Chironius","fuscus","Brown_Sipo",79,90.2
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","TINA-01","8:15 PM","11:03 PM","O,J","Tinamou",65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-09,2025-06-09,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BOTA-01","8:15 PM","11:03 PM","O,J","Botanico",142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-07,2025-06-07,"TBS","Guacamayo-Danta-Lago","GUAC-01","7:59 PM","10:26 PM","O,J","Guacamayo",230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-07,2025-06-07,"TBS","Guacamayo-Danta-Lago","GUAC-02","7:59 PM","10:26 PM","O,J","Guacamayo",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-07,2025-06-07,"TBS","Guacamayo-Danta-Lago","DANT-01","7:59 PM","10:26 PM","O,J","Danta",591,"SK56",1.9,"consumes_mammals","mixed","Viperidae","Bothrops","bilineatus","Two-lined_Forest_Pitviper",79,87.9
-2025-06-07,2025-06-07,"TBS","Guacamayo-Danta-Lago","LAGO-01","7:59 PM","10:26 PM","O,J","Lago",719,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","MAPO-02","8:08 PM","11:02 PM","O,J","Matapalo",170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","MAPO-03","8:08 PM","11:02 PM","O,J","Matapalo",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","MURC-01","8:08 PM","11:02 PM","O,J","Murcielago",156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","MURC-02","8:08 PM","11:02 PM","O,J","Murcielago",122,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","PUEN-01","8:08 PM","11:02 PM","O,J","Puentes",144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","MAPO-04","8:08 PM","11:02 PM","O,J","Matapalo",387,"SK55",3.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",75.5,90.9
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","MAPO-05","8:08 PM","11:02 PM","O,J","Matapalo",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","MAPO-06","8:08 PM","11:02 PM","O,J","Matapalo",359,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","CHIO-03","8:08 PM","11:02 PM","O,J","Chichico",61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-06,2025-06-06,"TBS","Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa","NUMA-02","8:08 PM","11:02 PM","O,J","Numa",268,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-04,2025-06-04,"TBS","Anaconda-Lago","ANAC-01","8:12 PM","10:32 PM","O,J,T","Anaconda",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-04,2025-06-04,"TBS","Anaconda-Lago","LAGO-02","8:12 PM","10:32 PM","O,J,T","Lago",1450,"SK53",1.6,"consumes_mammals","mixed","Colubridae","Oxyrhopus","occipitalis","Yellow-headed_Flame_Snake",79.2,85.7
-2025-06-04,2025-06-04,"TBS","Anaconda-Lago","LAGO-02","8:12 PM","10:32 PM","O,J,T","Lago",1450,"SK54",2,"no_mammals","no_mammals","Colubridae","Drepanoides","anomalus","Black-collared_Snake",79.7,84.7
-2025-06-03,2025-06-03,"TBS","Numa-Chichico","NUMA-01","8:49 PM","11:05 PM","O,J","Numa",290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-03,2025-06-03,"TBS","Numa-Chichico","CHIO-03","8:49 PM","11:05 PM","O,J","Chichico",61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-03,2025-06-03,"TBS","Numa-Chichico","CHIO-02","8:49 PM","11:05 PM","O,J","Chichico",1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2025-06-03,2025-06-03,"TBS","Numa-Chichico","CHIO-01","8:49 PM","11:05 PM","O,J","Chichico",609,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","TINA-01","8:07 PM","10:19 PM","O,T,A","Tinamou",65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","TINA-02","8:07 PM","10:19 PM","O,T,A","Tinamou",509,"SK48",0.2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",75.9,90.3
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","TINA-02","8:07 PM","10:19 PM","O,T,A","Tinamou",509,"SK49",2.3,"no_mammals","no_mammals","Colubridae","Dendrophidion","dendrophis","Olive_Forest_Racer",75.9,90.3
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","TINA-02","8:07 PM","10:19 PM","O,T,A","Tinamou",509,"SK50",2.8,"no_mammals","no_mammals","Colubridae","Xenoxybelis","argenteus","Striped_Sharpnose_Snake",74.8,93.3
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","NAPO-02","8:07 PM","10:19 PM","O,T,A","Napo",419,"SK51",1,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",74.4,93.6
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","NAPO-02","8:07 PM","10:19 PM","O,T,A","Napo",419,"SK52",1.6,"no_mammals","no_mammals","Colubridae","Leptodeira","approximans","Upper_Amazon_Cat-eyed_Snake",75.1,92.9
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","NAPO-01","8:07 PM","10:19 PM","O,T,A","Napo",135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","PANT-01","8:07 PM","10:19 PM","O,T,A","Pantano",103,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","BOTA-03","8:07 PM","10:19 PM","O,T,A","Botanico",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","BOTA-02","8:07 PM","10:19 PM","O,T,A","Botanico",69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-08-01,2024-08-01,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","GRFI-01","8:07 PM","10:19 PM","O,T,A","Gran Ficus",96,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-31,2024-07-31,"YRS","Torre-Forest Plot North Edge-Forest Plot Interior","TORR-01","8:38 PM","11:53 PM","O,M","Torre",900,"SK46",5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.3,93.3
-2024-07-31,2024-07-31,"YRS","Torre-Forest Plot North Edge-Forest Plot Interior","FPPE-06","8:38 PM","11:53 PM","O,M","Forest Plot Perimeter",69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-31,2024-07-31,"YRS","Torre-Forest Plot North Edge-Forest Plot Interior","FPPE-03","8:38 PM","11:53 PM","O,M","Forest Plot Perimeter",88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-31,2024-07-31,"YRS","Torre-Forest Plot North Edge-Forest Plot Interior","FPIN-01","8:38 PM","11:53 PM","O,M","Forest Plot Interior",1053,"SK47",1.7,"consumes_mammals","mixed","Colubridae","Oxyrhopus","vanidicus","Impostor_Flame_Snake",76.7,93.7
-2024-07-29,2024-07-29,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","YCHO-01","8:20 PM","10:48 PM","O,T","Chorongo",1230,"SK44",1,"consumes_mammals","mostly_mammals","Boidae","Corallus","batesii","Bates'_Emerald_Tree_Boa",81.4,86
-2024-07-29,2024-07-29,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","YCHO-01","8:20 PM","10:48 PM","O,T","Chorongo",1230,"SK45",4.3,"no_mammals","no_mammals","Colubridae","Leptodeira","approximans","Upper_Amazon_Cat-eyed_Snake",81.6,83.1
-2024-07-29,2024-07-29,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","KINK-01","8:20 PM","10:48 PM","O,T","Kinkajou",321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-29,2024-07-29,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","NAPO-04","8:20 PM","10:48 PM","O,T","Napo",220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-29,2024-07-29,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BARI-02","8:20 PM","10:48 PM","O,T","Bariso",183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-29,2024-07-29,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BARI-01","8:20 PM","10:48 PM","O,T","Bariso",340,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-29,2024-07-29,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","TINA-01","8:20 PM","10:48 PM","O,T","Tinamou",65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-29,2024-07-29,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BOTA-01","8:20 PM","10:48 PM","O,T","Botanico",142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-28,2024-07-28,"YRS","Peru-Ceiba","PERU-05","8:27 PM","11:31 PM","O,M","Peru",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-28,2024-07-28,"YRS","Peru-Ceiba","PERU-04","8:27 PM","11:31 PM","O,M","Peru",259,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-28,2024-07-28,"YRS","Peru-Ceiba","PERU-03","8:27 PM","11:31 PM","O,M","Peru",175,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-28,2024-07-28,"YRS","Peru-Ceiba","PERU-02","8:27 PM","11:31 PM","O,M","Peru",738,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-28,2024-07-28,"YRS","Peru-Ceiba","PERU-01","8:27 PM","11:31 PM","O,M","Peru",250,"SK43",1.5,"no_mammals","no_mammals","Colubridae","Dendrophidion","dendrophis","Olive_Forest_Racer",76.8,87.3
-2024-07-28,2024-07-28,"YRS","Peru-Ceiba","CEIB-01","8:27 PM","11:31 PM","O,M","Ceiba",490,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","GAWA-01","8:02 PM","10:54 PM","O,A","Gawape",272,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","GARZ-01","8:02 PM","10:54 PM","O,A","Garza",223,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","TUCA-01","8:02 PM","10:54 PM","O,A","Tucan",240,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","NAPO-05","8:02 PM","10:54 PM","O,A","Napo",243,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","KINK-01","8:02 PM","10:54 PM","O,A","Kinkajou",321,"SK40",0.3,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",76.9,93.5
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","YCHO-02","8:02 PM","10:54 PM","O,A","Chorongo",691,"SK41",1.2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.1,94.6
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","YCHO-02","8:02 PM","10:54 PM","O,A","Chorongo",691,"SK42",2.2,"no_mammals","no_mammals","Colubridae","Xenoxybelis","argenteus","Striped_Sharpnose_Snake",77.5,94.8
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","GAWA-03","8:02 PM","10:54 PM","O,A","Gawape",692,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-26,2024-07-26,"YRS","Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape","GAWA-02","8:02 PM","10:54 PM","O,A","Gawape",650,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-25,2024-07-25,"YRS","Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre","FPPE-01","8:19 PM","10:44 PM","O,T","Forest Plot Perimeter",171,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-25,2024-07-25,"YRS","Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre","FPPE-05","8:19 PM","10:44 PM","O,T","Forest Plot Perimeter",291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-25,2024-07-25,"YRS","Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre","FPIN-01","8:19 PM","10:44 PM","O,T","Forest Plot Interior",1053,"SK39",0.2,"consumes_mammals","mostly_mammals","Boidae","Corallus","hortulanus","Amazon_Tree_Boa",78.1,89.6
-2024-07-25,2024-07-25,"YRS","Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre","FPPE-03","8:19 PM","10:44 PM","O,T","Forest Plot Perimeter",88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-25,2024-07-25,"YRS","Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre","FPPE-06","8:19 PM","10:44 PM","O,T","Forest Plot Perimeter",69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-25,2024-07-25,"YRS","Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre","TORR-01","8:19 PM","10:44 PM","O,T","Torre",900,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-23,2024-07-23,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","TINA-01","8:09 PM","10:45 PM","O,T","Tinamou",65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-23,2024-07-23,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","TINA-02","8:09 PM","10:45 PM","O,T","Tinamou",509,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-23,2024-07-23,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","NAPO-02","8:09 PM","10:45 PM","O,T","Napo",419,"SK36",0.2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",78.9,88.1
-2024-07-23,2024-07-23,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","NAPO-01","8:09 PM","10:45 PM","O,T","Napo",135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-23,2024-07-23,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","PANT-01","8:09 PM","10:45 PM","O,T","Pantano",103,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-23,2024-07-23,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","BOTA-03","8:09 PM","10:45 PM","O,T","Botanico",250,"SK37",0.4,"no_mammals","no_mammals","Colubridae","Drepanoides","anomalus","Black-collared_Snake",78.4,88.9
-2024-07-23,2024-07-23,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","BOTA-02","8:09 PM","10:45 PM","O,T","Botanico",69,"SK38",1.6,"no_mammals","no_mammals","Colubridae","Xenoxybelis","argenteus","Striped_Sharpnose_Snake",78.4,89.1
-2024-07-23,2024-07-23,"YRS","Tinamou-Napo-Pantano-Botanico-Gran Ficus","GRFI-01","8:09 PM","10:45 PM","O,T","Gran Ficus",96,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUMA-01","8:06 PM","11:51 PM","O,T","Puma",750,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-01","8:06 PM","11:51 PM","O,T","Puma Plot",270,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-10","8:06 PM","11:51 PM","O,T","Puma Plot",248,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-02","8:06 PM","11:51 PM","O,T","Puma Plot",652,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-03","8:06 PM","11:51 PM","O,T","Puma Plot",210,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-04","8:06 PM","11:51 PM","O,T","Puma Plot",411,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-05","8:06 PM","11:51 PM","O,T","Puma Plot",105,"SK35",2.2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",74.8,92.1
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-06","8:06 PM","11:51 PM","O,T","Puma Plot",139,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-12","8:06 PM","11:51 PM","O,T","Puma Plot",108,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-20,2024-07-20,"TBS","Puma-Puma Plot","PUPL-11","8:06 PM","11:51 PM","O,T","Puma Plot",324,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-18,2024-07-18,"TBS","Harpia Plot-Harpia-Matapalo","HAPL-01","8:00 PM","10:50 PM","O,Brian","Harpia Plot",2220,"SK32",1.6,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",78,91.5
-2024-07-18,2024-07-18,"TBS","Harpia Plot-Harpia-Matapalo","HARP-01","8:00 PM","10:50 PM","O,Brian","Harpia",483,"SK33",1.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",76.5,92.2
-2024-07-18,2024-07-18,"TBS","Harpia Plot-Harpia-Matapalo","HARP-01","8:00 PM","10:50 PM","O,Brian","Harpia",483,"SK34",0.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.2,92.9
-2024-07-18,2024-07-18,"TBS","Harpia Plot-Harpia-Matapalo","MAPO-02","8:00 PM","10:50 PM","O,Brian","Matapalo",170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-18,2024-07-18,"TBS","Harpia Plot-Harpia-Matapalo","MAPO-01","8:00 PM","10:50 PM","O,Brian","Matapalo",53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUMA-01","8:14 PM","11:22 PM","O,T","Puma",750,"SK25",0.2,"no_mammals","no_mammals","Colubridae","Xenoxybelis","argenteus","Striped_Sharpnose_Snake",74.1,87.4
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUMA-01","8:14 PM","11:22 PM","O,T","Puma",750,"SK26",1.7,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",74.1,87.4
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-01","8:14 PM","11:22 PM","O,T","Puma Plot",270,"SK27",0.4,"no_mammals","no_mammals","Colubridae","Leptophis","cupreus","Copper_Parrot_Snake",75.3,87.5
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-02","8:14 PM","11:22 PM","O,T","Puma Plot",652,"SK28",1,"no_mammals","no_mammals","Colubridae","Dipsas","pavonina","Northern_Snail_Eater",74.8,89.7
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-04","8:14 PM","11:22 PM","O,T","Puma Plot",411,"SK29",1.6,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",74.1,91
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-04","8:14 PM","11:22 PM","O,T","Puma Plot",411,"SK30",2,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",75.2,90.8
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-07","8:14 PM","11:22 PM","O,T","Puma Plot",143,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-05","8:14 PM","11:22 PM","O,T","Puma Plot",105,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-08","8:14 PM","11:22 PM","O,T","Puma Plot",139,"SK31",0.5,"no_mammals","no_mammals","Colubridae","Chironius","multiventris","South_American_Sipo",74.6,90.3
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-06","8:14 PM","11:22 PM","O,T","Puma Plot",139,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-17,2024-07-17,"TBS","Puma-Puma Plot","PUPL-09","8:14 PM","11:22 PM","O,T","Puma Plot",163,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-15,2024-07-15,"TBS","Anaconda-Lago","ANAC-01","8:14 PM","11:42 PM","O,M","Anaconda",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-15,2024-07-15,"TBS","Anaconda-Lago","LAGO-02","8:14 PM","11:42 PM","O,M","Lago",1450,"SK19",2.8,"no_mammals","no_mammals","Colubridae","Drepanoides","anomalus","Black-collared_Snake",75.7,92.4
-2024-07-15,2024-07-15,"TBS","Anaconda-Lago","LAGO-02","8:14 PM","11:42 PM","O,M","Lago",1450,"SK20",0.3,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",75.1,91.4
-2024-07-15,2024-07-15,"TBS","Anaconda-Lago","LAGO-02","8:14 PM","11:42 PM","O,M","Lago",1450,"SK21",0.2,"consumes_mammals","mixed","Colubridae","Chironius","fuscus","Brown_Sipo",77.7,86.5
-2024-07-15,2024-07-15,"TBS","Anaconda-Lago","LAGO-02","8:14 PM","11:42 PM","O,M","Lago",1450,"SK22",8,"consumes_mammals","mostly_mammals","Boidae","Corallus","hortulanus","Amazon_Tree_Boa",76.6,87
-2024-07-15,2024-07-15,"TBS","Anaconda-Lago","LAGO-02","8:14 PM","11:42 PM","O,M","Lago",1450,"SK23",2.2,"consumes_mammals","mostly_mammals","Boidae","Epicrates","cenchria","Western_Rainbow_Boa",75.9,88.9
-2024-07-15,2024-07-15,"TBS","Anaconda-Lago","LAGO-02","8:14 PM","11:42 PM","O,M","Lago",1450,"SK24",3.5,"no_mammals","no_mammals","Colubridae","Chironius","multiventris","South_American_Sipo",77.5,84.9
-2024-07-14,2024-07-15,"TBS","Harpia Plot-Harpia","HAPL-01","8:51 PM","12:05 AM","O,T","Harpia Plot",2220,"SK16",2.8,"no_mammals","no_mammals","Colubridae","Imantodes","lentiferus","Amazon_Blunt-headed_Tree_Snake",77.5,85.5
-2024-07-14,2024-07-15,"TBS","Harpia Plot-Harpia","HARP-01","8:51 PM","12:05 AM","O,T","Harpia",483,"SK17",2.3,"consumes_mammals","mixed","Colubridae","Oxyrhopus","petolarius","Forest_Flame_Snake",77.4,85.6
-2024-07-14,2024-07-15,"TBS","Harpia Plot-Harpia","HARP-01","8:51 PM","12:05 AM","O,T","Harpia",483,"SK18",1.6,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.4,85.6
-2024-07-11,2024-07-11,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","GUAC-03","8:08 PM","10:57 PM","O,T","Guacamayo",279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-11,2024-07-11,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","PUMA-01","8:08 PM","10:57 PM","O,T","Puma",750,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-11,2024-07-11,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","PUMA-02","8:08 PM","10:57 PM","O,T","Puma",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-11,2024-07-11,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","HARP-05","8:08 PM","10:57 PM","O,T","Harpia",740,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-11,2024-07-11,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","TCHO-01","8:08 PM","10:57 PM","O,T","Chorongo",481,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-10,2024-07-10,"TBS","Guacamayo-Danta-Lago","GUAC-01","8:07 PM","10:58 PM","O,M","Guacamayo",230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-10,2024-07-10,"TBS","Guacamayo-Danta-Lago","GUAC-02","8:07 PM","10:58 PM","O,M","Guacamayo",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-10,2024-07-10,"TBS","Guacamayo-Danta-Lago","DANT-01","8:07 PM","10:58 PM","O,M","Danta",591,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-10,2024-07-10,"TBS","Guacamayo-Danta-Lago","LAGO-01","8:07 PM","10:58 PM","O,M","Lago",719,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-01","8:01 PM","10:53 PM","O,Ethan","Matapalo",53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-02","8:01 PM","10:53 PM","O,Ethan","Matapalo",170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-03","8:01 PM","10:53 PM","O,Ethan","Matapalo",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MURC-01","8:01 PM","10:53 PM","O,Ethan","Murcielago",156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MURC-02","8:01 PM","10:53 PM","O,Ethan","Murcielago",122,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","PUEN-01","8:01 PM","10:53 PM","O,Ethan","Puentes",144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MUPO-01","8:01 PM","10:53 PM","O,Ethan","Murcielago Pond",410,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-04","8:01 PM","10:53 PM","O,Ethan","Matapalo",387,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-05","8:01 PM","10:53 PM","O,Ethan","Matapalo",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","MAPO-06","8:01 PM","10:53 PM","O,Ethan","Matapalo",359,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","CHIO-03","8:01 PM","10:53 PM","O,Ethan","Chichico",61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-08,2024-07-08,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa","NUMA-01","8:01 PM","10:53 PM","O,Ethan","Numa",290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-06,2024-07-06,"YRS","Forest Plot Perimeter","FPPE-03","8:29 PM","11:28 PM","O,A","Forest Plot Perimeter",88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-06,2024-07-06,"YRS","Forest Plot Perimeter","FPPE-04","8:29 PM","11:28 PM","O,A","Forest Plot Perimeter",662,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-06,2024-07-06,"YRS","Forest Plot Perimeter","FPPE-05","8:29 PM","11:28 PM","O,A","Forest Plot Perimeter",291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-06,2024-07-06,"YRS","Forest Plot Perimeter","FPPE-02","8:29 PM","11:28 PM","O,A","Forest Plot Perimeter",2520,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-04,2024-07-04,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","YCHO-01","8:12 PM","11:00 PM","O,Sophia","Chorongo",1230,"SK14",0.3,"no_mammals","no_mammals","Colubridae","Leptodeira","approximans","Upper_Amazon_Cat-eyed_Snake",78.3,87
-2024-07-04,2024-07-04,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","YCHO-01","8:12 PM","11:00 PM","O,Sophia","Chorongo",1230,"SK15",0.5,"no_mammals","no_mammals","Colubridae","Dipsas","pavonina","Northern_Snail_Eater",78.4,94.7
-2024-07-04,2024-07-04,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","KINK-01","8:12 PM","11:00 PM","O,Sophia","Kinkajou",321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-04,2024-07-04,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","NAPO-04","8:12 PM","11:00 PM","O,Sophia","Napo",220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-04,2024-07-04,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BARI-02","8:12 PM","11:00 PM","O,Sophia","Bariso",183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-04,2024-07-04,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BARI-01","8:12 PM","11:00 PM","O,Sophia","Bariso",340,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-04,2024-07-04,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","TINA-01","8:12 PM","11:00 PM","O,Sophia","Tinamou",65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-04,2024-07-04,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BOTA-01","8:12 PM","11:00 PM","O,Sophia","Botanico",142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-03,2024-07-03,"YRS","Ceiba-Peru","CEIB-01","8:11 PM","11:07 PM","O,M","Ceiba",490,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-03,2024-07-03,"YRS","Ceiba-Peru","PERU-01","8:11 PM","11:07 PM","O,M","Peru",250,"SK13",2.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.3,93.2
-2024-07-03,2024-07-03,"YRS","Ceiba-Peru","PERU-02","8:11 PM","11:07 PM","O,M","Peru",738,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-03,2024-07-03,"YRS","Ceiba-Peru","PERU-03","8:11 PM","11:07 PM","O,M","Peru",175,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-03,2024-07-03,"YRS","Ceiba-Peru","PERU-04","8:11 PM","11:07 PM","O,M","Peru",259,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-03,2024-07-03,"YRS","Ceiba-Peru","PERU-05","8:11 PM","11:07 PM","O,M","Peru",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-02,2024-07-02,"YRS","Forest Plot Perimeter","FPPE-03","8:00 PM","11:11 PM","O,T","Forest Plot Perimeter",88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-02,2024-07-02,"YRS","Forest Plot Perimeter","FPPE-04","8:00 PM","11:11 PM","O,T","Forest Plot Perimeter",662,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-02,2024-07-02,"YRS","Forest Plot Perimeter","FPPE-05","8:00 PM","11:11 PM","O,T","Forest Plot Perimeter",291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-07-02,2024-07-02,"YRS","Forest Plot Perimeter","FPPE-02","8:00 PM","11:11 PM","O,T","Forest Plot Perimeter",2520,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-29,2024-06-29,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GAWA-01","8:04 PM","11:19 PM","O,M,Dimitri","Gawape",272,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-29,2024-06-29,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GAWA-02","8:04 PM","11:19 PM","O,M,Dimitri","Gawape",650,"SK12",3.2,"consumes_mammals","mixed","Colubridae","Chironius","fuscus","Brown_Sipo",79.3,93.2
-2024-06-29,2024-06-29,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GAWA-03","8:04 PM","11:19 PM","O,M,Dimitri","Gawape",692,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-29,2024-06-29,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","YCHO-02","8:04 PM","11:19 PM","O,M,Dimitri","Chorongo",691,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-29,2024-06-29,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","KINK-01","8:04 PM","11:19 PM","O,M,Dimitri","Kinkajou",321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-29,2024-06-29,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","NAPO-05","8:04 PM","11:19 PM","O,M,Dimitri","Napo",243,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-29,2024-06-29,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","TUCA-01","8:04 PM","11:19 PM","O,M,Dimitri","Tucan",240,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-29,2024-06-29,"YRS","Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza","GARZ-01","8:04 PM","11:19 PM","O,M,Dimitri","Garza",223,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-27,2024-06-27,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","YCHO-01","8:07 PM","11:04 PM","O,T","Chorongo",1230,"SK10",4,"consumes_mammals","mostly_mammals","Boidae","Epicrates","cenchria","Western_Rainbow_Boa",79.7,83.6
-2024-06-27,2024-06-27,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","KINK-01","8:07 PM","11:04 PM","O,T","Kinkajou",321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-27,2024-06-27,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","NAPO-04","8:07 PM","11:04 PM","O,T","Napo",220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-27,2024-06-27,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BARI-02","8:07 PM","11:04 PM","O,T","Bariso",183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-27,2024-06-27,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BARI-01","8:07 PM","11:04 PM","O,T","Bariso",340,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-27,2024-06-27,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","TINA-01","8:07 PM","11:04 PM","O,T","Tinamou",65,"SK11",0.5,"consumes_mammals","mostly_mammals","Boidae","Epicrates","cenchria","Western_Rainbow_Boa",77.8,85.8
-2024-06-27,2024-06-27,"YRS","Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico","BOTA-01","8:07 PM","11:04 PM","O,T","Botanico",142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-23,2024-06-23,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo","MAPO-02","8:00 PM","10:36 PM","O,M,Ramiro","Matapalo",170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-23,2024-06-23,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo","MAPO-03","8:00 PM","10:36 PM","O,M,Ramiro","Matapalo",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-23,2024-06-23,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo","MURC-01","8:00 PM","10:36 PM","O,M,Ramiro","Murcielago",156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-23,2024-06-23,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo","PUEN-01","8:00 PM","10:36 PM","O,M,Ramiro","Puentes",144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-23,2024-06-23,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo","MUPO-01","8:00 PM","10:36 PM","O,M,Ramiro","Murcielago Pond",410,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-23,2024-06-23,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo","PUEN-01","8:00 PM","10:36 PM","O,M,Ramiro","Puentes",144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-23,2024-06-23,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo","MURC-01","8:00 PM","10:36 PM","O,M,Ramiro","Murcielago",156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-23,2024-06-23,"TBS","Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo","MAPO-03","8:00 PM","10:36 PM","O,M,Ramiro","Matapalo",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-22,2024-06-22,"TBS","Anaconda-Lago","ANAC-01","8:06 PM","10:29 PM","O,T,Jess,Amy,Adrian","Anaconda",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-22,2024-06-22,"TBS","Anaconda-Lago","LAGO-02","8:06 PM","10:29 PM","O,T,Jess,Amy,Adrian","Lago",1450,"SK07",1.75,"no_mammals","no_mammals","Colubridae","Siphlophis","cervinus","Panama_Spotted_Nightsnake",83.1,79.7
-2024-06-22,2024-06-22,"TBS","Anaconda-Lago","LAGO-01","8:06 PM","10:29 PM","O,T,Jess,Amy,Adrian","Lago",719,"SK08",1.3,"no_mammals","no_mammals","Colubridae","Dipsas","catesbyi","Catesby's_Snail_Eater",83.2,83.5
-2024-06-22,2024-06-22,"TBS","Anaconda-Lago","LAGO-01","8:06 PM","10:29 PM","O,T,Jess,Amy,Adrian","Lago",719,"SK09",1.4,"no_mammals","no_mammals","Colubridae","Dipsas","pavonina","Northern_Snail_Eater",83.2,83.5
-2024-06-21,2024-06-21,"TBS","Matapalo-Harpia","MAPO-01","8:11 PM","9:36 PM","O,Ramiro","Matapalo",53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-21,2024-06-21,"TBS","Matapalo-Harpia","MAPO-02","8:11 PM","9:36 PM","O,Ramiro","Matapalo",170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-21,2024-06-21,"TBS","Matapalo-Harpia","HARP-01","8:11 PM","9:36 PM","O,Ramiro","Harpia",483,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-19,2024-06-19,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","GUAC-03","7:58 PM","10:50 PM","O,M,Jess,Amy","Guacamayo",279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-19,2024-06-19,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","PUMA-01","7:58 PM","10:50 PM","O,M,Jess,Amy","Puma",750,"SK06",2,"no_mammals","no_mammals","Colubridae","Chironius","multiventris","South_American_Sipo",76.9,92.2
-2024-06-19,2024-06-19,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","PUMA-02","7:58 PM","10:50 PM","O,M,Jess,Amy","Puma",388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-19,2024-06-19,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","HARP-05","7:58 PM","10:50 PM","O,M,Jess,Amy","Harpia",740,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-19,2024-06-19,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","TCHO-01","7:58 PM","10:50 PM","O,M,Jess,Amy","Chorongo",481,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-19,2024-06-19,"TBS","Guacamayo-Puma-Harpia-Chorongo-Guacamayo","GUAC-01","7:58 PM","10:50 PM","O,M,Jess,Amy","Guacamayo",230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-01","8:04 PM","12:11 AM","O,T","Matapalo",53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-02","8:04 PM","12:11 AM","O,T","Matapalo",170,"SK04",2,"no_mammals","no_mammals","Colubridae","Drepanoides","anomalus","Black-collared_Snake",77.2,91.6
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-02","8:04 PM","12:11 AM","O,T","Matapalo",170,"SK05",3,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.2,91.6
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-03","8:04 PM","12:11 AM","O,T","Matapalo",388,"SK03",0,"consumes_mammals","mixed","Colubridae","Oxyrhopus","petolarius","Forest_Flame_Snake",79.3,93.2
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MURC-01","8:04 PM","12:11 AM","O,T","Murcielago",156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MURC-02","8:04 PM","12:11 AM","O,T","Murcielago",122,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-04","8:04 PM","12:11 AM","O,T","Matapalo",387,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-05","8:04 PM","12:11 AM","O,T","Matapalo",250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-06","8:04 PM","12:11 AM","O,T","Matapalo",359,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","CHIO-03","8:04 PM","12:11 AM","O,T","Chichico",61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","NUMA-01","8:04 PM","12:11 AM","O,T","Numa",290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MANU-01","8:04 PM","12:11 AM","O,T","Numa/Matapalo Connector",194,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-02","8:04 PM","12:11 AM","O,T","Matapalo",170,"SK04",2,"no_mammals","no_mammals","Colubridae","Drepanoides","anomalus","Black-collared_Snake",77.2,91.6
-2024-06-17,2024-06-18,"TBS","Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo","MAPO-02","8:04 PM","12:11 AM","O,T","Matapalo",170,"SK05",3,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",77.2,91.6
-2024-06-13,2024-06-13,"TBS","Guacamayo-Danta-Lago","GUAC-01","8:59 PM","11:54 PM","O,M,T","Guacamayo",230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-13,2024-06-13,"TBS","Guacamayo-Danta-Lago","GUAC-02","8:59 PM","11:54 PM","O,M,T","Guacamayo",301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-13,2024-06-13,"TBS","Guacamayo-Danta-Lago","DANT-01","8:59 PM","11:54 PM","O,M,T","Danta",591,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-13,2024-06-13,"TBS","Guacamayo-Danta-Lago","LAGO-01","8:59 PM","11:54 PM","O,M,T","Lago",719,"SK01",3.5,"no_mammals","no_mammals","Colubridae","Dipsas","catesbyi","Catesby's_Snail_Eater",80.8,83.7
-2024-06-13,2024-06-13,"TBS","Guacamayo-Danta-Lago","LAGO-01","8:59 PM","11:54 PM","O,M,T","Lago",719,"SK02",0.5,"no_mammals","no_mammals","Colubridae","Dipsas","catesbyi","Catesby's_Snail_Eater",83,79.8
-2024-06-11,2024-06-11,"TBS","Numa-Chichico-Matapalo-Chichico-Numa","NUMA-02","8:37 PM","11:36 PM","O,M,T,A","Numa",268,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-11,2024-06-11,"TBS","Numa-Chichico-Matapalo-Chichico-Numa","CHIO-03","8:37 PM","11:36 PM","O,M,T,A","Chichico",61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-11,2024-06-11,"TBS","Numa-Chichico-Matapalo-Chichico-Numa","CHIO-02","8:37 PM","11:36 PM","O,M,T,A","Chichico",1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-11,2024-06-11,"TBS","Numa-Chichico-Matapalo-Chichico-Numa","CHIO-01","8:37 PM","11:36 PM","O,M,T,A","Chichico",609,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-11,2024-06-11,"TBS","Numa-Chichico-Matapalo-Chichico-Numa","MAPO-06","8:37 PM","11:36 PM","O,M,T,A","Matapalo",359,"SK0",6,"no_mammals","no_mammals","Colubridae","Xenoxybelis","argenteus","Striped_Sharpnose_Snake",NA,NA
-2024-06-11,2024-06-11,"TBS","Numa-Chichico-Matapalo-Chichico-Numa","CHIO-03","8:37 PM","11:36 PM","O,M,T,A","Chichico",61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
-2024-06-11,2024-06-11,"TBS","Numa-Chichico-Matapalo-Chichico-Numa","NUMA-01","8:37 PM","11:36 PM","O,M,T,A","Numa",290,"SK00",0.5,"no_mammals","no_mammals","Colubridae","Imantodes","cenchoa","Common_Blunt-headed_Tree_Snake",NA,NA
+Start_Date,End_Date,Station,Parent_Trail_LongName,Segment,Survey_Start_Time,Survey_End_Time,Surveyors,Parent_Trail,Seg_dist_m,Snake_ID,Distance_From_Trail_m,Diet_Type,Diet_Type_3categories,Family,Genus,Species,Common_Name,Temperature_at_Time_of_Detection,Humidity_at_Time_of_Detection
+7/16/2025,7/16/2025,YRS,Coca-Ceiba-Peru-Renacuajo-Mirador,COCA-01,8:21 PM,10:24 PM,"O,J,JP",Coca,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/16/2025,7/16/2025,YRS,Coca-Ceiba-Peru-Renacuajo-Mirador,CEIB-02,8:21 PM,10:24 PM,"O,J,JP",Ceiba,463,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/16/2025,7/16/2025,YRS,Coca-Ceiba-Peru-Renacuajo-Mirador,PERU-01,8:21 PM,10:24 PM,"O,J,JP",Peru,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/16/2025,7/16/2025,YRS,Coca-Ceiba-Peru-Renacuajo-Mirador,MIRA-01,8:21 PM,10:24 PM,"O,J,JP",Mirador,550,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/15/2025,7/15/2025,YRS,Chorongo-Kinkajou-Napo,YCHO-01,8:30 PM,10:12 PM,"O,J,JP,Nora",Chorongo,1230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/15/2025,7/15/2025,YRS,Chorongo-Kinkajou-Napo,KINK-01,8:30 PM,10:12 PM,"O,J,JP,Nora",Kinkajou,321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/15/2025,7/15/2025,YRS,Chorongo-Kinkajou-Napo,NAPO-05,8:30 PM,10:12 PM,"O,J,JP,Nora",Napo,243,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/15/2025,7/15/2025,YRS,Chorongo-Kinkajou-Napo,NAPO-06,8:30 PM,10:12 PM,"O,J,JP,Nora",Napo,290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/14/2025,7/14/2025,YRS,Mirador,MIRA-03,8:34 PM,10:56 PM,"O,J,JP",Mirador,158,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/14/2025,7/14/2025,YRS,Mirador,MIRA-02,8:34 PM,10:56 PM,"O,J,JP",Mirador,592,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/13/2025,7/13/2025,YRS,Botanico-Tinamou-Napo-Timatai-Bariso,BOTA-01,8:51 PM,10:41 PM,"O,J,JP,Dillon",Botanico,142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/13/2025,7/13/2025,YRS,Botanico-Tinamou-Napo-Timatai-Bariso,TINA-01,8:51 PM,10:41 PM,"O,J,JP,Dillon",Tinamou,65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/13/2025,7/13/2025,YRS,Botanico-Tinamou-Napo-Timatai-Bariso,TINA-02,8:51 PM,10:41 PM,"O,J,JP,Dillon",Tinamou,509,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/13/2025,7/13/2025,YRS,Botanico-Tinamou-Napo-Timatai-Bariso,NAPO-01,8:51 PM,10:41 PM,"O,J,JP,Dillon",Napo,135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/13/2025,7/13/2025,YRS,Botanico-Tinamou-Napo-Timatai-Bariso,NAPO-02,8:51 PM,10:41 PM,"O,J,JP,Dillon",Napo,419,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/13/2025,7/13/2025,YRS,Botanico-Tinamou-Napo-Timatai-Bariso,TIMA-01,8:51 PM,10:41 PM,"O,J,JP,Dillon",Timatai,128,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/13/2025,7/13/2025,YRS,Botanico-Tinamou-Napo-Timatai-Bariso,BARI-01,8:51 PM,10:41 PM,"O,J,JP,Dillon",Bariso,340,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2025,7/11/2025,YRS,Gawape-Chorongo-Kinkajou,GAWA-01,8:14 PM,10:40 PM,"O,J,JP",Gawape,272,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2025,7/11/2025,YRS,Gawape-Chorongo-Kinkajou,GAWA-02,8:14 PM,10:40 PM,"O,J,JP",Gawape,650,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2025,7/11/2025,YRS,Gawape-Chorongo-Kinkajou,GAWA-03,8:14 PM,10:40 PM,"O,J,JP",Gawape,692,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2025,7/11/2025,YRS,Gawape-Chorongo-Kinkajou,YCHO-02,8:14 PM,10:40 PM,"O,J,JP",Chorongo,691,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2025,7/11/2025,YRS,Gawape-Chorongo-Kinkajou,KINK-01,8:14 PM,10:40 PM,"O,J,JP",Kinkajou,321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/9/2025,7/9/2025,YRS,Coca-Ceiba,COCA-01,8:45 PM,9:34 PM,"O,J",Coca,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,NAPO-01,8:18 PM,10:59 PM,"O,J,JP",Napo,135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,NAPO-02,8:18 PM,10:59 PM,"O,J,JP",Napo,419,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,NAPO-03,8:18 PM,10:59 PM,"O,J,JP",Napo,157,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,BARI-02,8:18 PM,10:59 PM,"O,J,JP",Bariso,183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,TIMA-01,8:18 PM,10:59 PM,"O,J,JP",Timatai,128,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,TINA-01,8:18 PM,10:59 PM,"O,J,JP",Tinamou,65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,BOTA-02,8:18 PM,10:59 PM,"O,J,JP",Botanico,69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,BOTA-03,8:18 PM,10:59 PM,"O,J,JP",Botanico,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,GRFI-01,8:18 PM,10:59 PM,"O,J,JP",Gran Ficus,96,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,BOTA-01,8:18 PM,10:59 PM,"O,J,JP",Botanico,142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/7/2025,7/7/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,TORR-01,8:26 PM,11:02 PM,"O,J,JP",Torre,900,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/7/2025,7/7/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPPE-06,8:26 PM,11:02 PM,"O,J,JP",Forest Plot Perimeter,69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/7/2025,7/7/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPPE-03,8:26 PM,11:02 PM,"O,J,JP",Forest Plot Perimeter,88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/7/2025,7/7/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPPE-05,8:26 PM,11:02 PM,"O,J,JP",Forest Plot Perimeter,291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/7/2025,7/7/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPPE-01,8:26 PM,11:02 PM,"O,J,JP",Forest Plot Perimeter,171,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/6/2025,7/6/2025,YRS,Chorongo-Kinkajou-Napo-Tucan-Garza-Napo,KINK-01,8:13 PM,10:38 PM,"O,J,JP",Kinkajou,321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/6/2025,7/6/2025,YRS,Chorongo-Kinkajou-Napo-Tucan-Garza-Napo,TUCA-01,8:13 PM,10:38 PM,"O,J,JP",Tucan,240,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/6/2025,7/6/2025,YRS,Chorongo-Kinkajou-Napo-Tucan-Garza-Napo,GARZ-02,8:13 PM,10:38 PM,"O,J,JP",Garza,282,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/6/2025,7/6/2025,YRS,Chorongo-Kinkajou-Napo-Tucan-Garza-Napo,NAPO-06,8:13 PM,10:38 PM,"O,J,JP",Napo,290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,CEIB-02,8:26 PM,11:30 PM,"O,J,JP",Ceiba,463,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,PERU-01,8:26 PM,11:30 PM,"O,J,JP",Peru,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,PERU-02,8:26 PM,11:30 PM,"O,J,JP",Peru,738,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,PERU-03,8:26 PM,11:30 PM,"O,J,JP",Peru,175,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,TIPU-01,8:26 PM,11:30 PM,"O,J,JP",Tiputini,141,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,PERU-04,8:26 PM,11:30 PM,"O,J,JP",Peru,259,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,PERU-05,8:26 PM,11:30 PM,"O,J,JP",Peru,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/4/2025,7/4/2025,YRS,Forest Plot Perimeter,FPPE-03,8:21 PM,11:39 PM,"O,J,JP",Forest Plot Perimeter,88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/4/2025,7/4/2025,YRS,Forest Plot Perimeter,FPPE-02,8:21 PM,11:39 PM,"O,J,JP",Forest Plot Perimeter,2520,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/2/2025,7/2/2025,TBS,Anaconda-Lago,LAGO-02,8:06 PM,10:53 PM,"O,J,JP",Lago,1450,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/2/2025,7/2/2025,TBS,Anaconda-Lago,LAGO-01,8:06 PM,10:53 PM,"O,J,JP",Lago,719,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/1/2025,7/1/2025,TBS,Harpia Plot-Harpia,HAPL-01,8:48 PM,11:22 PM,"O,J,JP",Harpia Plot,2220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/1/2025,7/1/2025,TBS,Harpia Plot-Harpia,HARP-01,8:48 PM,11:22 PM,"O,J,JP",Harpia,483,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUMA-01,8:12 PM,11:15 PM,"O,J,JP",Puma,750,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUPL-01,8:12 PM,11:15 PM,"O,J,JP",Puma Plot,270,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUPL-04,8:12 PM,11:15 PM,"O,J,JP",Puma Plot,411,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUPL-07,8:12 PM,11:15 PM,"O,J,JP",Puma Plot,143,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUPL-05,8:12 PM,11:15 PM,"O,J,JP",Puma Plot,105,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUPL-06,8:12 PM,11:15 PM,"O,J,JP",Puma Plot,139,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUPL-10,8:12 PM,11:15 PM,"O,J,JP",Puma Plot,248,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUPL-12,8:12 PM,11:15 PM,"O,J,JP",Puma Plot,108,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,MAPO-01,8:08 PM,11:03 PM,"O,J,JP",Matapalo,53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,MANU-01,8:08 PM,11:03 PM,"O,J,JP",Numa/Matapalo Connector,194,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,CHIO-03,8:08 PM,11:03 PM,"O,J,JP",Chichico,61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,CHIO-02,8:08 PM,11:03 PM,"O,J,JP",Chichico,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,CHIO-01,8:08 PM,11:03 PM,"O,J,JP",Chichico,609,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,NUMA-01,8:08 PM,11:03 PM,"O,J,JP",Numa,290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/28/2025,6/28/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,GUAC-03,8:17 PM,10:36 PM,"O,J,JP",Guacamayo,279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/28/2025,6/28/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,PUMA-02,8:17 PM,10:36 PM,"O,J,JP",Puma,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/28/2025,6/28/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,HARP-05,8:17 PM,10:36 PM,"O,J,JP",Harpia,740,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/27/2025,6/27/2025,TBS,Guacamayo-Danta-Lago,GUAC-01,8:10 PM,10:04 PM,"O,J,JP",Guacamayo,230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/27/2025,6/27/2025,TBS,Guacamayo-Danta-Lago,GUAC-02,8:10 PM,10:04 PM,"O,J,JP",Guacamayo,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/27/2025,6/27/2025,TBS,Guacamayo-Danta-Lago,DANT-01,8:10 PM,10:04 PM,"O,J,JP",Danta,591,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-01,8:01 PM,10:51 PM,"O,J,JP",Matapalo,53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-02,8:01 PM,10:51 PM,"O,J,JP",Matapalo,170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-03,8:01 PM,10:51 PM,"O,J,JP",Matapalo,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MURC-01,8:01 PM,10:51 PM,"O,J,JP",Murcielago,156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MURC-02,8:01 PM,10:51 PM,"O,J,JP",Murcielago,122,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,PUEN-01,8:01 PM,10:51 PM,"O,J,JP",Puentes,144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-04,8:01 PM,10:51 PM,"O,J,JP",Matapalo,387,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-05,8:01 PM,10:51 PM,"O,J,JP",Matapalo,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-06,8:01 PM,10:51 PM,"O,J,JP",Matapalo,359,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,CHIO-03,8:01 PM,10:51 PM,"O,J,JP",Chichico,61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,NUMA-02,8:01 PM,10:51 PM,"O,J,JP",Numa,268,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/25/2025,6/25/2025,TBS,Harpia Plot-Harpia,HARP-01,8:00 PM,10:22 PM,"O,J,JP",Harpia,483,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUMA-01,8:12 PM,11:04 PM,"O,J,JP",Puma,750,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUPL-01,8:12 PM,11:04 PM,"O,J,JP",Puma Plot,270,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUPL-02,8:12 PM,11:04 PM,"O,J,JP",Puma Plot,652,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUPL-03,8:12 PM,11:04 PM,"O,J,JP",Puma Plot,210,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUPL-04,8:12 PM,11:04 PM,"O,J,JP",Puma Plot,411,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUPL-07,8:12 PM,11:04 PM,"O,J,JP",Puma Plot,143,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUPL-05,8:12 PM,11:04 PM,"O,J,JP",Puma Plot,105,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUPL-08,8:12 PM,11:04 PM,"O,J,JP",Puma Plot,139,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/20/2025,6/20/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,GUAC-03,8:23 PM,11:07 PM,"O,J,JP",Guacamayo,279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/20/2025,6/20/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,HARP-05,8:23 PM,11:07 PM,"O,J,JP",Harpia,740,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/18/2025,6/18/2025,YRS,Mirador,MIRA-04,8:47 PM,10:56 PM,"O,J,Vicente,Nora,Dillon,Peter",Mirador,760,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/18/2025,6/18/2025,YRS,Mirador,MIRA-03,8:47 PM,10:56 PM,"O,J,Vicente,Nora,Dillon,Peter",Mirador,158,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/18/2025,6/18/2025,YRS,Mirador,MIRA-02,8:47 PM,10:56 PM,"O,J,Vicente,Nora,Dillon,Peter",Mirador,592,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/18/2025,6/18/2025,YRS,Mirador,MIRA-01,8:47 PM,10:56 PM,"O,J,Vicente,Nora,Dillon,Peter",Mirador,550,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2025,6/17/2025,YRS,Forest Plot Perimeter,FPPE-03,8:17 PM,11:35 PM,"O,J",Forest Plot Perimeter,88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2025,6/17/2025,YRS,Forest Plot Perimeter,FPPE-04,8:17 PM,11:35 PM,"O,J",Forest Plot Perimeter,662,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2025,6/17/2025,YRS,Forest Plot Perimeter,FPPE-05,8:17 PM,11:35 PM,"O,J",Forest Plot Perimeter,291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2025,6/17/2025,YRS,Forest Plot Perimeter,FPPE-02,8:17 PM,11:35 PM,"O,J",Forest Plot Perimeter,2520,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/15/2025,6/15/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPPE-06,8:34 PM,11:24 PM,"O,J,Tristan,Fenton,Nora",Forest Plot Perimeter,69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/15/2025,6/15/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPPE-03,8:34 PM,11:24 PM,"O,J,Tristan,Fenton,Nora",Forest Plot Perimeter,88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/15/2025,6/15/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPPE-05,8:34 PM,11:24 PM,"O,J,Tristan,Fenton,Nora",Forest Plot Perimeter,291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/15/2025,6/15/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPPE-01,8:34 PM,11:24 PM,"O,J,Tristan,Fenton,Nora",Forest Plot Perimeter,171,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,BOTA-01,8:04 PM,10:40 PM,"O,J",Botanico,142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,TINA-01,8:04 PM,10:40 PM,"O,J",Tinamou,65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,TINA-02,8:04 PM,10:40 PM,"O,J",Tinamou,509,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,NAPO-02,8:04 PM,10:40 PM,"O,J",Napo,419,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,NAPO-03,8:04 PM,10:40 PM,"O,J",Napo,157,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,BARI-02,8:04 PM,10:40 PM,"O,J",Bariso,183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,TIMA-01,8:04 PM,10:40 PM,"O,J",Timatai,128,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,NAPO-01,8:04 PM,10:40 PM,"O,J",Napo,135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,PANT-01,8:04 PM,10:40 PM,"O,J",Pantano,103,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,BOTA-03,8:04 PM,10:40 PM,"O,J",Botanico,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,BOTA-02,8:04 PM,10:40 PM,"O,J",Botanico,69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/14/2025,6/14/2025,YRS,Botanico-Tinamou-Napo-Bariso-Timatai-Napo-Pantano-Botanico-Gran Ficus,GRFI-01,8:04 PM,10:40 PM,"O,J",Gran Ficus,96,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GAWA-01,8:01 PM,10:53 PM,"O,J",Gawape,272,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GAWA-03,8:01 PM,10:53 PM,"O,J",Gawape,692,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,YCHO-02,8:01 PM,10:53 PM,"O,J",Chorongo,691,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,KINK-01,8:01 PM,10:53 PM,"O,J",Kinkajou,321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,NAPO-05,8:01 PM,10:53 PM,"O,J",Napo,243,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,TUCA-01,8:01 PM,10:53 PM,"O,J",Tucan,240,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GARZ-01,8:01 PM,10:53 PM,"O,J",Garza,223,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/10/2025,6/10/2025,YRS,Ceiba-Peru,CEIB-01,8:07 PM,10:33 PM,"O,J",Ceiba,490,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/10/2025,6/10/2025,YRS,Ceiba-Peru,PERU-01,8:07 PM,10:33 PM,"O,J",Peru,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/10/2025,6/10/2025,YRS,Ceiba-Peru,PERU-02,8:07 PM,10:33 PM,"O,J",Peru,738,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/10/2025,6/10/2025,YRS,Ceiba-Peru,PERU-03,8:07 PM,10:33 PM,"O,J",Peru,175,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/10/2025,6/10/2025,YRS,Ceiba-Peru,PERU-04,8:07 PM,10:33 PM,"O,J",Peru,259,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,NAPO-04,8:15 PM,11:03 PM,"O,J",Napo,220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BARI-02,8:15 PM,11:03 PM,"O,J",Bariso,183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,TINA-01,8:15 PM,11:03 PM,"O,J",Tinamou,65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BOTA-01,8:15 PM,11:03 PM,"O,J",Botanico,142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/7/2025,6/7/2025,TBS,Guacamayo-Danta-Lago,GUAC-01,7:59 PM,10:26 PM,"O,J",Guacamayo,230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/7/2025,6/7/2025,TBS,Guacamayo-Danta-Lago,GUAC-02,7:59 PM,10:26 PM,"O,J",Guacamayo,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/7/2025,6/7/2025,TBS,Guacamayo-Danta-Lago,LAGO-01,7:59 PM,10:26 PM,"O,J",Lago,719,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,MAPO-02,8:08 PM,11:02 PM,"O,J",Matapalo,170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,MAPO-03,8:08 PM,11:02 PM,"O,J",Matapalo,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,MURC-01,8:08 PM,11:02 PM,"O,J",Murcielago,156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,MURC-02,8:08 PM,11:02 PM,"O,J",Murcielago,122,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,PUEN-01,8:08 PM,11:02 PM,"O,J",Puentes,144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,MAPO-05,8:08 PM,11:02 PM,"O,J",Matapalo,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,MAPO-06,8:08 PM,11:02 PM,"O,J",Matapalo,359,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,CHIO-03,8:08 PM,11:02 PM,"O,J",Chichico,61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,NUMA-02,8:08 PM,11:02 PM,"O,J",Numa,268,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/4/2025,6/4/2025,TBS,Anaconda-Lago,ANAC-01,8:12 PM,10:32 PM,"O,J,T",Anaconda,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/3/2025,6/3/2025,TBS,Numa-Chichico,NUMA-01,8:49 PM,11:05 PM,"O,J",Numa,290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/3/2025,6/3/2025,TBS,Numa-Chichico,CHIO-03,8:49 PM,11:05 PM,"O,J",Chichico,61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/3/2025,6/3/2025,TBS,Numa-Chichico,CHIO-02,8:49 PM,11:05 PM,"O,J",Chichico,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/3/2025,6/3/2025,TBS,Numa-Chichico,CHIO-01,8:49 PM,11:05 PM,"O,J",Chichico,609,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,TINA-01,8:07 PM,10:19 PM,"O,T,A",Tinamou,65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,NAPO-01,8:07 PM,10:19 PM,"O,T,A",Napo,135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,PANT-01,8:07 PM,10:19 PM,"O,T,A",Pantano,103,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,BOTA-03,8:07 PM,10:19 PM,"O,T,A",Botanico,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,BOTA-02,8:07 PM,10:19 PM,"O,T,A",Botanico,69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,GRFI-01,8:07 PM,10:19 PM,"O,T,A",Gran Ficus,96,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/31/2024,7/31/2024,YRS,Torre-Forest Plot North Edge-Forest Plot Interior,FPPE-06,8:38 PM,11:53 PM,"O,M",Forest Plot Perimeter,69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/31/2024,7/31/2024,YRS,Torre-Forest Plot North Edge-Forest Plot Interior,FPPE-03,8:38 PM,11:53 PM,"O,M",Forest Plot Perimeter,88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/29/2024,7/29/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,KINK-01,8:20 PM,10:48 PM,"O,T",Kinkajou,321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/29/2024,7/29/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,NAPO-04,8:20 PM,10:48 PM,"O,T",Napo,220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/29/2024,7/29/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BARI-02,8:20 PM,10:48 PM,"O,T",Bariso,183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/29/2024,7/29/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BARI-01,8:20 PM,10:48 PM,"O,T",Bariso,340,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/29/2024,7/29/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,TINA-01,8:20 PM,10:48 PM,"O,T",Tinamou,65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/29/2024,7/29/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BOTA-01,8:20 PM,10:48 PM,"O,T",Botanico,142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/28/2024,7/28/2024,YRS,Peru-Ceiba,PERU-05,8:27 PM,11:31 PM,"O,M",Peru,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/28/2024,7/28/2024,YRS,Peru-Ceiba,PERU-04,8:27 PM,11:31 PM,"O,M",Peru,259,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/28/2024,7/28/2024,YRS,Peru-Ceiba,PERU-03,8:27 PM,11:31 PM,"O,M",Peru,175,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/28/2024,7/28/2024,YRS,Peru-Ceiba,PERU-02,8:27 PM,11:31 PM,"O,M",Peru,738,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/28/2024,7/28/2024,YRS,Peru-Ceiba,CEIB-01,8:27 PM,11:31 PM,"O,M",Ceiba,490,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,GAWA-01,8:02 PM,10:54 PM,"O,A",Gawape,272,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,GARZ-01,8:02 PM,10:54 PM,"O,A",Garza,223,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,TUCA-01,8:02 PM,10:54 PM,"O,A",Tucan,240,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,NAPO-05,8:02 PM,10:54 PM,"O,A",Napo,243,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,GAWA-03,8:02 PM,10:54 PM,"O,A",Gawape,692,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,GAWA-02,8:02 PM,10:54 PM,"O,A",Gawape,650,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/25/2024,7/25/2024,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,FPPE-01,8:19 PM,10:44 PM,"O,T",Forest Plot Perimeter,171,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/25/2024,7/25/2024,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,FPPE-05,8:19 PM,10:44 PM,"O,T",Forest Plot Perimeter,291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/25/2024,7/25/2024,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,FPPE-03,8:19 PM,10:44 PM,"O,T",Forest Plot Perimeter,88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/25/2024,7/25/2024,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,FPPE-06,8:19 PM,10:44 PM,"O,T",Forest Plot Perimeter,69,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/25/2024,7/25/2024,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,TORR-01,8:19 PM,10:44 PM,"O,T",Torre,900,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/23/2024,7/23/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,TINA-01,8:09 PM,10:45 PM,"O,T",Tinamou,65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/23/2024,7/23/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,TINA-02,8:09 PM,10:45 PM,"O,T",Tinamou,509,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/23/2024,7/23/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,NAPO-01,8:09 PM,10:45 PM,"O,T",Napo,135,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/23/2024,7/23/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,PANT-01,8:09 PM,10:45 PM,"O,T",Pantano,103,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/23/2024,7/23/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,GRFI-01,8:09 PM,10:45 PM,"O,T",Gran Ficus,96,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUMA-01,8:06 PM,11:51 PM,"O,T",Puma,750,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-01,8:06 PM,11:51 PM,"O,T",Puma Plot,270,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-10,8:06 PM,11:51 PM,"O,T",Puma Plot,248,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-02,8:06 PM,11:51 PM,"O,T",Puma Plot,652,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-03,8:06 PM,11:51 PM,"O,T",Puma Plot,210,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-04,8:06 PM,11:51 PM,"O,T",Puma Plot,411,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-06,8:06 PM,11:51 PM,"O,T",Puma Plot,139,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-12,8:06 PM,11:51 PM,"O,T",Puma Plot,108,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-11,8:06 PM,11:51 PM,"O,T",Puma Plot,324,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/18/2024,7/18/2024,TBS,Harpia Plot-Harpia-Matapalo,MAPO-02,8:00 PM,10:50 PM,"O,Brian",Matapalo,170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/18/2024,7/18/2024,TBS,Harpia Plot-Harpia-Matapalo,MAPO-01,8:00 PM,10:50 PM,"O,Brian",Matapalo,53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-07,8:14 PM,11:22 PM,"O,T",Puma Plot,143,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-05,8:14 PM,11:22 PM,"O,T",Puma Plot,105,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-06,8:14 PM,11:22 PM,"O,T",Puma Plot,139,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-09,8:14 PM,11:22 PM,"O,T",Puma Plot,163,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/15/2024,7/15/2024,TBS,Anaconda-Lago,ANAC-01,8:14 PM,11:42 PM,"O,M",Anaconda,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2024,7/11/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,GUAC-03,8:08 PM,10:57 PM,"O,T",Guacamayo,279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2024,7/11/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,PUMA-01,8:08 PM,10:57 PM,"O,T",Puma,750,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2024,7/11/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,PUMA-02,8:08 PM,10:57 PM,"O,T",Puma,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2024,7/11/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,HARP-05,8:08 PM,10:57 PM,"O,T",Harpia,740,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/11/2024,7/11/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,TCHO-01,8:08 PM,10:57 PM,"O,T",Chorongo,481,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/10/2024,7/10/2024,TBS,Guacamayo-Danta-Lago,GUAC-01,8:07 PM,10:58 PM,"O,M",Guacamayo,230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/10/2024,7/10/2024,TBS,Guacamayo-Danta-Lago,GUAC-02,8:07 PM,10:58 PM,"O,M",Guacamayo,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/10/2024,7/10/2024,TBS,Guacamayo-Danta-Lago,DANT-01,8:07 PM,10:58 PM,"O,M",Danta,591,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/10/2024,7/10/2024,TBS,Guacamayo-Danta-Lago,LAGO-01,8:07 PM,10:58 PM,"O,M",Lago,719,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-01,8:01 PM,10:53 PM,"O,Ethan",Matapalo,53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-02,8:01 PM,10:53 PM,"O,Ethan",Matapalo,170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-03,8:01 PM,10:53 PM,"O,Ethan",Matapalo,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MURC-01,8:01 PM,10:53 PM,"O,Ethan",Murcielago,156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MURC-02,8:01 PM,10:53 PM,"O,Ethan",Murcielago,122,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,PUEN-01,8:01 PM,10:53 PM,"O,Ethan",Puentes,144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MUPO-01,8:01 PM,10:53 PM,"O,Ethan",Murcielago Pond,410,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-04,8:01 PM,10:53 PM,"O,Ethan",Matapalo,387,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-05,8:01 PM,10:53 PM,"O,Ethan",Matapalo,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MAPO-06,8:01 PM,10:53 PM,"O,Ethan",Matapalo,359,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,CHIO-03,8:01 PM,10:53 PM,"O,Ethan",Chichico,61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/8/2024,7/8/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,NUMA-01,8:01 PM,10:53 PM,"O,Ethan",Numa,290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/6/2024,7/6/2024,YRS,Forest Plot Perimeter,FPPE-03,8:29 PM,11:28 PM,"O,A",Forest Plot Perimeter,88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/6/2024,7/6/2024,YRS,Forest Plot Perimeter,FPPE-04,8:29 PM,11:28 PM,"O,A",Forest Plot Perimeter,662,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/6/2024,7/6/2024,YRS,Forest Plot Perimeter,FPPE-05,8:29 PM,11:28 PM,"O,A",Forest Plot Perimeter,291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/6/2024,7/6/2024,YRS,Forest Plot Perimeter,FPPE-02,8:29 PM,11:28 PM,"O,A",Forest Plot Perimeter,2520,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/4/2024,7/4/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,KINK-01,8:12 PM,11:00 PM,"O,Sophia",Kinkajou,321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/4/2024,7/4/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,NAPO-04,8:12 PM,11:00 PM,"O,Sophia",Napo,220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/4/2024,7/4/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BARI-02,8:12 PM,11:00 PM,"O,Sophia",Bariso,183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/4/2024,7/4/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BARI-01,8:12 PM,11:00 PM,"O,Sophia",Bariso,340,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/4/2024,7/4/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,TINA-01,8:12 PM,11:00 PM,"O,Sophia",Tinamou,65,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/4/2024,7/4/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BOTA-01,8:12 PM,11:00 PM,"O,Sophia",Botanico,142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/3/2024,7/3/2024,YRS,Ceiba-Peru,CEIB-01,8:11 PM,11:07 PM,"O,M",Ceiba,490,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/3/2024,7/3/2024,YRS,Ceiba-Peru,PERU-02,8:11 PM,11:07 PM,"O,M",Peru,738,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/3/2024,7/3/2024,YRS,Ceiba-Peru,PERU-03,8:11 PM,11:07 PM,"O,M",Peru,175,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/3/2024,7/3/2024,YRS,Ceiba-Peru,PERU-04,8:11 PM,11:07 PM,"O,M",Peru,259,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/3/2024,7/3/2024,YRS,Ceiba-Peru,PERU-05,8:11 PM,11:07 PM,"O,M",Peru,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/2/2024,7/2/2024,YRS,Forest Plot Perimeter,FPPE-03,8:00 PM,11:11 PM,"O,T",Forest Plot Perimeter,88,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/2/2024,7/2/2024,YRS,Forest Plot Perimeter,FPPE-04,8:00 PM,11:11 PM,"O,T",Forest Plot Perimeter,662,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/2/2024,7/2/2024,YRS,Forest Plot Perimeter,FPPE-05,8:00 PM,11:11 PM,"O,T",Forest Plot Perimeter,291,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+7/2/2024,7/2/2024,YRS,Forest Plot Perimeter,FPPE-02,8:00 PM,11:11 PM,"O,T",Forest Plot Perimeter,2520,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2024,6/29/2024,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GAWA-01,8:04 PM,11:19 PM,"O,M,Dimitri",Gawape,272,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2024,6/29/2024,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GAWA-03,8:04 PM,11:19 PM,"O,M,Dimitri",Gawape,692,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2024,6/29/2024,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,YCHO-02,8:04 PM,11:19 PM,"O,M,Dimitri",Chorongo,691,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2024,6/29/2024,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,KINK-01,8:04 PM,11:19 PM,"O,M,Dimitri",Kinkajou,321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2024,6/29/2024,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,NAPO-05,8:04 PM,11:19 PM,"O,M,Dimitri",Napo,243,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2024,6/29/2024,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,TUCA-01,8:04 PM,11:19 PM,"O,M,Dimitri",Tucan,240,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/29/2024,6/29/2024,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GARZ-01,8:04 PM,11:19 PM,"O,M,Dimitri",Garza,223,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/27/2024,6/27/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,KINK-01,8:07 PM,11:04 PM,"O,T",Kinkajou,321,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/27/2024,6/27/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,NAPO-04,8:07 PM,11:04 PM,"O,T",Napo,220,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/27/2024,6/27/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BARI-02,8:07 PM,11:04 PM,"O,T",Bariso,183,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/27/2024,6/27/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BARI-01,8:07 PM,11:04 PM,"O,T",Bariso,340,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/27/2024,6/27/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BOTA-01,8:07 PM,11:04 PM,"O,T",Botanico,142,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2024,6/23/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo,MAPO-02,8:00 PM,10:36 PM,"O,M,Ramiro",Matapalo,170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2024,6/23/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo,MAPO-03,8:00 PM,10:36 PM,"O,M,Ramiro",Matapalo,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2024,6/23/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo,MURC-01,8:00 PM,10:36 PM,"O,M,Ramiro",Murcielago,156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2024,6/23/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo,PUEN-01,8:00 PM,10:36 PM,"O,M,Ramiro",Puentes,144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2024,6/23/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo,MUPO-01,8:00 PM,10:36 PM,"O,M,Ramiro",Murcielago Pond,410,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2024,6/23/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo,PUEN-01,8:00 PM,10:36 PM,"O,M,Ramiro",Puentes,144,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2024,6/23/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo,MURC-01,8:00 PM,10:36 PM,"O,M,Ramiro",Murcielago,156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/23/2024,6/23/2024,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Puentes-Murcielago-Matapalo,MAPO-03,8:00 PM,10:36 PM,"O,M,Ramiro",Matapalo,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/22/2024,6/22/2024,TBS,Anaconda-Lago,ANAC-01,8:06 PM,10:29 PM,"O,T,Jess,Amy,Adrian",Anaconda,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/21/2024,6/21/2024,TBS,Matapalo-Harpia,MAPO-01,8:11 PM,9:36 PM,"O,Ramiro",Matapalo,53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/21/2024,6/21/2024,TBS,Matapalo-Harpia,MAPO-02,8:11 PM,9:36 PM,"O,Ramiro",Matapalo,170,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/21/2024,6/21/2024,TBS,Matapalo-Harpia,HARP-01,8:11 PM,9:36 PM,"O,Ramiro",Harpia,483,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/19/2024,6/19/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,GUAC-03,7:58 PM,10:50 PM,"O,M,Jess,Amy",Guacamayo,279,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/19/2024,6/19/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,PUMA-02,7:58 PM,10:50 PM,"O,M,Jess,Amy",Puma,388,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/19/2024,6/19/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,HARP-05,7:58 PM,10:50 PM,"O,M,Jess,Amy",Harpia,740,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/19/2024,6/19/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,TCHO-01,7:58 PM,10:50 PM,"O,M,Jess,Amy",Chorongo,481,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/19/2024,6/19/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,GUAC-01,7:58 PM,10:50 PM,"O,M,Jess,Amy",Guacamayo,230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MAPO-01,8:04 PM,12:11 AM,"O,T",Matapalo,53,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MURC-01,8:04 PM,12:11 AM,"O,T",Murcielago,156,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MURC-02,8:04 PM,12:11 AM,"O,T",Murcielago,122,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MAPO-04,8:04 PM,12:11 AM,"O,T",Matapalo,387,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MAPO-05,8:04 PM,12:11 AM,"O,T",Matapalo,250,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MAPO-06,8:04 PM,12:11 AM,"O,T",Matapalo,359,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,CHIO-03,8:04 PM,12:11 AM,"O,T",Chichico,61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,NUMA-01,8:04 PM,12:11 AM,"O,T",Numa,290,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MANU-01,8:04 PM,12:11 AM,"O,T",Numa/Matapalo Connector,194,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/13/2024,6/13/2024,TBS,Guacamayo-Danta-Lago,GUAC-01,8:59 PM,11:54 PM,"O,M,T",Guacamayo,230,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/13/2024,6/13/2024,TBS,Guacamayo-Danta-Lago,GUAC-02,8:59 PM,11:54 PM,"O,M,T",Guacamayo,301,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/13/2024,6/13/2024,TBS,Guacamayo-Danta-Lago,DANT-01,8:59 PM,11:54 PM,"O,M,T",Danta,591,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/11/2024,6/11/2024,TBS,Numa-Chichico-Matapalo-Chichico-Numa,NUMA-02,8:37 PM,11:36 PM,"O,M,T,A",Numa,268,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/11/2024,6/11/2024,TBS,Numa-Chichico-Matapalo-Chichico-Numa,CHIO-03,8:37 PM,11:36 PM,"O,M,T,A",Chichico,61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/11/2024,6/11/2024,TBS,Numa-Chichico-Matapalo-Chichico-Numa,CHIO-02,8:37 PM,11:36 PM,"O,M,T,A",Chichico,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/11/2024,6/11/2024,TBS,Numa-Chichico-Matapalo-Chichico-Numa,CHIO-01,8:37 PM,11:36 PM,"O,M,T,A",Chichico,609,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/11/2024,6/11/2024,TBS,Numa-Chichico-Matapalo-Chichico-Numa,CHIO-03,8:37 PM,11:36 PM,"O,M,T,A",Chichico,61,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+6/11/2024,6/11/2024,TBS,Numa-Chichico-Matapalo-Chichico-Numa,MAPO-06,8:37 PM,11:36 PM,"O,M,T,A",Matapalo,359,SK0,6,no_mammals,no_mammals,Colubridae,Xenoxybelis,argenteus,Striped_Sharpnose_Snake,NA,NA
+6/11/2024,6/11/2024,TBS,Numa-Chichico-Matapalo-Chichico-Numa,NUMA-01,8:37 PM,11:36 PM,"O,M,T,A",Numa,290,SK00,0.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,NA,NA
+6/13/2024,6/13/2024,TBS,Guacamayo-Danta-Lago,LAGO-01,8:59 PM,11:54 PM,"O,M,T",Lago,719,SK01,3.5,no_mammals,no_mammals,Colubridae,Dipsas,catesbyi,Catesby's_Snail_Eater,80.8,83.7
+6/13/2024,6/13/2024,TBS,Guacamayo-Danta-Lago,LAGO-01,8:59 PM,11:54 PM,"O,M,T",Lago,719,SK02,0.5,no_mammals,no_mammals,Colubridae,Dipsas,catesbyi,Catesby's_Snail_Eater,83,79.8
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MAPO-03,8:04 PM,12:11 AM,"O,T",Matapalo,388,SK03,0,consumes_mammals,mixed,Colubridae,Oxyrhopus,petolarius,Forest_Flame_Snake,79.3,93.2
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MAPO-02,8:04 PM,12:11 AM,"O,T",Matapalo,170,SK04,2,no_mammals,no_mammals,Colubridae,Drepanoides,anomalus,Black-collared_Snake,77.2,91.6
+6/17/2024,6/18/2024,TBS,Matapalo-Murcielago-Matapalo-Chichico-Numa-Matapalo,MAPO-02,8:04 PM,12:11 AM,"O,T",Matapalo,170,SK05,3,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.2,91.6
+6/19/2024,6/19/2024,TBS,Guacamayo-Puma-Harpia-Chorongo-Guacamayo,PUMA-01,7:58 PM,10:50 PM,"O,M,Jess,Amy",Puma,750,SK06,2,no_mammals,no_mammals,Colubridae,Chironius,multiventris,South_American_Sipo,76.9,92.2
+6/22/2024,6/22/2024,TBS,Anaconda-Lago,LAGO-02,8:06 PM,10:29 PM,"O,T,Jess,Amy,Adrian",Lago,1450,SK07,1.75,no_mammals,no_mammals,Colubridae,Siphlophis,cervinus,Panama_Spotted_Nightsnake,83.1,79.7
+6/22/2024,6/22/2024,TBS,Anaconda-Lago,LAGO-01,8:06 PM,10:29 PM,"O,T,Jess,Amy,Adrian",Lago,719,SK08,1.3,no_mammals,no_mammals,Colubridae,Dipsas,catesbyi,Catesby's_Snail_Eater,83.2,83.5
+6/22/2024,6/22/2024,TBS,Anaconda-Lago,LAGO-01,8:06 PM,10:29 PM,"O,T,Jess,Amy,Adrian",Lago,719,SK09,1.4,no_mammals,no_mammals,Colubridae,Dipsas,pavonina,Northern_Snail_Eater,83.2,83.5
+6/27/2024,6/27/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,YCHO-01,8:07 PM,11:04 PM,"O,T",Chorongo,1230,SK10,4,consumes_mammals,mostly_mammals,Boidae,Epicrates,cenchria,Western_Rainbow_Boa,79.7,83.6
+6/27/2024,6/27/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,TINA-01,8:07 PM,11:04 PM,"O,T",Tinamou,65,SK11,0.5,consumes_mammals,mostly_mammals,Boidae,Epicrates,cenchria,Western_Rainbow_Boa,77.8,85.8
+6/29/2024,6/29/2024,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GAWA-02,8:04 PM,11:19 PM,"O,M,Dimitri",Gawape,650,SK12,3.2,consumes_mammals,mixed,Colubridae,Chironius,fuscus,Brown_Sipo,79.3,93.2
+7/3/2024,7/3/2024,YRS,Ceiba-Peru,PERU-01,8:11 PM,11:07 PM,"O,M",Peru,250,SK13,2.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.3,93.2
+7/4/2024,7/4/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,YCHO-01,8:12 PM,11:00 PM,"O,Sophia",Chorongo,1230,SK14,0.3,no_mammals,no_mammals,Colubridae,Leptodeira,approximans,Upper_Amazon_Cat-eyed_Snake,78.3,87
+7/4/2024,7/4/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,YCHO-01,8:12 PM,11:00 PM,"O,Sophia",Chorongo,1230,SK15,0.5,no_mammals,no_mammals,Colubridae,Dipsas,pavonina,Northern_Snail_Eater,78.4,94.7
+7/14/2024,7/15/2024,TBS,Harpia Plot-Harpia,HAPL-01,8:51 PM,12:05 AM,"O,T",Harpia Plot,2220,SK16,2.8,no_mammals,no_mammals,Colubridae,Imantodes,lentiferus,Amazon_Blunt-headed_Tree_Snake,77.5,85.5
+7/14/2024,7/15/2024,TBS,Harpia Plot-Harpia,HARP-01,8:51 PM,12:05 AM,"O,T",Harpia,483,SK17,2.3,consumes_mammals,mixed,Colubridae,Oxyrhopus,petolarius,Forest_Flame_Snake,77.4,85.6
+7/14/2024,7/15/2024,TBS,Harpia Plot-Harpia,HARP-01,8:51 PM,12:05 AM,"O,T",Harpia,483,SK18,1.6,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.4,85.6
+7/15/2024,7/15/2024,TBS,Anaconda-Lago,LAGO-02,8:14 PM,11:42 PM,"O,M",Lago,1450,SK19,2.8,no_mammals,no_mammals,Colubridae,Drepanoides,anomalus,Black-collared_Snake,75.7,92.4
+7/15/2024,7/15/2024,TBS,Anaconda-Lago,LAGO-02,8:14 PM,11:42 PM,"O,M",Lago,1450,SK20,0.3,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,75.1,91.4
+7/15/2024,7/15/2024,TBS,Anaconda-Lago,LAGO-02,8:14 PM,11:42 PM,"O,M",Lago,1450,SK21,0.2,consumes_mammals,mixed,Colubridae,Chironius,fuscus,Brown_Sipo,77.7,86.5
+7/15/2024,7/15/2024,TBS,Anaconda-Lago,LAGO-02,8:14 PM,11:42 PM,"O,M",Lago,1450,SK22,8,consumes_mammals,mostly_mammals,Boidae,Corallus,hortulanus,Amazon_Tree_Boa,76.6,87
+7/15/2024,7/15/2024,TBS,Anaconda-Lago,LAGO-02,8:14 PM,11:42 PM,"O,M",Lago,1450,SK23,2.2,consumes_mammals,mostly_mammals,Boidae,Epicrates,cenchria,Western_Rainbow_Boa,75.9,88.9
+7/15/2024,7/15/2024,TBS,Anaconda-Lago,LAGO-02,8:14 PM,11:42 PM,"O,M",Lago,1450,SK24,3.5,no_mammals,no_mammals,Colubridae,Chironius,multiventris,South_American_Sipo,77.5,84.9
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUMA-01,8:14 PM,11:22 PM,"O,T",Puma,750,SK25,0.2,no_mammals,no_mammals,Colubridae,Xenoxybelis,argenteus,Striped_Sharpnose_Snake,74.1,87.4
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUMA-01,8:14 PM,11:22 PM,"O,T",Puma,750,SK26,1.7,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,74.1,87.4
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-01,8:14 PM,11:22 PM,"O,T",Puma Plot,270,SK27,0.4,no_mammals,no_mammals,Colubridae,Leptophis,cupreus,Copper_Parrot_Snake,75.3,87.5
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-02,8:14 PM,11:22 PM,"O,T",Puma Plot,652,SK28,1,no_mammals,no_mammals,Colubridae,Dipsas,pavonina,Northern_Snail_Eater,74.8,89.7
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-04,8:14 PM,11:22 PM,"O,T",Puma Plot,411,SK29,1.6,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,74.1,91
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-04,8:14 PM,11:22 PM,"O,T",Puma Plot,411,SK30,2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,75.2,90.8
+7/17/2024,7/17/2024,TBS,Puma-Puma Plot,PUPL-08,8:14 PM,11:22 PM,"O,T",Puma Plot,139,SK31,0.5,no_mammals,no_mammals,Colubridae,Chironius,multiventris,South_American_Sipo,74.6,90.3
+7/18/2024,7/18/2024,TBS,Harpia Plot-Harpia-Matapalo,HAPL-01,8:00 PM,10:50 PM,"O,Brian",Harpia Plot,2220,SK32,1.6,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,78,91.5
+7/18/2024,7/18/2024,TBS,Harpia Plot-Harpia-Matapalo,HARP-01,8:00 PM,10:50 PM,"O,Brian",Harpia,483,SK33,1.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,76.5,92.2
+7/18/2024,7/18/2024,TBS,Harpia Plot-Harpia-Matapalo,HARP-01,8:00 PM,10:50 PM,"O,Brian",Harpia,483,SK34,0.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.2,92.9
+7/20/2024,7/20/2024,TBS,Puma-Puma Plot,PUPL-05,8:06 PM,11:51 PM,"O,T",Puma Plot,105,SK35,2.2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,74.8,92.1
+7/23/2024,7/23/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,NAPO-02,8:09 PM,10:45 PM,"O,T",Napo,419,SK36,0.2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,78.9,88.1
+7/23/2024,7/23/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,BOTA-03,8:09 PM,10:45 PM,"O,T",Botanico,250,SK37,0.4,no_mammals,no_mammals,Colubridae,Drepanoides,anomalus,Black-collared_Snake,78.4,88.9
+7/23/2024,7/23/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,BOTA-02,8:09 PM,10:45 PM,"O,T",Botanico,69,SK38,1.6,no_mammals,no_mammals,Colubridae,Xenoxybelis,argenteus,Striped_Sharpnose_Snake,78.4,89.1
+7/25/2024,7/25/2024,YRS,Forest Plot North Edge-Forest Plot Interior-Forest Plot North Edge-Torre,FPIN-01,8:19 PM,10:44 PM,"O,T",Forest Plot Interior,1053,SK39,0.2,consumes_mammals,mostly_mammals,Boidae,Corallus,hortulanus,Amazon_Tree_Boa,78.1,89.6
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,KINK-01,8:02 PM,10:54 PM,"O,A",Kinkajou,321,SK40,0.3,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,76.9,93.5
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,YCHO-02,8:02 PM,10:54 PM,"O,A",Chorongo,691,SK41,1.2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.1,94.6
+7/26/2024,7/26/2024,YRS,Gawape-Garza-Tucan-Napo-Kinkajou-Chorongo-Tucan-Gawape,YCHO-02,8:02 PM,10:54 PM,"O,A",Chorongo,691,SK42,2.2,no_mammals,no_mammals,Colubridae,Xenoxybelis,argenteus,Striped_Sharpnose_Snake,77.5,94.8
+7/28/2024,7/28/2024,YRS,Peru-Ceiba,PERU-01,8:27 PM,11:31 PM,"O,M",Peru,250,SK43,1.5,no_mammals,no_mammals,Colubridae,Dendrophidion,dendrophis,Olive_Forest_Racer,76.8,87.3
+7/29/2024,7/29/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,YCHO-01,8:20 PM,10:48 PM,"O,T",Chorongo,1230,SK44,1,consumes_mammals,mostly_mammals,Boidae,Corallus,batesii,Bates'_Emerald_Tree_Boa,81.4,86
+7/29/2024,7/29/2024,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,YCHO-01,8:20 PM,10:48 PM,"O,T",Chorongo,1230,SK45,4.3,no_mammals,no_mammals,Colubridae,Leptodeira,approximans,Upper_Amazon_Cat-eyed_Snake,81.6,83.1
+7/31/2024,7/31/2024,YRS,Torre-Forest Plot North Edge-Forest Plot Interior,TORR-01,8:38 PM,11:53 PM,"O,M",Torre,900,SK46,5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.3,93.3
+7/31/2024,7/31/2024,YRS,Torre-Forest Plot North Edge-Forest Plot Interior,FPIN-01,8:38 PM,11:53 PM,"O,M",Forest Plot Interior,1053,SK47,1.7,consumes_mammals,mixed,Colubridae,Oxyrhopus,vanidicus,Impostor_Flame_Snake,76.7,93.7
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,TINA-02,8:07 PM,10:19 PM,"O,T,A",Tinamou,509,SK48,0.2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,75.9,90.3
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,TINA-02,8:07 PM,10:19 PM,"O,T,A",Tinamou,509,SK49,2.3,no_mammals,no_mammals,Colubridae,Dendrophidion,dendrophis,Olive_Forest_Racer,75.9,90.3
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,TINA-02,8:07 PM,10:19 PM,"O,T,A",Tinamou,509,SK50,2.8,no_mammals,no_mammals,Colubridae,Xenoxybelis,argenteus,Striped_Sharpnose_Snake,74.8,93.3
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,NAPO-02,8:07 PM,10:19 PM,"O,T,A",Napo,419,SK51,1,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,74.4,93.6
+8/1/2024,8/1/2024,YRS,Tinamou-Napo-Pantano-Botanico-Gran Ficus,NAPO-02,8:07 PM,10:19 PM,"O,T,A",Napo,419,SK52,1.6,no_mammals,no_mammals,Colubridae,Leptodeira,approximans,Upper_Amazon_Cat-eyed_Snake,75.1,92.9
+6/4/2025,6/4/2025,TBS,Anaconda-Lago,LAGO-02,8:12 PM,10:32 PM,"O,J,T",Lago,1450,SK53,1.6,consumes_mammals,mixed,Colubridae,Oxyrhopus,occipitalis,Yellow-headed_Flame_Snake,79.2,85.7
+6/4/2025,6/4/2025,TBS,Anaconda-Lago,LAGO-02,8:12 PM,10:32 PM,"O,J,T",Lago,1450,SK54,2,no_mammals,no_mammals,Colubridae,Drepanoides,anomalus,Black-collared_Snake,79.7,84.7
+6/6/2025,6/6/2025,TBS,Matapalo-Murcielago-Puentes-Matapalo-Chichico-Numa,MAPO-04,8:08 PM,11:02 PM,"O,J",Matapalo,387,SK55,3.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,75.5,90.9
+6/7/2025,6/7/2025,TBS,Guacamayo-Danta-Lago,DANT-01,7:59 PM,10:26 PM,"O,J",Danta,591,SK56,1.9,consumes_mammals,mixed,Viperidae,Bothrops,bilineatus,Two-lined_Forest_Pitviper,79,87.9
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,YCHO-01,8:15 PM,11:03 PM,"O,J",Chorongo,1230,SK57,1.4,no_mammals,no_mammals,Colubridae,Hydrops,triangularis,Triangle_Watersnake,77.3,88.2
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,YCHO-01,8:15 PM,11:03 PM,"O,J",Chorongo,1230,SK58,6.8,consumes_mammals,mixed,Viperidae,Bothrops,bilineatus,Two-lined_Forest_Pitviper,80.5,88.4
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,KINK-01,8:15 PM,11:03 PM,"O,J",Kinkajou,321,SK59,1.4,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,76.4,89.7
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,KINK-01,8:15 PM,11:03 PM,"O,J",Kinkajou,321,SK60,5.7,consumes_mammals,mostly_mammals,Boidae,Corallus,hortulanus,Amazon_Tree_Boa,76.9,88.6
+6/9/2025,6/9/2025,YRS,Chorongo-Kinkajou-Napo-Bariso-Tinamou-Botanico,BARI-01,8:15 PM,11:03 PM,"O,J",Bariso,340,SK61,3.2,consumes_mammals,mixed,Colubridae,Chironius,fuscus,Brown_Sipo,79,90.2
+6/10/2025,6/10/2025,YRS,Ceiba-Peru,PERU-05,8:07 PM,10:33 PM,"O,J",Peru,301,SK62,1.5,no_mammals,no_mammals,Colubridae,Leptodeira,approximans,Upper_Amazon_Cat-eyed_Snake,79.2,85.7
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GAWA-02,8:01 PM,10:53 PM,"O,J",Gawape,650,SK63,0.3,no_mammals,no_mammals,Colubridae,Drymobius,rhombifer,Diamond_Racer,81.7,82.5
+6/12/2025,6/12/2025,YRS,Gawape-Chorongo-Kinkajou-Napo-Tucan-Garza,GAWA-02,8:01 PM,10:53 PM,"O,J",Gawape,650,SK64,1.1,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,81,85.4
+6/15/2025,6/15/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,TORR-01,8:34 PM,11:24 PM,"O,J,Tristan,Fenton,Nora",Torre,900,SK65,0.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.2,94.4
+6/15/2025,6/15/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,TORR-01,8:34 PM,11:24 PM,"O,J,Tristan,Fenton,Nora",Torre,900,SK66,0.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.2,94.4
+6/15/2025,6/15/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPIN-01,8:34 PM,11:24 PM,"O,J,Tristan,Fenton,Nora",Forest Plot Interior,1053,SK67,2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,76.2,96.2
+6/20/2025,6/20/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,PUMA-01,8:23 PM,11:07 PM,"O,J,JP",Puma,750,SK68,0.7,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,79.1,83.7
+6/20/2025,6/20/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,PUMA-02,8:23 PM,11:07 PM,"O,J,JP",Puma,388,SK69,5,no_mammals,no_mammals,Colubridae,Chironius,multiventris,South_American_Sipo,77.4,88.1
+6/20/2025,6/20/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,TCHO-01,8:23 PM,11:07 PM,"O,J,JP",Chorongo,481,SK70,0.6,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,80.1,85.3
+6/21/2025,6/21/2025,TBS,Parahuaco,PARA-01,8:43 PM,11:53 PM,"O,J,JP",Parahuaco,3522,SK71,4.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,74.5,94.6
+6/23/2025,6/23/2025,TBS,Puma-Puma Plot,PUPL-06,8:12 PM,11:04 PM,"O,J,JP",Puma Plot,139,SK72,1.4,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,83,82.4
+6/25/2025,6/25/2025,TBS,Harpia Plot-Harpia,HAPL-01,8:00 PM,10:22 PM,"O,J,JP",Harpia Plot,2220,SK73,0,no_mammals,no_mammals,Colubridae,Helicops,angulatus,Brown-banded_Watersnake,75.5,96.3
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MUPO-01,8:01 PM,10:51 PM,"O,J,JP",Murcielago Pond,410,SK74,3.6,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,76,92.4
+6/26/2025,6/26/2025,TBS,Matapalo-Murcielago-Puentes-Murcielago Pond-Matapalo-Chichico-Numa,MUPO-01,8:01 PM,10:51 PM,"O,J,JP",Murcielago Pond,410,SK75,2.6,no_mammals,no_mammals,Colubridae,Siphlophis,cervinus,Panama_Spotted_Nightsnake,76,92.4
+6/27/2025,6/27/2025,TBS,Guacamayo-Danta-Lago,LAGO-01,8:10 PM,10:04 PM,"O,J,JP",Lago,719,SK76,4.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,79.9,87.6
+6/28/2025,6/28/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,PUMA-01,8:17 PM,10:36 PM,"O,J,JP",Puma,750,SK77,1.6,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,74.2,95.1
+6/28/2025,6/28/2025,TBS,Guacamayo-Puma-Harpia-Chorongo,TCHO-01,8:17 PM,10:36 PM,"O,J,JP",Chorongo,481,SK78,3.8,no_mammals,no_mammals,Elapidae,Micrurus,helleri,Western_Ribbon_Coralsnake,75.4,95
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,MAPO-02,8:08 PM,11:03 PM,"O,J,JP",Matapalo,170,SK79,2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,76.6,96.8
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,NUMA-02,8:08 PM,11:03 PM,"O,J,JP",Numa,268,SK80,2.4,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,75.7,93.4
+6/29/2025,6/29/2025,TBS,Matapalo-Numa/Matapalo Connector-Numa-Chichico-Matapalo-Numa,MAPO-06,8:08 PM,11:03 PM,"O,J,JP",Matapalo,359,SK81,2.2,consumes_mammals,mixed,Colubridae,Chironius,fuscus,Brown_Sipo,74.8,96.9
+6/30/2025,6/30/2025,TBS,Puma-Puma Plot,PUPL-02,8:12 PM,11:15 PM,"O,J,JP",Puma Plot,652,SK82,2.8,consumes_mammals,mostly_mammals,Boidae,Corallus,hortulanus,Amazon_Tree_Boa,79.3,92.5
+7/2/2025,7/2/2025,TBS,Anaconda-Lago,ANAC-01,8:06 PM,10:53 PM,"O,J,JP",Anaconda,388,SK83,5.2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,73.2,93.2
+7/4/2025,7/4/2025,YRS,Forest Plot Perimeter,FPPE-04,8:21 PM,11:39 PM,"O,J,JP",Forest Plot Perimeter,662,SK84,8.5,consumes_mammals,mostly_mammals,Boidae,Corallus,hortulanus,Amazon_Tree_Boa,74.2,95
+7/4/2025,7/4/2025,YRS,Forest Plot Perimeter,FPPE-05,8:21 PM,11:39 PM,"O,J,JP",Forest Plot Perimeter,291,SK85,1.5,no_mammals,no_mammals,Colubridae,Xenoxybelis,argenteus,Striped_Sharpnose_Snake,72,95.9
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,COCA-01,8:26 PM,11:30 PM,"O,J,JP",Coca,301,SK86,2.3,no_mammals,no_mammals,Colubridae,Chironius,multiventris,South_American_Sipo,76.8,91.3
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,COCA-01,8:26 PM,11:30 PM,"O,J,JP",Coca,301,SK87,11.5,consumes_mammals,mostly_mammals,Boidae,Corallus,hortulanus,Amazon_Tree_Boa,76.8,91.3
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,COCA-01,8:26 PM,11:30 PM,"O,J,JP",Coca,301,SK88,3.5,consumes_mammals,mixed,Colubridae,Oxyrhopus,occipitalis,Yellow-headed_Flame_Snake,74.6,92.5
+7/5/2025,7/5/2025,YRS,Coca-Ceiba-Peru-Tiputini-Peru,COCA-01,8:26 PM,11:30 PM,"O,J,JP",Coca,301,SK89,4.4,consumes_mammals,mostly_mammals,Boidae,Corallus,hortulanus,Amazon_Tree_Boa,75.6,93.3
+7/6/2025,7/6/2025,YRS,Chorongo-Kinkajou-Napo-Tucan-Garza-Napo,YCHO-01,8:13 PM,10:38 PM,"O,J,JP",Chorongo,1230,SK90,2.6,no_mammals,no_mammals,Colubridae,Drepanoides,anomalus,Black-collared_Snake,75,95.7
+7/6/2025,7/6/2025,YRS,Chorongo-Kinkajou-Napo-Tucan-Garza-Napo,NAPO-05,8:13 PM,10:38 PM,"O,J,JP",Napo,243,SK91,2.8,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,77.3,94
+7/7/2025,7/7/2025,YRS,Torre-Forest Plot Perimeter-Forest Plot Interior-Forest Plot Perimeter,FPIN-01,8:26 PM,11:02 PM,"O,J,JP",Forest Plot Interior,1053,SK92,3.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,74,94.8
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,PANT-01,8:18 PM,10:59 PM,"O,J,JP",Pantano,103,SK93,0,no_mammals,no_mammals,Colubridae,Dipsas,catesbyi,Catesby's_Snail_Eater,75.5,96.8
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,TINA-02,8:18 PM,10:59 PM,"O,J,JP",Tinamou,509,SK94,2.3,consumes_mammals,mostly_mammals,Boidae,Corallus,hortulanus,Amazon_Tree_Boa,74.4,97.9
+7/8/2025,7/8/2025,YRS,Pantano-Napo-Bariso-Timatai-Tinamou-Botanico-Gran Ficus-Botanico,TINA-02,8:18 PM,10:59 PM,"O,J,JP",Tinamou,509,SK95,1.7,no_mammals,no_mammals,Colubridae,Xenoxybelis,argenteus,Striped_Sharpnose_Snake,76.9,93.9
+7/9/2025,7/9/2025,YRS,Coca-Ceiba,CEIB-02,8:45 PM,9:34 PM,"O,J",Ceiba,463,SK96,0.2,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,71.8,96.8
+7/14/2025,7/14/2025,YRS,Mirador,MIRA-04,8:34 PM,10:56 PM,"O,J,JP",Mirador,760,SK97,3.8,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,76.1,97.5
+7/14/2025,7/14/2025,YRS,Mirador,MIRA-01,8:34 PM,10:56 PM,"O,J,JP",Mirador,550,SK98,2.5,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,76.3,97.7
+7/16/2025,7/16/2025,YRS,Coca-Ceiba-Peru-Renacuajo-Mirador,RENA-01,8:21 PM,10:24 PM,"O,J,JP",Renacuajo,272,SK99,3,no_mammals,no_mammals,Colubridae,Imantodes,cenchoa,Common_Blunt-headed_Tree_Snake,74.3,97.8

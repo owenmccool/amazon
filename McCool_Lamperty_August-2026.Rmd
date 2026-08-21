@@ -84,6 +84,7 @@ snakes.master <- read.csv("Data/snakes_master_cleaned_aug2026.csv")
 
 snakes.sur <- read.csv("Data/snake_surveys_cleaned_aug2026.csv")
 # all the snake survey records, cleaned
+# this version of snakes.sur has those two duplicates (SK04, 05) removed
 
 ```
 
@@ -267,7 +268,6 @@ humidity_long <- env_2025 %>%
                cols = Humidity_1:Humidity_Final,
                values_to = "Humidity", names_repair = "unique")
 # remove NAs
-
 humidity_long <- humidity_long %>%
   na.omit()
 
@@ -287,6 +287,7 @@ temp_long <- env_2025 %>%
 # remove NAs
 temp_long <- temp_long %>%
   na.omit()
+
 # date
 temp_long$Start_Date <- mdy(temp_long$Date)
 temp_long <- temp_long %>%
@@ -301,7 +302,6 @@ understory_long <- env_2025 %>%
                cols = Understory_Density_1:Understory_Density_Final,
                values_to = "Understory", names_repair = "unique")
 # remove NAs
-
 understory_long <- understory_long %>%
   na.omit()
 
@@ -390,13 +390,11 @@ understory_means <- understory_all %>%
 amph_lz_detections$Start_Date <- ymd(amph_lz_detections$Start_Date)
 
 amph_lz_detections <- left_join(amph_lz_detections, humidity_means)
-amph_lz_detections_all_env <- left_join(amph_lz_detections, humidity_all)
 amph_lz_detections <- left_join(amph_lz_detections, temperature_means)
-
 amph_lz_detections <- left_join(amph_lz_detections, understory_means)
 
 # and add to snakes
-n_snakes_per_3guilds$Start_Date <- ymd(n_snakes_per_3guilds$Start_Date)
+n_snakes_per_3guilds$Start_Date <- mdy(n_snakes_per_3guilds$Start_Date)
 
 n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, humidity_means)
 n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, temperature_means)
@@ -627,6 +625,7 @@ simulateResiduals(fittedModel = frog.null1, plot = T)
 ```
 
 ```{r frog model comparison}
+
 # null
 frog.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
@@ -658,6 +657,8 @@ aictab(cand.set = list(frog.null, frog.survey, frog.station, frog.survey.station
 
 # top model based on lowest AIC is survey type + temperature + station
 # top model based on lowest AIC and simplest model is survey type + station
+
+summary(frog.sur.temp.hum.st)
 ```
 
 # Lizards
@@ -697,8 +698,6 @@ simulateResiduals(fittedModel = liz.null, plot = T)
 # add survey type
 liz.survey <-glmmTMB(n_liz_500m ~ Survey_Type + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
-# doesn't improve fit
-
 # station
 liz.station <- glmmTMB(n_liz_500m ~ Station + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
 
@@ -728,7 +727,7 @@ aictab(cand.set = list(liz.null, liz.survey, liz.survey.temp), modnames = liz_mo
 # temperature also doesn't seem to improve fit...
 # if you look at the plots, it kind of makes sense
 
-
+summary(liz.survey.temp)
 ```
 
 # Snakes
@@ -854,10 +853,11 @@ p + facet_wrap(~taxa, scales = "free") + theme_bw() + theme(axis.text.x = elemen
 amph_lz_detections_plotting_df <- amph_lz_detections %>%
   filter(!mean_relative_humidity < 75 )
 
-ggplot(amph_lz_detections_plotting_df, aes(x = mean_relative_humidity, y = n_frogs_500m, color = Station)) + geom_point() + ylab("Frogs detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
+ggplot(amph_lz_detections_plotting_df, aes(x = mean_temp_F, y = n_frogs_500m, color = Station)) + geom_point() + ylab("Frogs detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean temp per survey(F)")
 ```
 
 ```{r lizard data}
+
 # humidity?
 ggplot(amph_lz_detections_plotting_df, aes(x = mean_relative_humidity, y = n_liz_500m, color = Station)) + geom_point() + ylab("Lizards detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
 
@@ -878,7 +878,8 @@ ggplot(amph_lz_detections_plotting_df, aes(x = Station, y = n_liz_500m, color = 
 # remove those outliers
 n_snakes_per_3guilds.na.removed.outlier.removed <- n_snakes_per_3guilds.na.removed %>%
   filter(mean_relative_humidity > 75)
-ggplot(n_snakes_per_3guilds.na.removed.outlier.removed, aes(x = mean_relative_humidity, y = n_snakes_500m, color = Station)) + geom_point() + ylab("Snakes detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
+
+ggplot(n_snakes_per_3guilds, aes(x = mean_relative_humidity, y = n_snakes_500m, color = Station)) + geom_point() + ylab("Snakes detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean relative humidity per survey")
 
 # line is pretty flat
 
