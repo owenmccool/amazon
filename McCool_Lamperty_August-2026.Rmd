@@ -66,6 +66,9 @@ all_surv_records <- read.csv("Data/all_survey_records_aug2026.csv")
 
 amph_lz <- read.csv("Data/amph_lz_cleaned_aug2026.csv")
 # cleaned amphibian and lizard data - a record of every individual found, when, and what segment
+# make sure there are no duplicates...
+amph_lz2 <- amph_lz %>%
+  distinct(Animal_ID, .keep_all = TRUE) # evidently there was 1
 
 effort <- read.csv("Data/effort_aug2026.csv")
 # Date, effort hours, segment length
@@ -205,7 +208,7 @@ amph_lz_wide<- amph_lz_wide %>% mutate(across(c(Lizard, Frog, Salamander), ~repl
 
 # detection rates per 500 m - calculated based per segment (as opposed to being calculated across the entire survey, which I think can affect the mean values and the SD for sure)
 amph_lz_detections <- amph_lz_wide %>%
-  group_by(Start_Date, Station, Survey_Type, Parent_Trail_LongName, Seg_dist_m) %>%
+  group_by(Start_Date, Station, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m) %>%
   summarize(n_frogs = sum(Frog),
             n_sal = sum(Salamander),
             n_liz = sum(Lizard))
@@ -451,75 +454,52 @@ understory_summary_yr_survey_type <- understory_all %>%
 
 ```
 
-## Env figures
-
-```{r temperature fig}
-
-temp.fig <- ggplot(temperature_summary_yr_survey_type, aes(x=Station, y=mean_temperature, fill = Survey_Type)) + geom_jitter(data = temperature_all, aes( x = Station, y = Temperature), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
-  scale_fill_manual(values = c("Chocolate", "blue3")) + 
-  geom_errorbar(aes(ymin=mean_temperature-se, ymax=mean_temperature+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Temperature (F)") + ggtitle("Survey temperature ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
-
-temp.fig
-
-#ggsave(temp.fig, file="Figures/temperature_fig_updatedJune2026.png", width = 6,  height = 4)
-
-```
-
-```{r hum fig}
-
-hum.fig <- ggplot(humidity_summary_yr_survey_type, aes(x=Station, y=mean_humidity, fill = Survey_Type)) + geom_jitter(data = humidity_all, aes( x = Station, y = Humidity), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
-  scale_fill_manual(values = c("Chocolate", "blue3")) + 
-  geom_errorbar(aes(ymin=mean_humidity-se, ymax=mean_humidity+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Relative humidity (%)") + ggtitle("Survey humidity ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
-
-hum.fig
-
-#ggsave(hum.fig, file="Figures/humidity_fig_updatedJune2026.png", width = 6,  height = 4)
-
-```
-
-
-```{r und fig}
-und.fig <- ggplot(understory_summary_yr_survey_type, aes(x=Station, y=mean_understory, fill = Survey_Type)) + geom_jitter(data = understory_all, aes( x = Station, y = Understory), width = 0.1, size = 1.5, alpha = 0.2) + coord_fixed(ratio = 0.45) + theme_bw() +
-  scale_fill_manual(values = c("Chocolate", "blue3")) + 
-  geom_errorbar(aes(ymin=mean_understory-se, ymax=mean_understory+se), width=.5) + geom_point(pch = 21, size = 3) + xlab("") + scale_color_discrete(labels = "") +
-  theme(legend.title=element_blank()) + ylab("Understory (vertical leaf overlap)") + ggtitle("Survey understory density ranges") + theme_bw(base_family = "Tahoma") + theme(plot.title = element_text(face = "bold", hjust = .5))  + scale_x_discrete(labels=c("Unhunted", "Hunted")) + theme(axis.text = element_text(color = "black", size = 12)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + facet_wrap(~Year) + labs(fill = "Survey Type")
-
-und.fig
-
-#ggsave(und.fig, file="Figures/understory_fig_updatedJune2026.png", width = 6,  height = 4)
-```
-
 # Frogs
 
 ## frog summary data
 
 ```{r summarize frogs}
 
-# summarize by day versus night
-amph_lz_detections %>%
-  filter(Survey_Type != "Morning") %>%
-  na.omit() %>%
-  group_by(Station, Survey_Type) %>%
-  summarise(mean_frogs = mean(n_frogs),
-         sd = sd(n_frogs),
-           n = n()) %>%
-  mutate(se = sd / sqrt(n))
+# frogs are being weird, I'm going to pull them out and just look carefully at these data
 
-# and just overall at each station
-amph_lz_detections %>%
+frogs <- amph_lz_detections %>%
   filter(Survey_Type != "Morning") %>%
-  na.omit() %>%
+  select(Start_Date, Survey_Type, Station, Seg_dist_m, Parent_Trail_LongName, n_frogs, n_frogs_500m, mean_relative_humidity, mean_temp_F)
+
+frogs %>%
   group_by(Station) %>%
-  summarise(mean_frogs = mean(n_frogs),
+  summarise(mean_frogs_per_segment = mean(n_frogs),
          sd = sd(n_frogs),
-           n = n()) %>%
-  mutate(se = sd / sqrt(n))
-# maybe a bit fewer frogs in the afternoons at YRS? otherwise, means are very consistent
+           sample_size = n(),
+         total_frogs_found = sum(n_frogs)) %>%
+  mutate(se = sd / sqrt(sample_size))
+
+# right, very even numbers
+
+# what about controlling for meters surveyed?
+
+frogs %>%
+  group_by(Station) %>%
+  summarise(mean_frogs_per_500m = mean(n_frogs_500m),
+         sd = sd(n_frogs_500m),
+           sample_size = n(),
+         total_frogs_found = sum(n_frogs)) %>%
+  mutate(se = sd / sqrt(sample_size))
+# appears to be slightly more frogs (small dif, but def sig) in YRS 
+
+# there are 3 potential outliers for which we did short segments but found a lot of frogs, creating pretty inflated per-500m estimates. Look at data without those:
+
+frogs <- frogs %>%
+  filter(n_frogs_500m < 20)
+
+frogs %>%
+  group_by(Station) %>%
+  filter(n_frogs_500m < 20) %>%
+  summarise(mean_frogs_per_500m = mean(n_frogs_500m),
+         sd = sd(n_frogs_500m),
+           sample_size = n(),
+         total_frogs_found = sum(n_frogs)) %>%
+  mutate(se = sd / sqrt(sample_size))
 
 # make a summary dataframe for plotting later
 frogs.mean.se <- amph_lz_detections %>%
@@ -534,34 +514,34 @@ frogs.mean.se <- amph_lz_detections %>%
 
 ```{r null model}
 # look at distribution - models are giving me issues
-hist(amph_lz_detections$n_frogs_500m)
+hist(frogs$n_frogs_500m)
 
 # unremarkable, typical Gamma or Tweedie should work
 
 # make sure we have factors and numeric variables
-amph_lz_detections$Station<- as.factor(amph_lz_detections$Station)
-amph_lz_detections$Survey_Type<- as.factor(amph_lz_detections$Survey_Type)
-amph_lz_detections$n_frogs<- as.numeric(amph_lz_detections$n_frogs)
-amph_lz_detections$n_frogs_500m<- as.numeric(amph_lz_detections$n_frogs_500m)
-amph_lz_detections$mean_relative_humidity<- as.numeric(amph_lz_detections$mean_relative_humidity)
-amph_lz_detections$mean_temp_F<- as.numeric(amph_lz_detections$mean_temp_F)
+frogs$Station<- as.factor(frogs$Station)
+frogs$Survey_Type<- as.factor(frogs$Survey_Type)
+frogs$n_frogs<- as.numeric(frogs$n_frogs)
+frogs$n_frogs_500m<- as.numeric(frogs$n_frogs_500m)
+frogs$mean_relative_humidity<- as.numeric(frogs$mean_relative_humidity)
+frogs$mean_temp_F<- as.numeric(frogs$mean_temp_F)
 
 # remove morning and instances where env data are missing
-amph_lz_detections <- amph_lz_detections %>%
+frogs <- frogs %>%
   na.omit()
 
 # scale and center predictors
-amph_lz_detections$humidity_scaled <- scale(amph_lz_detections$mean_relative_humidity)
-amph_lz_detections$temp_scaled <- scale(amph_lz_detections$mean_temp_F)
-amph_lz_detections$understory_scaled <- scale(amph_lz_detections$mean_understory_leaves)
+frogs$humidity_scaled <- scale(frogs$mean_relative_humidity)
+frogs$temp_scaled <- scale(frogs$mean_temp_F)
 
 # null model
 # response variable: n frogs per 500
 # log normal distribution (zero inflated)
 
-frog.null1 <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), ziformula=~1, data = amph_lz_detections, family = lognormal)
+frog.null1 <- glmmTMB(n_frogs_500m ~ 1 + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
 
 simulateResiduals(fittedModel = frog.null1, plot = T)
+
 # passes
 
 # Other models with continuous response variable that I attempted that didn't work:
@@ -627,16 +607,20 @@ simulateResiduals(fittedModel = frog.null1, plot = T)
 ```{r frog model comparison}
 
 # null
-frog.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+frog.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Segment), data = frogs, family = tweedie)
+
+simulateResiduals(fittedModel = frog.null, plot = T)
 
 # survey type
-frog.survey <-glmmTMB(n_frogs_500m ~ Survey_Type + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+frog.survey <-glmmTMB(n_frogs_500m ~ Survey_Type + (1|Segment), data = frogs, family = tweedie)
+
+simulateResiduals(frog.survey, plot = TRUE)
 
 # station
-frog.station <-glmmTMB(n_frogs_500m ~ Station + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+frog.station <-glmmTMB(n_frogs_500m ~ Station + (1|Segment) , data = frogs, family = tweedie)
 
 # station + survey type
-frog.survey.station <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+frog.survey.station <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + (1|Segment), data = frogs, family = tweedie)
 
 # compare
 frog_mod_names <- c("frog.null", "frog.survey", "frog.survey.station", "frog.station")
@@ -644,21 +628,21 @@ aictab(cand.set = list(frog.null, frog.survey, frog.survey.station, frog.station
 # survey + station fit best, do they interact?
 
 # survey type + station + humidity
-frog.sur.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + humidity_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+frog.sur.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + humidity_scaled + (1|Segment),  data = frogs, family = tweedie)
 
 # survey type + station + temp
-frog.sur.temp.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+frog.sur.temp.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + (1|Segment) ,  data = frogs, family = tweedie)
 
 # survey type + station + temp + hum
-frog.sur.temp.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + humidity_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+frog.sur.temp.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + humidity_scaled + (1|Segment) ,  data = frogs, family = tweedie)
 
 frog_mod_names <- c("frog.null", "frog.survey", "frog.station", "frog.survey.station", "frog.sur.hum.st", "frog.sur.temp.st", "frog.sur.temp.hum.st")
 aictab(cand.set = list(frog.null, frog.survey, frog.station, frog.survey.station, frog.sur.hum.st, frog.sur.temp.st, frog.sur.temp.hum.st), modnames = frog_mod_names)
 
-# top model based on lowest AIC is survey type + temperature + station
-# top model based on lowest AIC and simplest model is survey type + station
+# ok this makes sense- trust this model over log normal
+summary(frog.sur.hum.st)
 
-summary(frog.sur.temp.hum.st)
+simulateResiduals(fittedModel = frog.sur.hum.st, plot = TRUE)
 ```
 
 # Lizards
@@ -690,44 +674,42 @@ liz.mean.se <- amph_lz_detections %>%
 ```{r lizard models}
 
 # null mod
-liz.null <- glmmTMB(n_liz_500m ~ 1 + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal())
+liz.null <- glmmTMB(n_liz_500m ~ 1 + (1|Segment),  data = amph_lz_detections, family = tweedie())
 
 simulateResiduals(fittedModel = liz.null, plot = T)
 # passes
 
 # add survey type
-liz.survey <-glmmTMB(n_liz_500m ~ Survey_Type + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = lognormal)
+liz.survey <-glmmTMB(n_liz_500m ~ Survey_Type + (1|Segment),  data = amph_lz_detections, family = tweedie)
 
 # station
-liz.station <- glmmTMB(n_liz_500m ~ Station + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+liz.station <- glmmTMB(n_liz_500m ~ Station + (1|Segment) ,  data = amph_lz_detections, family = tweedie)
 
 
 # compare
 liz_mod_names <- c("liz.null", "liz.survey", "liz.station")
 aictab(cand.set = list(liz.null, liz.survey, liz.station), modnames = liz_mod_names)
-# survey is a tiny bit better than null, and adding station increases AIC
 
-# survey + humidity?
-liz.survey.humidity <-glmmTMB(n_liz_500m ~ Survey_Type + humidity_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+# station + humidity?
+liz.station.humidity <-glmmTMB(n_liz_500m ~ Station + humidity_scaled + (1|Segment),  data = amph_lz_detections, family = tweedie)
 
 # compare
-liz_mod_names <- c("liz.null", "liz.survey", "liz.survey.humidity")
-aictab(cand.set = list(liz.null, liz.survey, liz.survey.humidity), modnames = liz_mod_names)
+liz_mod_names <- c("liz.null", "liz.station", "liz.station.humidity")
+aictab(cand.set = list(liz.null, liz.station, liz.station.humidity), modnames = liz_mod_names)
 # humidity actually doesn't help things
 
 # what about temperature?
 
-# survey + temp
-liz.survey.temp  <-glmmTMB(n_liz_500m ~ Survey_Type + temp_scaled + (1|Parent_Trail_LongName) , ziformula = ~1, data = amph_lz_detections, family = lognormal)
+# station + temp
+liz.station.temp  <-glmmTMB(n_liz_500m ~ Station + temp_scaled + (1|Segment) ,  data = amph_lz_detections, family = tweedie)
 
 # compare
-liz_mod_names <- c("liz.null", "liz.survey", "liz.survey.temp")
-aictab(cand.set = list(liz.null, liz.survey, liz.survey.temp), modnames = liz_mod_names)
+liz_mod_names <- c("liz.null", "liz.station", "liz.station.temp")
+aictab(cand.set = list(liz.null, liz.station, liz.station.temp), modnames = liz_mod_names)
 
-# temperature also doesn't seem to improve fit...
-# if you look at the plots, it kind of makes sense
+# temp and station best mod
 
-summary(liz.survey.temp)
+summary(liz.station.temp)
 ```
 
 # Snakes
@@ -766,13 +748,13 @@ n_snakes_per_3guilds.na.removed <- n_snakes_per_3guilds %>%
   na.omit()
 
 # null mod
-null <- glmmTMB(n_snakes_500m ~ 1 + (1|Parent_Trail_LongName), data = n_snakes_per_3guilds.na.removed, family = tweedie)
+null <- glmmTMB(n_snakes_500m ~ 1 + (1|Segment), data = n_snakes_per_3guilds.na.removed, family = tweedie)
 
 sim <- simulateResiduals(fittedModel = null, plot = T)
 # passes
 
 # guild and station
-guildXstation <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + (1|Parent_Trail_LongName), data =  n_snakes_per_3guilds.na.removed, family = tweedie())
+guildXstation <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie())
 
 sim <- simulateResiduals(fittedModel = guildXstation, plot = T)
 # passes
@@ -781,7 +763,7 @@ sim <- simulateResiduals(fittedModel = guildXstation, plot = T)
 snake_mod_names <- c("null", "guildXstation")
 aictab(cand.set = list(null, guildXstation), modnames = snake_mod_names)
 
-guildXstation.temp <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + temp_scaled + (1|Parent_Trail_LongName), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
+guildXstation.temp <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + temp_scaled + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
 
 sim <- simulateResiduals(fittedModel = guildXstation.temp, plot = T)
 # passes validation
@@ -793,14 +775,14 @@ aictab(cand.set = list(null, guildXstation, guildXstation.temp), modnames = snak
 # temp does not make model better
 
 # humidity?
-guildXstation.hum <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + humidity_scaled + (1|Parent_Trail_LongName), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
+guildXstation.hum <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + humidity_scaled + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
 
 # compare
 snake_mod_names <- c("null", "guildXstation", "guildXstation.temp", "guildXstation.hum")
 aictab(cand.set = list(null, guildXstation, guildXstation.temp, guildXstation.hum), modnames = snake_mod_names)
 
 # humidity makes it a tad better but not sig
-
+summary(guildXstation.hum)
 ```
 
 # Figures
