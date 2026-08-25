@@ -259,6 +259,23 @@ n_snakes_per_3guilds %>%
 
 ```
 
+### Viperidae vs Boidae
+
+```{r prep snake fam df}
+
+# tally counts - df without zeros
+n_boid.colub <- surveys_with_snakes %>%
+  filter(Family == "Boidae" |Family == "Colubridae") %>%
+  group_by(Start_Date, Station, Family, Segment, Seg_dist_m) %>% tally()
+
+# generate all possible combinations based on family to get zeros
+n_boid.colub <-n_boid.colub %>%
+  as_tibble() %>%
+  complete(Family, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
+
+# get encounter rate per 500m
+n_boid.colub$n_500m <- (n_boid.colub$n/n_boid.colub$Seg_dist_m)*500
+```
 
 # Env data
 
@@ -387,21 +404,27 @@ understory_means <- understory_all %>%
   group_by(Station, Start_Date, Survey_Type) %>%
   summarize(mean_understory_leaves = mean(Understory))
 
+# center and scale
+humidity_means$humidity_scaled <-scale(humidity_means$mean_relative_humidity)
 
+temperature_means$temp_scaled <-scale(temperature_means$mean_temp_F)
 
 # add to the amph lz detection data
 amph_lz_detections$Start_Date <- ymd(amph_lz_detections$Start_Date)
 
 amph_lz_detections <- left_join(amph_lz_detections, humidity_means)
 amph_lz_detections <- left_join(amph_lz_detections, temperature_means)
-amph_lz_detections <- left_join(amph_lz_detections, understory_means)
 
 # and add to snakes
 n_snakes_per_3guilds$Start_Date <- mdy(n_snakes_per_3guilds$Start_Date)
 
+n_boid.colub$Start_Date <-mdy(n_boid.colub$Start_Date)
+
 n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, humidity_means)
 n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, temperature_means)
-n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, understory_means)
+
+n_boid.colub <- left_join(n_boid.colub, humidity_means)
+n_boid.colub <- left_join(n_boid.colub, temperature_means)
 
 ```
 
@@ -512,7 +535,7 @@ frogs.mean.se <- amph_lz_detections %>%
 
 ## frog models
 
-```{r null model}
+```{r null model, warning = FALSE}
 # look at distribution - models are giving me issues
 hist(frogs$n_frogs_500m)
 
@@ -604,7 +627,7 @@ simulateResiduals(fittedModel = frog.null1, plot = T)
 # still fails
 ```
 
-```{r frog model comparison}
+```{r frog model comparison, warning = FALSE}
 
 # null
 frog.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Segment), data = frogs, family = tweedie)
@@ -714,7 +737,7 @@ summary(liz.station.temp)
 
 # Snakes
 
-## snake summary data
+## guilds snake summary data
 
 ```{r snake summaries}
 n_snakes_per_3guilds$n_snakes_500m <- 500*(n_snakes_per_3guilds$n_snakes/n_snakes_per_3guilds$Seg_dist_m)
@@ -740,8 +763,7 @@ snakes.mean.se <- n_snakes_per_3guilds %>%
 
 ```
 
-
-## snake models
+## guilds snake models
 
 ```{r snake mods}
 n_snakes_per_3guilds.na.removed <- n_snakes_per_3guilds %>%
@@ -785,7 +807,82 @@ aictab(cand.set = list(null, guildXstation, guildXstation.temp, guildXstation.hu
 summary(guildXstation.hum)
 ```
 
-# Figures
+## family snake summary data
+
+```{r snake fam summaries}
+
+#scale and center predictors
+n_boid.colub$temp_scaled <- scale(n_boid.colub$mean_temp_F)
+
+n_boid.colub$humidity_scaled <- scale(n_boid.colub$mean_relative_humidity)
+
+n_boid.colub <- n_boid.colub %>% mutate(Survey_Type = ifelse(is.na(Survey_Type), "Night", Survey_Type))
+
+n_boid.colub %>%
+  group_by(Station, Family) %>%
+  reframe(mean_snakes_500m = mean(n_500m),
+         sd = sd(n_500m),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snakes.boid.colub.mean.se <- n_boid.colub %>%
+  group_by(Station, Family) %>%
+  summarise(mean = mean(n_500m),
+           sd = sd(n_500m),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+
+## family snake models
+
+```{r family snake models}
+n_boid.colub.na.removed <- n_boid.colub %>%
+  na.omit()
+
+# null mod
+null <- glmmTMB(n_500m ~ 1 + (1|Segment), data = n_boid.colub.na.removed, family = tweedie)
+
+sim <- simulateResiduals(fittedModel = null, plot = T)
+
+# guild and station
+guildXstation <- glmmTMB(n_500m ~ Family/Station + (1|Segment), data =  n_boid.colub.na.removed, family = tweedie())
+
+sim <- simulateResiduals(fittedModel = guildXstation, plot = T)
+
+# T STOPPING HERE, EVERYTHING BELOW IS FROM COPY PAST GUILD SECTION
+
+# compare
+snake_mod_names <- c("null", "guildXstation")
+aictab(cand.set = list(null, guildXstation), modnames = snake_mod_names)
+
+guildXstation.temp <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + temp_scaled + (1|Segment), data =  n_boid.colub, family = tweedie)
+
+sim <- simulateResiduals(fittedModel = guildXstation.temp, plot = T)
+# passes validation
+
+# compare
+snake_mod_names <- c("null", "guildXstation", "guildXstation.temp")
+aictab(cand.set = list(null, guildXstation, guildXstation.temp), modnames = snake_mod_names)
+
+# temp does not make model better
+
+# humidity?
+guildXstation.hum <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + humidity_scaled + (1|Segment), data =  n_boid.colub, family = tweedie)
+
+# compare
+snake_mod_names <- c("null", "guildXstation", "guildXstation.temp", "guildXstation.hum")
+aictab(cand.set = list(null, guildXstation, guildXstation.temp, guildXstation.hum), modnames = snake_mod_names)
+
+# humidity makes it a tad better but not sig
+summary(guildXstation.hum)
+
+
+```
+
+
+# Figures for detection rates
 
 ```{r combine detection df}
 
@@ -871,3 +968,4 @@ ggplot(n_snakes_per_3guilds.na.removed, aes(x = mean_temp_F, y = n_snakes_500m, 
 # super flat
 
 ```
+
