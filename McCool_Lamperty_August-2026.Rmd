@@ -179,11 +179,11 @@ amph_lz <- left_join(amph_lz, segments)
 # columns are crazy, reduce and simplify
 
 amph_lz <- amph_lz %>%
-  select(Station, Start_Date, End_Date, Start_Date_Start_Time, End_Date_End_Time, Survey_Type, Gross_ID, Common_Name, Family, Genus, Species, Segment, Seg_dist_m, Parent_Trail_LongName)
+  select(Station, Start_Date, End_Date, Start_Date_Start_Time, End_Date_End_Time, Survey_Type, Gross_ID, Common_Name, Family, Genus, Species, Segment, Seg_dist_m, Parent_Trail_LongName, Height_of_Individual, Habitat_Type)
 
 # tallies
 amph_lz_counts <- amph_lz %>%
-  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID) %>% tally()
+  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID, Height_of_Individual, Habitat_Type) %>% tally()
 
 zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
 
@@ -195,7 +195,7 @@ amph_lz_wide <- amph_lz_counts %>%
 
 # prep to add in the zeros, pull out columns I want
 zeros <- zeros %>%
-  select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Parent_Trail_LongName) 
+  select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Parent_Trail_LongName, Height_of_Individual, Habitat_Type) 
 
 #bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
 amph_lz_wide <- rbind(amph_lz_wide, zeros)
@@ -651,16 +651,16 @@ aictab(cand.set = list(frog.null, frog.survey, frog.survey.station, frog.station
 # survey + station fit best, do they interact?
 
 # survey type + station + humidity
-frog.sur.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + humidity_scaled + (1|Segment),  data = frogs, family = tweedie)
+test <- glmmTMB(n_frogs_500m ~ Survey_Type + humidity_scaled + (1|Segment),  data = frogs, family = tweedie)
 
 # survey type + station + temp
 frog.sur.temp.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + (1|Segment) ,  data = frogs, family = tweedie)
 
 # survey type + station + temp + hum
 frog.sur.temp.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + humidity_scaled + (1|Segment) ,  data = frogs, family = tweedie)
-
+summary(test)
 frog_mod_names <- c("frog.null", "frog.survey", "frog.station", "frog.survey.station", "frog.sur.hum.st", "frog.sur.temp.st", "frog.sur.temp.hum.st")
-aictab(cand.set = list(frog.null, frog.survey, frog.station, frog.survey.station, frog.sur.hum.st, frog.sur.temp.st, frog.sur.temp.hum.st), modnames = frog_mod_names)
+aictab(cand.set = list(frog.null, frog.survey, frog.station, frog.survey.station, test, frog.sur.temp.st, frog.sur.temp.hum.st), modnames = frog_mod_names)
 
 # ok this makes sense- trust this model over log normal
 summary(frog.sur.hum.st)
@@ -812,9 +812,8 @@ summary(guildXstation.hum)
 ```{r snake fam summaries}
 
 #scale and center predictors
-n_boid.colub$temp_scaled <- scale(n_boid.colub$mean_temp_F)
 
-n_boid.colub$humidity_scaled <- scale(n_boid.colub$mean_relative_humidity)
+n_boid.colub <- n_boid.colub %>% mutate_at(c(10, 12), ~(scale(.) %>% as.vector))
 
 n_boid.colub <- n_boid.colub %>% mutate(Survey_Type = ifelse(is.na(Survey_Type), "Night", Survey_Type))
 
@@ -837,48 +836,71 @@ snakes.boid.colub.mean.se <- n_boid.colub %>%
 
 ## family snake models
 
-```{r family snake models}
+```{r family snake data exploration}
+
+# remove NAs because we need to compare AIC value with and without env vars (which have a few NAs)
+
 n_boid.colub.na.removed <- n_boid.colub %>%
   na.omit()
 
+# what do the data look like?
+plot(n_boid.colub.na.removed$temp_scaled, n_boid.colub.na.removed$n_500m) # bit of a positive trend
+plot(n_boid.colub.na.removed$mean_temp_F, n_boid.colub.na.removed$n_500m) # bit of a positive trend
+
+# humidity?
+plot(n_boid.colub.na.removed$mean_relative_humidity, n_boid.colub.na.removed$n_500m)
+
+hist(n_boid.colub.na.removed$n_500m)
+```
+```{r snake fam mods} 
+
 # null mod
-null <- glmmTMB(n_500m ~ 1 + (1|Segment), data = n_boid.colub.na.removed, family = tweedie)
+# tweedie looks ok but doesn't pass
+# try nbinom with count data 
+fam.null <- glmmTMB(n_500m ~ 1 + (1|Segment), data = n_boid.colub.na.removed, family = tweedie)
 
-sim <- simulateResiduals(fittedModel = null, plot = T)
+simulateResiduals(fittedModel = fam.null, plot = T)
+testZeroInflation(fam.null)
+testDispersion(fam.null)
 
-# guild and station
-guildXstation <- glmmTMB(n_500m ~ Family/Station + (1|Segment), data =  n_boid.colub.na.removed, family = tweedie())
+# family and station
+familyXstation<- glmmTMB(n_500m ~ Family/Station + (1|Segment), data = n_boid.colub.na.removed, family = tweedie)
 
-sim <- simulateResiduals(fittedModel = guildXstation, plot = T)
+simulateResiduals(fittedModel = familyXstation, plot = T)
+testZeroInflation(familyXstation)
+testDispersion(familyXstation)
 
-# T STOPPING HERE, EVERYTHING BELOW IS FROM COPY PAST GUILD SECTION
+familyXstation.temp <- glmmTMB(n_500m ~ Family/Station + temp_scaled + (1|Segment), data =  n_boid.colub.na.removed, family = tweedie)
 
-# compare
-snake_mod_names <- c("null", "guildXstation")
-aictab(cand.set = list(null, guildXstation), modnames = snake_mod_names)
-
-guildXstation.temp <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + temp_scaled + (1|Segment), data =  n_boid.colub, family = tweedie)
-
-sim <- simulateResiduals(fittedModel = guildXstation.temp, plot = T)
-# passes validation
-
-# compare
-snake_mod_names <- c("null", "guildXstation", "guildXstation.temp")
-aictab(cand.set = list(null, guildXstation, guildXstation.temp), modnames = snake_mod_names)
-
+simulateResiduals(fittedModel = familyXstation.temp, plot = T)
+testZeroInflation(familyXstation.temp)
+testDispersion(familyXstation.temp)
 # temp does not make model better
 
 # humidity?
-guildXstation.hum <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories/Station + humidity_scaled + (1|Segment), data =  n_boid.colub, family = tweedie)
+
+familyXstation.humidity <- glmmTMB(n_500m ~ Family/Station + humidity_scaled + (1|Segment), data =  n_boid.colub.na.removed, family = tweedie)
+
+simulateResiduals(fittedModel = familyXstation.humidity, plot = T)
+testZeroInflation(familyXstation.humidity)
+testDispersion(familyXstation.humidity)
+# humidity does not make model better
+
+# humidity and temp
+
+familyXstation.humidity.temp <- glmmTMB(n_500m ~ Family/Station + humidity_scaled + temp_scaled + (1|Segment), data =  n_boid.colub.na.removed, family = tweedie)
+
+simulateResiduals(fittedModel = familyXstation.humidity.temp, plot = T)
+testZeroInflation(familyXstation.humidity.temp)
+testDispersion(familyXstation.humidity.temp)
+# humidity does not make model better
+
 
 # compare
-snake_mod_names <- c("null", "guildXstation", "guildXstation.temp", "guildXstation.hum")
-aictab(cand.set = list(null, guildXstation, guildXstation.temp, guildXstation.hum), modnames = snake_mod_names)
+snake_mod_names <- c("fam.null", "familyXstation", "familyXstation.temp", "familyXstation.hum")
+aictab(cand.set = list(null, familyXstation, familyXstation.temp, familyXstation.humidity), modnames = snake_mod_names)
 
-# humidity makes it a tad better but not sig
-summary(guildXstation.hum)
-
-
+summary(familyXstation)
 ```
 
 
@@ -902,23 +924,29 @@ liz.mean.se$taxa <- "lizards"
 smams.distance.mean.se$taxa <- "small mammals"
 frogs.mean.se$taxa <- "frogs"
 
-detection.means.se <- rbind(snakes.mean.se, liz.mean.se, smams.distance.mean.se, frogs.mean.se)
+snakes.boid.colub.mean.se <- snakes.boid.colub.mean.se %>%
+  mutate(taxa = ifelse(Family == "Boidae", "Boidae", "Colubridae"))
+
+detection.means.se <- rbind(snakes.mean.se, liz.mean.se, smams.distance.mean.se, frogs.mean.se, snakes.boid.colub.mean.se)
 ```
 
 ```{r plot detections together}
 
 # Specify your exact panel layout order here
-custom_order <- c("non-mammal-eating snakes", "generalist snakes", "mammal-eating snakes", "small mammals", "lizards", "frogs")
+custom_order <- c("non-mammal-eating snakes", "generalist snakes", "mammal-eating snakes", "small mammals", "lizards", "frogs", "Boidae", "Colubridae")
 
 detection.means.se <-detection.means.se %>%
   mutate(taxa = factor(taxa, levels = custom_order))
 
 # plot
-p <- ggplot(detection.means.se, aes(x = Station, y = mean, fill = Station)) + geom_errorbar(data = detection.means.se, aes(ymin = mean-se, ymax = mean + se)) + ylab("Detections per 500m") + 
-    theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + geom_point(shape = 21, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + xlab(NULL) +
+p <- ggplot(detection.means.se, aes(x = Station, y = mean, fill = Station)) + geom_errorbar(data = detection.means.se, aes(ymin = mean-se, ymax = mean + se), width = 0.2) + ylab("Detections per 500m") + 
+    theme(axis.title = element_text(size = 12, color = "black")) + geom_point(shape = 21, color = "black", size = 2) + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + xlab(NULL) +
   theme(legend.title=element_blank())
 
-p + facet_wrap(~taxa, scales = "free") + theme_bw() + theme(axis.text.x = element_blank()) + theme(legend.title = element_blank()) + theme(legend.position="top", legend.text = element_text(size=12)) + theme(strip.text = element_text(size = 12))
+p + facet_wrap(~taxa, scales = "free") + theme_pubclean() + theme(axis.text.x = element_blank()) + theme(legend.title = element_blank()) + theme(legend.position="top", legend.text = element_text(size=12)) + theme(strip.text = element_text(size = 12)) +
+  theme(
+    axis.text = element_text(color = "black", size = 14)
+  )
 
 
 #ggsave(file="Figures/detections_panel_updatedAug2026.png", width = 4,  height = 3)
