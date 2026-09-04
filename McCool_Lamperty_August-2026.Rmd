@@ -67,7 +67,7 @@ all_surv_records <- read.csv("Data/all_survey_records_aug2026.csv")
 amph_lz <- read.csv("Data/amph_lz_cleaned_aug2026.csv")
 # cleaned amphibian and lizard data - a record of every individual found, when, and what segment
 # make sure there are no duplicates...
-amph_lz2 <- amph_lz %>%
+amph_lz <- amph_lz %>%
   distinct(Animal_ID, .keep_all = TRUE) # evidently there was 1
 
 effort <- read.csv("Data/effort_aug2026.csv")
@@ -175,15 +175,15 @@ segments <- all_surv_records %>%
   distinct()
 
 amph_lz <- left_join(amph_lz, segments)
-
+colnames(amph_lz)
 # columns are crazy, reduce and simplify
 
 amph_lz <- amph_lz %>%
-  select(Station, Start_Date, End_Date, Start_Date_Start_Time, End_Date_End_Time, Survey_Type, Gross_ID, Common_Name, Family, Genus, Species, Segment, Seg_dist_m, Parent_Trail_LongName, Height_of_Individual, Habitat_Type)
+  select(Station, Start_Date, End_Date, Start_Date_Start_Time, End_Date_End_Time, Survey_Type, Gross_ID, Common_Name, Family, Genus, Species, Segment, Seg_dist_m, Parent_Trail_LongName)
 
 # tallies
 amph_lz_counts <- amph_lz %>%
-  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID, Height_of_Individual, Habitat_Type) %>% tally()
+  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID) %>% tally()
 
 zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
 
@@ -195,7 +195,7 @@ amph_lz_wide <- amph_lz_counts %>%
 
 # prep to add in the zeros, pull out columns I want
 zeros <- zeros %>%
-  select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Parent_Trail_LongName, Height_of_Individual, Habitat_Type) 
+  select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Parent_Trail_LongName) 
 
 #bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
 amph_lz_wide <- rbind(amph_lz_wide, zeros)
@@ -510,11 +510,6 @@ frogs %>%
   mutate(se = sd / sqrt(sample_size))
 # appears to be slightly more frogs (small dif, but def sig) in YRS 
 
-# there are 3 potential outliers for which we did short segments but found a lot of frogs, creating pretty inflated per-500m estimates. Look at data without those:
-
-frogs <- frogs %>%
-  filter(n_frogs_500m < 20)
-
 frogs %>%
   group_by(Station) %>%
   filter(n_frogs_500m < 20) %>%
@@ -634,24 +629,64 @@ frog.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Segment), data = frogs, family = twee
 
 simulateResiduals(fittedModel = frog.null, plot = T)
 
+# null2 (2s = zero inflated gamma versions of the models)
+frog.null2 <- glmmTMB(n_frogs_500m ~ 1 + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+
+simulateResiduals(fittedModel = frog.null2, plot = T)
+
 # survey type
 frog.survey <-glmmTMB(n_frogs_500m ~ Survey_Type + (1|Segment), data = frogs, family = tweedie)
 
 simulateResiduals(frog.survey, plot = TRUE)
+# fails
+
+# survey type 2
+frog.survey2 <-glmmTMB(n_frogs_500m ~ Survey_Type + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+
+simulateResiduals(frog.survey2, plot = TRUE)
+# passes
 
 # station
-frog.station <-glmmTMB(n_frogs_500m ~ Station + (1|Segment) , data = frogs, family = tweedie)
+frog.station <-glmmTMB(n_frogs_500m ~ Station + (1|Segment), data = frogs, family = tweedie)
+
+# station 2
+frog.station2 <-glmmTMB(n_frogs_500m ~ Station + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+
+simulateResiduals(frog.station2, plot = TRUE)
 
 # station + survey type
 frog.survey.station <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + (1|Segment), data = frogs, family = tweedie)
 
-# compare
+# station + survey type 2
+frog.survey.station2 <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+
+simulateResiduals(fittedModel = frog.survey.station2, plot = TRUE)
+
+# Compare models so far
+
+# Tweedie versions
 frog_mod_names <- c("frog.null", "frog.survey", "frog.survey.station", "frog.station")
 aictab(cand.set = list(frog.null, frog.survey, frog.survey.station, frog.station), modnames = frog_mod_names)
-# survey + station fit best, do they interact?
+# station only is top model
 
-# survey type + station + humidity
-test <- glmmTMB(n_frogs_500m ~ Survey_Type + humidity_scaled + (1|Segment),  data = frogs, family = tweedie)
+# compare the zero inflated gamma versions (the 2s)
+frog_mod_names2 <- c("frog.null2", "frog.survey2", "frog.survey.station2", "frog.station2")
+
+aictab(cand.set = list(frog.null2, frog.survey2, frog.survey.station2, frog.station2), modnames = frog_mod_names2)
+# station only is top model
+
+##################
+# add env variables + station
+##################
+
+# station + humidity
+frog.st.hum <- glmmTMB(n_frogs_500m ~ Station + humidity_scaled + (1|Segment), data = frogs, family = tweedie)
+
+frogs$humidity_scaled <- as.numeric(frogs$humidity_scaled)
+
+# station + humidity2 (zi gamma)
+frog.st.hum2 <- glmmTMB(n_frogs_500m ~ Station + mean_relative_humidity + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+
 
 # survey type + station + temp
 frog.sur.temp.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + (1|Segment) ,  data = frogs, family = tweedie)
@@ -933,7 +968,7 @@ detection.means.se <- rbind(snakes.mean.se, liz.mean.se, smams.distance.mean.se,
 ```{r plot detections together}
 
 # Specify your exact panel layout order here
-custom_order <- c("non-mammal-eating snakes", "generalist snakes", "mammal-eating snakes", "small mammals", "lizards", "frogs", "Boidae", "Colubridae")
+custom_order <- c("mammal-eating snakes", "generalist snakes", "non-mammal-eating snakes", "small mammals", "lizards", "frogs", "Boidae", "Colubridae")
 
 detection.means.se <-detection.means.se %>%
   mutate(taxa = factor(taxa, levels = custom_order))
@@ -949,7 +984,7 @@ p + facet_wrap(~taxa, scales = "free") + theme_pubclean() + theme(axis.text.x = 
   )
 
 
-#ggsave(file="Figures/detections_panel_updatedAug2026.png", width = 4,  height = 3)
+ggsave(file="Figures/detections_panel_updatedAug2026_v2.png", width = 4,  height = 3)
 
 ```
 
