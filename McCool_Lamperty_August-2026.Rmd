@@ -70,6 +70,10 @@ amph_lz <- read.csv("Data/amph_lz_cleaned_aug2026.csv")
 amph_lz <- amph_lz %>%
   distinct(Animal_ID, .keep_all = TRUE) # evidently there was 1
 
+# I cleaned frogs and added a tadpole phase column, now they are a sep df
+frog_df <- read.csv("frogs.csv")
+frog_df$Start_Date <- mdy(frog_df$Start_Date)
+
 effort <- read.csv("Data/effort_aug2026.csv")
 # Date, effort hours, segment length
 
@@ -176,6 +180,9 @@ segments <- all_surv_records %>%
 
 amph_lz <- left_join(amph_lz, segments)
 colnames(amph_lz)
+
+frogs_df<- left_join(frog_df, segments)
+
 # columns are crazy, reduce and simplify
 
 amph_lz <- amph_lz %>%
@@ -185,9 +192,20 @@ amph_lz <- amph_lz %>%
 amph_lz_counts <- amph_lz %>%
   group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID) %>% tally()
 
+frog_counts <- frogs_df %>%
+  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID) %>% tally()
+
 zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
 
+zeros_frogs<-anti_join(all_surv_records, frog_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
+
 amph_lz_wide <- amph_lz_counts %>%
+  pivot_wider(
+    names_from = c(Gross_ID), 
+    values_from = n, 
+    values_fill = 0)
+
+frogs_wide <- frog_counts %>%
   pivot_wider(
     names_from = c(Gross_ID), 
     values_from = n, 
@@ -196,27 +214,41 @@ amph_lz_wide <- amph_lz_counts %>%
 # prep to add in the zeros, pull out columns I want
 zeros <- zeros %>%
   select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Parent_Trail_LongName) 
+zeros_frogs <- zeros_frogs %>%
+  select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Parent_Trail_LongName) 
 
 #bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
 amph_lz_wide <- rbind(amph_lz_wide, zeros)
+zeros_frogs$Start_Date <- ymd(zeros_frogs$Start_Date)
+
+frogs_wide <- rbind(frogs_wide, zeros_frogs)
 
 #clean
-rm(zeros)
+rm(frog_counts, zeros, zeros_frogs)
 
 # make NA cases (from when I added in the zeros) to zero
 amph_lz_wide<- amph_lz_wide %>% mutate(across(c(Lizard, Frog, Salamander), ~replace_na(.x, 0)))
 
+frogs_wide<- frogs_wide %>% mutate(across(c(Frog), ~replace_na(.x, 0)))
+
 # detection rates per 500 m - calculated based per segment (as opposed to being calculated across the entire survey, which I think can affect the mean values and the SD for sure)
 amph_lz_detections <- amph_lz_wide %>%
   group_by(Start_Date, Station, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m) %>%
-  summarize(n_frogs = sum(Frog),
+  reframe(n_frogs = sum(Frog),
             n_sal = sum(Salamander),
             n_liz = sum(Lizard))
+
+frogs_detected <- frogs_wide %>%
+  group_by(Start_Date, Station, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m) %>%
+  reframe(n_frogs = sum(Frog))
 
 amph_lz_detections <- amph_lz_detections %>%
   mutate(n_frogs_500m = (n_frogs/Seg_dist_m)*500,
          n_sal_500m = 500*(n_sal/Seg_dist_m),
            n_liz_500m = 500*(n_liz/Seg_dist_m))
+
+frogs_detected <- frogs_detected %>%
+  mutate(n_frogs_500m = (n_frogs/Seg_dist_m)*500)
 ```
 
 
@@ -253,11 +285,6 @@ n_snakes_per_3guilds <-n_snakes_per_3guilds %>%
 n_snakes_per_3guilds <- n_snakes_per_3guilds %>%
   na.omit()
 
-length(unique(n_snakes_per_3guilds$Start_Date)) # checks out
-n_snakes_per_3guilds %>%
-  group_by(Start_Date) %>%
-  reframe(n_distinct(Diet_Type_3categories)) # checks out
-
 ```
 
 ### Viperidae vs Boidae
@@ -278,6 +305,7 @@ n_boid.colub <-n_boid.colub %>%
 n_boid.colub$n_500m <- (n_boid.colub$n/n_boid.colub$Seg_dist_m)*500
 ```
 
+
 # Env data
 
 ```{r prep env and join to obs dfs}
@@ -294,6 +322,7 @@ humidity_long <- humidity_long %>%
 
 # fix date
 humidity_long$Start_Date <- mdy(humidity_long$Date)
+
 humidity_long <- humidity_long %>%
   select(-Date)
 
@@ -430,6 +459,14 @@ n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, temperature_means)
 n_boid.colub <- left_join(n_boid.colub, humidity_means)
 n_boid.colub <- left_join(n_boid.colub, temperature_means)
 
+# add to frogs
+
+frogs_detected$Start_Date<-ymd(frogs_detected$Start_Date)
+
+frogs_detected <- left_join(frogs_detected, humidity_means)
+frogs_detected <- left_join(frogs_detected, temperature_means)
+
+
 ```
 
 ```{r summarize hum and temp and und}
@@ -483,55 +520,6 @@ understory_summary_yr_survey_type <- understory_all %>%
 
 # Frogs
 
-## frog summary data
-
-```{r summarize frogs}
-
-# frogs are being weird, I'm going to pull them out and just look carefully at these data
-
-frogs <- amph_lz_detections %>%
-  filter(Survey_Type != "Morning") %>%
-  select(Start_Date, Survey_Type, Station, Seg_dist_m, Parent_Trail_LongName, n_frogs, n_frogs_500m, mean_relative_humidity, Humidity,  mean_temp_F)
-
-frogs %>%
-  group_by(Station) %>%
-  summarise(mean_frogs_per_segment = mean(n_frogs),
-         sd = sd(n_frogs),
-           sample_size = n(),
-         total_frogs_found = sum(n_frogs)) %>%
-  mutate(se = sd / sqrt(sample_size))
-
-# right, very even numbers
-
-# what about controlling for meters surveyed?
-
-frogs %>%
-  group_by(Station) %>%
-  summarise(mean_frogs_per_500m = mean(n_frogs_500m),
-         sd = sd(n_frogs_500m),
-           sample_size = n(),
-         total_frogs_found = sum(n_frogs)) %>%
-  mutate(se = sd / sqrt(sample_size))
-# appears to be slightly more frogs (small dif, but def sig) in YRS 
-
-frogs %>%
-  group_by(Station) %>%
-  filter(n_frogs_500m < 20) %>%
-  summarise(mean_frogs_per_500m = mean(n_frogs_500m),
-         sd = sd(n_frogs_500m),
-           sample_size = n(),
-         total_frogs_found = sum(n_frogs)) %>%
-  mutate(se = sd / sqrt(sample_size))
-
-# make a summary dataframe for plotting later
-frogs.mean.se <- amph_lz_detections %>%
-  group_by(Station) %>%
-  summarise(mean = mean(n_frogs_500m),
-           sd = sd(n_frogs_500m),
-           n = n()) %>%
-  mutate(se = sd / sqrt(n))
-```
-
 ### Frog closer look
 
 What families and genera do we have the most of? What specifically is going on with the frogs? They are fucking impossible to model with the environmental data. 
@@ -539,35 +527,22 @@ What families and genera do we have the most of? What specifically is going on w
 ```{r frog closer look}
 
 # tally counts - df without zeros
-frog_fam <- amph_lz %>%
-  filter(Gross_ID == "Frog") %>%
+frog_fam <- frog_df %>%
   group_by(Start_Date, Station, Family, Segment, Seg_dist_m) %>% tally()
 
 # generate all possible combinations based on family to get zeros
-n_frogs_per_fam <- frog_fam %>%
+frog_fam <- frog_fam %>%
   as_tibble() %>%
   complete(Family, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
 
 # get encounter rate per 500m
-n_frogs_per_fam$n_500m <- (n_frogs_per_fam$n/n_frogs_per_fam$Seg_dist_m)*500
+frog_fam$n_500m <- (frog_fam$n/frog_fam$Seg_dist_m)*500
 
-n_per_fam_df <- n_frogs_per_fam %>%
+# visualization, SE 
+frog_fam_df <- frog_fam %>%
   na.omit() %>%
   group_by(Station, Family) %>%
-  reframe(n_found = sum(n))
-
-# quick visualization
-ggplot(n_per_fam_df, aes(x = Family, y = n_found, fill = Station)) +
-  geom_col(position = "dodge", color = "black") + scale_fill_manual(values = c("cyan3", "chocolate")) + 
-  theme_minimal() +
-  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))
-
-# quick visualization 2, SE 
-
-frogs_per_500m_per_fam_df <- n_frogs_per_fam %>%
-  na.omit() %>%
-  group_by(Station, Family) %>%
-  summarise(mean_n_per_500m = mean(n_500m),
+  reframe(mean_n_per_500m = mean(n_500m),
          sd = sd(n_500m),
            sample_size = n(),
          total_frogs_found = sum(n)) %>%
@@ -576,106 +551,94 @@ frogs_per_500m_per_fam_df <- n_frogs_per_fam %>%
 # A width of 0.9 matches the default behavior of geom_col
 spec_dodge <- position_dodge(width = 0.9)
 
-ggplot(frogs_per_500m_per_fam_df, aes(x = Family, y = mean_n_per_500m, fill = Station)) +
+# Maybe thin out to any cases where we found fewer than 12 individuals of a family?
+
+frog_fam_red <- frog_fam_df %>%
+  filter(total_frogs_found > 12)
+
+ggplot(frog_fam_red, aes(x = Family, y = mean_n_per_500m, fill = Station)) +
   geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
   theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +
-  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 90))  +
   geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)
+
 
 # Okay, trying to make sense of this and starting with Craugastoridae. Many species, specifically C. megacephalus, in this family have been found to be more abundant when peccaries are around (Reider et al 2013, Biol. Cons, "Effects of collared peccary (Pecari tajacu) exclusion on leaf litter amphibians and reptiles in Neotropical wet forest, Costa Rica") https://doi.org/10.1016/j.biocon.2012.12.015
 
-# Dendrobatidae, Hylidae, and sort of Microhylidae, Ranidae, Pipidae are more abundant in the hunted forest
+# Craugastoridae - no tadpole stage, litter dwelling (Oreobates shows strong trend)
+
+# Dendrobatidae - diurnal, mostly litter dwelling, tadpole stage (trend could be driven by Ameerega)
+
+# Hylidae - tadpole stage - trend is driven by Osteocephalus (tree frogs)
 
 ```
 
 ```{r frogs genus level}
+
 # tally counts - df without zeros
-frog_gen <- amph_lz %>%
-  filter(Gross_ID == "Frog") %>%
-  group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>% tally()
+frog_gen <- frogs_df %>%
+  group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>%
+  tally()
 
 # generate all possible combinations based on genily to get zeros
-n_frogs_per_gen <- frog_gen %>%
+frog_gen <- frog_gen %>%
   as_tibble() %>%
   complete(Genus, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
 
 # get encounter rate per 500m
-n_frogs_per_gen$n_500m <- (n_frogs_per_gen$n/n_frogs_per_gen$Seg_dist_m)*500
+frog_gen$n_500m <- (frog_gen$n/frog_gen$Seg_dist_m)*500
 
-n_per_gen_df <- n_frogs_per_gen %>%
+# visualization, SE 
+frog_gen <- frog_gen %>%
   na.omit() %>%
   group_by(Station, Genus) %>%
-  reframe(n_found = sum(n))
-
-# quick visualization
-ggplot(n_per_gen_df, aes(x = Genus, y = n_found, fill = Station)) +
-  geom_col(position = "dodge", color = "black") + scale_fill_manual(values = c("cyan3", "chocolate")) + 
-  theme_minimal() +
-  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))
-
-# quick visualization 2, SE 
-frogs_per_500m_per_gen_df <- n_frogs_per_gen %>%
-  na.omit() %>%
-  group_by(Station, Genus) %>%
-  summarise(mean_n_per_500m = mean(n_500m),
+  reframe(mean_n_per_500m = mean(n_500m),
          sd = sd(n_500m),
            sample_size = n(),
          total_frogs_found = sum(n)) %>%
   mutate(se = sd / sqrt(sample_size))
 
-# A width of 0.9 matches the default behavior of geom_col
-spec_dodge <- position_dodge(width = 0.9)
-
-ggplot(frogs_per_500m_per_gen_df, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
+ggplot(frog_gen, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
   geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
   theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +
-  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
-  geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  + geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)
 
 ```
 
-```{r frog species level}
 
-amph_lz$gen_sp <- paste(amph_lz$Genus, amph_lz$Species, sep = "_")
+#### Hylidae
 
+```{r hylidae closer look}
+
+# what is going on with genera in Hylidae specifically?
 # tally counts - df without zeros
-frog_spp <- amph_lz %>%
-  filter(Gross_ID == "Frog") %>%
-  group_by(Start_Date, Station, gen_sp, Segment, Seg_dist_m) %>% tally()
+frog_hylids <- frog_df %>%
+  filter(Family == "Hylidae") %>%
+  group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>% tally()
 
-# spperate all possible combinations based on sppily to get zeros
-n_frogs_per_spp <- frog_spp %>%
+# generate all possible combinations based on genily to get zeros
+n_hylids <- frog_hylids %>%
   as_tibble() %>%
-  complete(gen_sp, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
+  complete(Genus, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
 
 # get encounter rate per 500m
-n_frogs_per_spp$n_500m <- (n_frogs_per_spp$n/n_frogs_per_spp$Seg_dist_m)*500
+n_hylids$n_500m <- (n_hylids$n/n_hylids$Seg_dist_m)*500
 
-n_per_spp_df <- n_frogs_per_spp %>%
+n_hylids_df <- n_hylids %>%
   na.omit() %>%
-  group_by(Station, gen_sp) %>%
+  group_by(Station, Genus) %>%
   reframe(n_found = sum(n))
 
-# quick visualization
-ggplot(n_per_spp_df, aes(x = gen_sp, y = log(n_found), fill = Station)) +
-  geom_col(position = "dodge", color = "black") + scale_fill_manual(values = c("cyan3", "chocolate")) + 
-  theme_minimal() +
-  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))
-
-# quick visualization 2, SE 
-frogs_per_500m_per_spp_df <- n_frogs_per_spp %>%
+hylids_per_500m_per_gen_df <- n_hylids %>%
   na.omit() %>%
-  group_by(Station, gen_sp) %>%
+  group_by(Station, Genus) %>%
   summarise(mean_n_per_500m = mean(n_500m),
          sd = sd(n_500m),
            sample_size = n(),
          total_frogs_found = sum(n)) %>%
   mutate(se = sd / sqrt(sample_size))
 
-# A width of 0.9 matches the default behavior of geom_col
-spec_dodge <- position_dodge(width = 0.9)
-
-ggplot(frogs_per_500m_per_spp_df, aes(x = gen_sp, y = mean_n_per_500m, fill = Station)) +
+ggplot(hylids_per_500m_per_gen_df, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
   geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
   theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +
   theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
@@ -683,34 +646,120 @@ ggplot(frogs_per_500m_per_spp_df, aes(x = gen_sp, y = mean_n_per_500m, fill = St
 
 ```
 
-## frog models
+#### Leptodactylidae
+
+```{r Leptodactylidae closer look}
+
+# what is going on with genera in Leptodactylidae specifically?
+# tally counts - df without zeros
+frog_leptos <- frog_df %>%
+  filter(Family == "Leptodactylidae") %>%
+  group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>% tally()
+
+# generate all possible combinations based on genily to get zeros
+n_leptos <- frog_leptos %>%
+  as_tibble() %>%
+  complete(Genus, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
+
+# get encounter rate per 500m
+n_leptos$n_500m <- (n_leptos$n/n_leptos$Seg_dist_m)*500
+
+n_leptos_df <- n_leptos %>%
+  na.omit() %>%
+  group_by(Station, Genus) %>%
+  reframe(n_found = sum(n))
+
+leptos_per_500m_per_gen_df <- n_leptos %>%
+  na.omit() %>%
+  group_by(Station, Genus) %>%
+  summarise(mean_n_per_500m = mean(n_500m),
+         sd = sd(n_500m),
+           sample_size = n(),
+         total_frogs_found = sum(n)) %>%
+  mutate(se = sd / sqrt(sample_size))
+
+ggplot(leptos_per_500m_per_gen_df, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
+  geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
+  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
+  geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)
+
+```
+
+```{r tadpole vs not}
+
+tadpole_phase <- frog_df %>%
+  group_by(Start_Date, Station, Tadpole_phase, Segment, Seg_dist_m) %>% tally()
+
+# generate all possible combinations based on genily to get zeros
+tadpole_phase <- tadpole_phase %>%
+  as_tibble() %>%
+  complete(Tadpole_phase, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
+
+# get encounter rate per 500m
+tadpole_phase$n_500m <- (tadpole_phase$n/tadpole_phase$Seg_dist_m)*500
+
+tadpole_phase <- tadpole_phase %>%
+  na.omit() %>%
+  group_by(Station, Tadpole_phase) %>%
+  summarise(mean_n_per_500m = mean(n_500m),
+            mean_n = mean(n),
+            sd_n = sd(n),
+         sd_500m = sd(n_500m),
+           sample_size = n(),
+         total_frogs_found = sum(n)) %>%
+  mutate(se_500m = sd_500m / sqrt(sample_size),
+         se_n = sd_n/sqrt(sample_size))
+
+ggplot(tadpole_phase, aes(x = Tadpole_phase, y = mean_n, fill = Station)) +
+  geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
+  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per segment") +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
+  geom_errorbar(aes(ymin = mean_n - se_n, ymax = mean_n + se_n), position = spec_dodge, width = 0.2) + labs(fill = NULL)
+
+```
+
+```{r diurnal vs nocturnal}
+
+di_noc<- frog_df %>%
+  group_by(Start_Date, Station, Diurnal_Nocturnal_Corp, Segment, Seg_dist_m) %>% tally()
+
+# generate all possible combinations based on genily to get zeros
+di_noc <- di_noc %>%
+  as_tibble() %>%
+  complete(Diurnal_Nocturnal, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
+
+# get encounter rate per 500m
+di_noc$n_500m <- (di_noc$n/di_noc$Seg_dist_m)*500
+
+di_noc <- di_noc %>%
+  na.omit() %>%
+  group_by(Station, Diurnal_Nocturnal) %>%
+  summarise(mean_n_per_500m = mean(n_500m),
+            mean_n = mean(n),
+            sd_n = sd(n),
+         sd_500m = sd(n_500m),
+           sample_size = n(),
+         total_frogs_found = sum(n)) %>%
+  mutate(se_500m = sd_500m / sqrt(sample_size),
+         se_n = sd_n/sqrt(sample_size))
+
+ggplot(di_noc, aes(x = Diurnal_Nocturnal_Corp, y = mean_n, fill = Station)) +
+  geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
+  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per segment") +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
+  geom_errorbar(aes(ymin = mean_n - se_n, ymax = mean_n + se_n), position = spec_dodge, width = 0.2) + labs(fill = NULL)
+```
+
+## Frog models
 
 One approach my need to be looking at the families that are driving the trend of increased frog presence in the hunted forest separately. Perhaps 1 or 2 families are responding to env variables, while others are not. 
 
-### Dendrobatidae
-
-Drives a lot of the trend of more frog individuals detected in the hunted forest type. 
-
-```{r dendrobatidae mods}
-
-
-
-```
-
 
 ```{r null model, warning = FALSE}
+
 # look at distribution - models are giving me issues
-hist(frogs$n_frogs_500m)
-
-# unremarkable, typical Gamma or Tweedie should work
-
-# make sure we have factors and numeric variables
-frogs$Station<- as.factor(frogs$Station)
-frogs$Survey_Type<- as.factor(frogs$Survey_Type)
-frogs$n_frogs<- as.numeric(frogs$n_frogs)
-frogs$n_frogs_500m<- as.numeric(frogs$n_frogs_500m)
-frogs$mean_relative_humidity<- as.numeric(frogs$mean_relative_humidity)
-frogs$mean_temp_F<- as.numeric(frogs$mean_temp_F)
+hist(frogs_detected$n_frogs_500m)
 
 # remove morning and instances where env data are missing
 frogs <- frogs %>%
