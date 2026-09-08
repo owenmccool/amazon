@@ -173,13 +173,11 @@ env_24_25_nights %>%
 ```{r amph lz raw detection rates}
 
 # add segment distance data
-
 segments <- all_surv_records %>%
   select(Segment, Seg_dist_m) %>%
   distinct()
 
 amph_lz <- left_join(amph_lz, segments)
-colnames(amph_lz)
 
 frogs_df<- left_join(frog_df, segments)
 
@@ -193,7 +191,7 @@ amph_lz_counts <- amph_lz %>%
   group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID) %>% tally()
 
 frog_counts <- frogs_df %>%
-  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID) %>% tally()
+  group_by(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Family) %>% tally()
 
 zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think these records where no specimen was found on a segment should be added in with zeros for each gross ID tally
 
@@ -205,17 +203,19 @@ amph_lz_wide <- amph_lz_counts %>%
     values_from = n, 
     values_fill = 0)
 
+
 frogs_wide <- frog_counts %>%
   pivot_wider(
-    names_from = c(Gross_ID), 
+    names_from = Family, 
     values_from = n, 
     values_fill = 0)
 
 # prep to add in the zeros, pull out columns I want
 zeros <- zeros %>%
   select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Parent_Trail_LongName) 
+
 zeros_frogs <- zeros_frogs %>%
-  select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Parent_Trail_LongName) 
+  select(Station, Start_Date, Survey_Type, Segment, Seg_dist_m) 
 
 #bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
 amph_lz_wide <- rbind(amph_lz_wide, zeros)
@@ -229,7 +229,7 @@ rm(frog_counts, zeros, zeros_frogs)
 # make NA cases (from when I added in the zeros) to zero
 amph_lz_wide<- amph_lz_wide %>% mutate(across(c(Lizard, Frog, Salamander), ~replace_na(.x, 0)))
 
-frogs_wide<- frogs_wide %>% mutate(across(c(Frog), ~replace_na(.x, 0)))
+frogs_wide<- frogs_wide %>% mutate(across(where(is.numeric), ~replace_na(.x, 0)))
 
 # detection rates per 500 m - calculated based per segment (as opposed to being calculated across the entire survey, which I think can affect the mean values and the SD for sure)
 amph_lz_detections <- amph_lz_wide %>%
@@ -238,17 +238,23 @@ amph_lz_detections <- amph_lz_wide %>%
             n_sal = sum(Salamander),
             n_liz = sum(Lizard))
 
-frogs_detected <- frogs_wide %>%
-  group_by(Start_Date, Station, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m) %>%
-  reframe(n_frogs = sum(Frog))
+frog_detections <- frogs_wide %>%
+  select(Start_Date, Station, Survey_Type, Segment, Seg_dist_m, 
+         Aromobatidae:Pipidae) %>%
+  pivot_longer(names_to = "Family",
+               cols = Aromobatidae:Pipidae,
+               values_to = "n", names_repair = "unique")
+
+#frog_tadpole_phase_data <- frogs_df %>%
+ # select(Family, Tadpole_phase)
+
+#frog_detections <- left_join(frogs_long, frog_tadpole_phase_data)
 
 amph_lz_detections <- amph_lz_detections %>%
   mutate(n_frogs_500m = (n_frogs/Seg_dist_m)*500,
          n_sal_500m = 500*(n_sal/Seg_dist_m),
            n_liz_500m = 500*(n_liz/Seg_dist_m))
 
-frogs_detected <- frogs_detected %>%
-  mutate(n_frogs_500m = (n_frogs/Seg_dist_m)*500)
 ```
 
 
@@ -461,12 +467,9 @@ n_boid.colub <- left_join(n_boid.colub, temperature_means)
 
 # add to frogs
 
-frogs_detected$Start_Date<-ymd(frogs_detected$Start_Date)
-
-frogs_detected <- left_join(frogs_detected, humidity_means)
-frogs_detected <- left_join(frogs_detected, temperature_means)
-
-
+frog_detections$Start_Date<-ymd(frog_detections$Start_Date)
+frog_detections <- left_join(frog_detections, humidity_means)
+frog_detections <- left_join(frog_detections, temperature_means)
 ```
 
 ```{r summarize hum and temp and und}
