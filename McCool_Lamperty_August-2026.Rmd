@@ -204,7 +204,6 @@ amph_lz_wide <- amph_lz_counts %>%
     values_from = n, 
     values_fill = 0)
 
-
 frogs_wide <- frog_counts %>%
   pivot_wider(
     names_from = Family, 
@@ -276,16 +275,15 @@ frogs_gen_wide<- frogs_gen_wide %>%
 rm(frog_gen_counts, frogs_wide, zeros_frogs)
 
 # pivot back longer
-frog_detections <- frogs_gen_wide %>%
+frog_gen_detections <- frogs_gen_wide %>%
   select(Start_Date, Station, Survey_Type, Segment, Seg_dist_m, 
-         genus1:genuslast) %>% # update to genus
+         Allobates:Lithodytes) %>% 
   pivot_longer(names_to = "Genus",
-               cols = Aromobatidae:Pipidae,# update to genus
+               cols = Allobates:Lithodytes,
                values_to = "n", names_repair = "unique")
 
 # get n per 500m
-
-# get mean and SD and SE
+frog_gen_detections$n_500m <- (frog_gen_detections$n/frog_gen_detections$Seg_dist_m)*500
 
 ```
 
@@ -498,6 +496,9 @@ n_boid.colub <- left_join(n_boid.colub, humidity_means)
 n_boid.colub <- left_join(n_boid.colub, temperature_means)
 
 # add to frogs
+frog_gen_detections$Start_Date<-ymd(frog_gen_detections$Start_Date)
+frog_gen_detections<-left_join(frog_gen_detections, humidity_means)
+frog_gen_detections<-left_join(frog_gen_detections, temperature_means)
 
 frog_detections$Start_Date<-ymd(frog_detections$Start_Date)
 frog_detections <- left_join(frog_detections, humidity_means)
@@ -639,7 +640,6 @@ ggplot(frog_gen, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
   theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  + geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)
 
 ```
-
 
 
 #### Hylidae
@@ -789,7 +789,6 @@ ggplot(litter, aes(x = Egg_develops_in_litter, y = mean_n_per_500m, fill = Stati
 
 ```
 
-
 ```{r diurnal vs nocturnal}
 
 di_noc<- frog_df %>%
@@ -826,25 +825,24 @@ ggplot(di_noc, aes(x = Diurnal_Nocturnal_Corp, y = mean_n, fill = Station)) +
 
 One approach my need to be looking at the families that are driving the trend of increased frog presence in the hunted forest separately. Perhaps 1 or 2 families are responding to env variables, while others are not. 
 
-
 ```{r null model, warning = FALSE}
 
 # look at distribution - models are giving me issues
-hist(frogs_detected$n_frogs_500m)
+hist(frog_gen_detections$n_500m)
 
 # remove morning and instances where env data are missing
-frogs <- frogs %>%
+frog_gen_detections <- frog_gen_detections %>%
   na.omit()
 
 # scale and center predictors
-frogs$humidity_scaled <- scale(frogs$mean_relative_humidity)
-frogs$temp_scaled <- scale(frogs$mean_temp_F)
+frog_gen_detections$humidity_scaled <- scale(frog_gen_detections$mean_relative_humidity)
+frog_gen_detections$temp_scaled <- scale(frog_gen_detections$mean_temp_F)
 
 # null model
 # response variable: n frogs per 500
 # log normal distribution (zero inflated)
 
-frog.null1 <- glmmTMB(n_frogs_500m ~ 1 + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+frog.null1 <- glmmTMB(n_500m ~ 1 + (1|Segment), ziformula = ~1, data = frog_gen_detections, family = ziGamma)
 
 simulateResiduals(fittedModel = frog.null1, plot = T)
 
