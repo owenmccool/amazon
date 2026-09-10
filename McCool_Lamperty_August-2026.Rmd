@@ -71,8 +71,8 @@ amph_lz <- amph_lz %>%
   distinct(Animal_ID, .keep_all = TRUE) # evidently there was 1
 
 # I cleaned frogs and added a tadpole phase column, now they are a sep df
-frog_df <- read.csv("frogs.csv")
-frog_df$Start_Date <- mdy(frog_df$Start_Date)
+frogs_df <- read.csv("frogs.csv")
+frogs_df$Start_Date <- mdy(frogs_df$Start_Date)
 
 effort <- read.csv("Data/effort_aug2026.csv")
 # Date, effort hours, segment length
@@ -176,10 +176,11 @@ env_24_25_nights %>%
 segments <- all_surv_records %>%
   select(Segment, Seg_dist_m) %>%
   distinct()
-
+# amph  lz original df
 amph_lz <- left_join(amph_lz, segments)
 
-frogs_df<- left_join(frog_df, segments)
+# working with frogs separately in my augmented df (has litter dependency columns)
+frogs_df<- left_join(frogs_df, segments)
 
 # columns are crazy, reduce and simplify
 
@@ -223,9 +224,6 @@ zeros_frogs$Start_Date <- ymd(zeros_frogs$Start_Date)
 
 frogs_wide <- rbind(frogs_wide, zeros_frogs)
 
-#clean
-rm(frog_counts, zeros, zeros_frogs)
-
 # make NA cases (from when I added in the zeros) to zero
 amph_lz_wide<- amph_lz_wide %>% mutate(across(c(Lizard, Frog, Salamander), ~replace_na(.x, 0)))
 
@@ -245,15 +243,49 @@ frog_detections <- frogs_wide %>%
                cols = Aromobatidae:Pipidae,
                values_to = "n", names_repair = "unique")
 
-#frog_tadpole_phase_data <- frogs_df %>%
- # select(Family, Tadpole_phase)
-
-#frog_detections <- left_join(frogs_long, frog_tadpole_phase_data)
-
 amph_lz_detections <- amph_lz_detections %>%
   mutate(n_frogs_500m = (n_frogs/Seg_dist_m)*500,
          n_sal_500m = 500*(n_sal/Seg_dist_m),
            n_liz_500m = 500*(n_liz/Seg_dist_m))
+
+####
+# frogs @ genus level
+####
+
+# frog by genus count
+frog_gen_counts <- frogs_df %>%
+  group_by(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Genus) %>% tally()
+# cases where no frog was found
+zeros_gen_frogs<-anti_join(all_surv_records, frog_gen_counts, by = "Segment") 
+
+# pivot wider
+frogs_gen_wide <- frog_gen_counts %>%
+  filter(Genus != "")%>%
+  pivot_wider(
+    names_from = Genus, 
+    values_from = n, 
+    values_fill = 0)
+# bind
+frogs_gen_wide <- rbind(frogs_gen_wide, zeros_frogs)
+
+# make NA cases to zero
+frogs_gen_wide<- frogs_gen_wide %>% 
+  mutate(across(where(is.numeric), ~replace_na(.x, 0)))
+
+# clean
+rm(frog_gen_counts, frogs_wide, zeros_frogs)
+
+# pivot back longer
+frog_detections <- frogs_gen_wide %>%
+  select(Start_Date, Station, Survey_Type, Segment, Seg_dist_m, 
+         genus1:genuslast) %>% # update to genus
+  pivot_longer(names_to = "Genus",
+               cols = Aromobatidae:Pipidae,# update to genus
+               values_to = "n", names_repair = "unique")
+
+# get n per 500m
+
+# get mean and SD and SE
 
 ```
 
@@ -609,6 +641,7 @@ ggplot(frog_gen, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
 ```
 
 
+
 #### Hylidae
 
 ```{r hylidae closer look}
@@ -617,7 +650,8 @@ ggplot(frog_gen, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
 # tally counts - df without zeros
 frog_hylids <- frog_df %>%
   filter(Family == "Hylidae") %>%
-  group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>% tally()
+  group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>% 
+  tally()
 
 # generate all possible combinations based on genily to get zeros
 n_hylids <- frog_hylids %>%
@@ -721,6 +755,40 @@ ggplot(tadpole_phase, aes(x = Tadpole_phase, y = mean_n, fill = Station)) +
   geom_errorbar(aes(ymin = mean_n - se_n, ymax = mean_n + se_n), position = spec_dodge, width = 0.2) + labs(fill = NULL)
 
 ```
+
+```{r litter dependency}
+
+litter <- frog_df %>%
+  group_by(Start_Date, Station, Egg_develops_in_litter, Segment, Seg_dist_m) %>% tally()
+
+# generate all possible combinations based on genily to get zeros
+litter <- litter %>%
+  as_tibble() %>%
+  complete(Egg_develops_in_litter, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
+
+# get encounter rate per 500m
+litter$n_500m <- (litter$n/litter$Seg_dist_m)*500
+
+litter <- litter %>%
+  na.omit() %>%
+  group_by(Station, Egg_develops_in_litter) %>%
+  summarise(mean_n_per_500m = mean(n_500m),
+            mean_n = mean(n),
+            sd_n = sd(n),
+         sd_500m = sd(n_500m),
+           sample_size = n(),
+         total_frogs_found = sum(n)) %>%
+  mutate(se_500m = sd_500m / sqrt(sample_size),
+         se_n = sd_n/sqrt(sample_size))
+
+ggplot(litter, aes(x = Egg_develops_in_litter, y = mean_n_per_500m, fill = Station)) +
+  geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
+  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
+  geom_errorbar(aes(ymin = mean_n_per_500m - se_500m, ymax = mean_n_per_500m + se_500m), position = spec_dodge, width = 0.2) + labs(fill = NULL)
+
+```
+
 
 ```{r diurnal vs nocturnal}
 
