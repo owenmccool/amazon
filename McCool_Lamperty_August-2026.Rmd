@@ -285,6 +285,7 @@ frog_gen_detections <- frogs_gen_wide %>%
 # get n per 500m
 frog_gen_detections$n_500m <- (frog_gen_detections$n/frog_gen_detections$Seg_dist_m)*500
 
+frog_detections$n_500m <- (frog_detections$n/frog_detections$Seg_dist_m)*500
 ```
 
 
@@ -340,7 +341,6 @@ n_boid.colub <-n_boid.colub %>%
 # get encounter rate per 500m
 n_boid.colub$n_500m <- (n_boid.colub$n/n_boid.colub$Seg_dist_m)*500
 ```
-
 
 # Env data
 
@@ -563,7 +563,7 @@ What families and genera do we have the most of? What specifically is going on w
 ```{r frog closer look}
 
 # tally counts - df without zeros
-frog_fam <- frog_df %>%
+frog_fam <- frogs_df %>%
   group_by(Start_Date, Station, Family, Segment, Seg_dist_m) %>% tally()
 
 # generate all possible combinations based on family to get zeros
@@ -641,14 +641,13 @@ ggplot(frog_gen, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
 
 ```
 
-
 #### Hylidae
 
 ```{r hylidae closer look}
 
 # what is going on with genera in Hylidae specifically?
 # tally counts - df without zeros
-frog_hylids <- frog_df %>%
+frog_hylids <- frogs_df %>%
   filter(Family == "Hylidae") %>%
   group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>% 
   tally()
@@ -683,13 +682,54 @@ ggplot(hylids_per_500m_per_gen_df, aes(x = Genus, y = mean_n_per_500m, fill = St
 
 ```
 
+#### Dendrobatidae
+
+```{r Dendrobatidae closer look}
+
+# what is going on with genera in Dendrobatidae specifically?
+# tally counts - df without zeros
+frog_dendrobatis <- frogs_df %>%
+  filter(Family == "Dendrobatidae") %>%
+  group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>% 
+  tally()
+
+# generate all possible combinations based on genily to get zeros
+n_dendrobatis <- frog_dendrobatis %>%
+  as_tibble() %>%
+  complete(Genus, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
+
+# get encounter rate per 500m
+n_dendrobatis$n_500m <- (n_dendrobatis$n/n_dendrobatis$Seg_dist_m)*500
+
+n_dendrobatis_df <- n_dendrobatis %>%
+  na.omit() %>%
+  group_by(Station, Genus) %>%
+  reframe(n_found = sum(n))
+
+dendrobatis_per_500m_per_gen_df <- n_dendrobatis %>%
+  na.omit() %>%
+  group_by(Station, Genus) %>%
+  summarise(mean_n_per_500m = mean(n_500m),
+         sd = sd(n_500m),
+           sample_size = n(),
+         total_frogs_found = sum(n)) %>%
+  mutate(se = sd / sqrt(sample_size))
+
+ggplot(dendrobatis_per_500m_per_gen_df, aes(x = Genus, y = mean_n_per_500m, fill = Station)) +
+  geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
+  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
+  geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)
+
+```
+
 #### Leptodactylidae
 
 ```{r Leptodactylidae closer look}
 
 # what is going on with genera in Leptodactylidae specifically?
 # tally counts - df without zeros
-frog_leptos <- frog_df %>%
+frog_leptos <- frogs_df %>%
   filter(Family == "Leptodactylidae") %>%
   group_by(Start_Date, Station, Genus, Segment, Seg_dist_m) %>% tally()
 
@@ -725,7 +765,7 @@ ggplot(leptos_per_500m_per_gen_df, aes(x = Genus, y = mean_n_per_500m, fill = St
 
 ```{r tadpole vs not}
 
-tadpole_phase <- frog_df %>%
+tadpole_phase <- frogs_df %>%
   group_by(Start_Date, Station, Tadpole_phase, Segment, Seg_dist_m) %>% tally()
 
 # generate all possible combinations based on genily to get zeros
@@ -758,7 +798,7 @@ ggplot(tadpole_phase, aes(x = Tadpole_phase, y = mean_n, fill = Station)) +
 
 ```{r litter dependency}
 
-litter <- frog_df %>%
+litter <- frogs_df %>%
   group_by(Start_Date, Station, Egg_develops_in_litter, Segment, Seg_dist_m) %>% tally()
 
 # generate all possible combinations based on genily to get zeros
@@ -789,43 +829,11 @@ ggplot(litter, aes(x = Egg_develops_in_litter, y = mean_n_per_500m, fill = Stati
 
 ```
 
-```{r diurnal vs nocturnal}
-
-di_noc<- frog_df %>%
-  group_by(Start_Date, Station, Diurnal_Nocturnal_Corp, Segment, Seg_dist_m) %>% tally()
-
-# generate all possible combinations based on genily to get zeros
-di_noc <- di_noc %>%
-  as_tibble() %>%
-  complete(Diurnal_Nocturnal, nesting(Start_Date, Station, Seg_dist_m, Segment), fill = list(n = 0))
-
-# get encounter rate per 500m
-di_noc$n_500m <- (di_noc$n/di_noc$Seg_dist_m)*500
-
-di_noc <- di_noc %>%
-  na.omit() %>%
-  group_by(Station, Diurnal_Nocturnal) %>%
-  summarise(mean_n_per_500m = mean(n_500m),
-            mean_n = mean(n),
-            sd_n = sd(n),
-         sd_500m = sd(n_500m),
-           sample_size = n(),
-         total_frogs_found = sum(n)) %>%
-  mutate(se_500m = sd_500m / sqrt(sample_size),
-         se_n = sd_n/sqrt(sample_size))
-
-ggplot(di_noc, aes(x = Diurnal_Nocturnal_Corp, y = mean_n, fill = Station)) +
-  geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
-  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per segment") +
-  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, hjust = 1))  +
-  geom_errorbar(aes(ymin = mean_n - se_n, ymax = mean_n + se_n), position = spec_dodge, width = 0.2) + labs(fill = NULL)
-```
-
 ## Frog models
 
-One approach my need to be looking at the families that are driving the trend of increased frog presence in the hunted forest separately. Perhaps 1 or 2 families are responding to env variables, while others are not. 
+One approach my need to be looking at the families or genera that are driving the trend of increased frog presence in the hunted forest separately. Perhaps 1 or 2 families are responding to env variables, while others are not. 
 
-```{r null model, warning = FALSE}
+```{r frog models}
 
 # look at distribution - models are giving me issues
 hist(frog_gen_detections$n_500m)
@@ -834,158 +842,87 @@ hist(frog_gen_detections$n_500m)
 frog_gen_detections <- frog_gen_detections %>%
   na.omit()
 
+# remove morning and instances where env data are missing
+frog_detections <- frog_detections %>%
+  na.omit()
+
 # scale and center predictors
 frog_gen_detections$humidity_scaled <- scale(frog_gen_detections$mean_relative_humidity)
 frog_gen_detections$temp_scaled <- scale(frog_gen_detections$mean_temp_F)
 
-# null model
-# response variable: n frogs per 500
-# log normal distribution (zero inflated)
+# pull out year... may need to put this in the models
 
-frog.null1 <- glmmTMB(n_500m ~ 1 + (1|Segment), ziformula = ~1, data = frog_gen_detections, family = ziGamma)
-
-simulateResiduals(fittedModel = frog.null1, plot = T)
-
-# passes
-
-# Other models with continuous response variable that I attempted that didn't work:
-
-# null
-# n frogs per 500
-# tweedie distribution
-#frog.null2 <- glmmTMB(n_frogs_500m ~ 1 +(1|Parent_Trail_LongName), data = amph_lz_detections, family = tweedie())
-
-#sim <- simulateResiduals(fittedModel = frog.null2, plot = T)
-# fails
-
-# null
-# n frogs per 500
-# zero inflated Gamma distribution
-#frog.null3 <- glmmTMB(n_frogs_500m ~ 1 + (1|Parent_Trail_LongName), ziformula = ~1, data = amph_lz_detections, family = ziGamma(link="log"))
-
-#sim <- simulateResiduals(fittedModel = frog.null3, plot = T)
-# fails
-
-############ model with discrete data?
-
-## what about n frogs (discrete, not continuous) and accounting for variation in effort with an offset?
-# None of the following worked. 
-
-# poisson?
-#frog.null4 <- glmmTMB(n_frogs ~1 +(1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = poisson())
-
-#sim <- simulateResiduals(fittedModel = frog.null4, plot = T)
-# fails
-
-# negative binomial?
-#frog.null5 <- glmmTMB(n_frogs ~1 + Survey_Type+ (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = nbinom2())
-
-#sim <- simulateResiduals(fittedModel = frog.null5, plot = T)
-# still fails
-
-# zero inflated poisson?
-#frog.null6 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), ziformula = ~1, data = amph_lz_detections, family = poisson())
-
-#sim <- simulateResiduals(fittedModel = frog.null6, plot = T)
-# still fails
-
-# what about tweedie with count?
-#frog.null7 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = tweedie())
-
-#sim <- simulateResiduals(fittedModel = frog.null7, plot = T)
-# still fails
-
-# compois
-#frog.null8 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = compois)
-
-#sim <- simulateResiduals(fittedModel = frog.null8, plot = T)
-# still fails
-
-# genpois
-#frog.null9 <- glmmTMB(n_frogs ~1 + (1|Parent_Trail_LongName) + offset(log(Seg_dist_m)), data = amph_lz_detections, family = genpois())
-
-#sim <- simulateResiduals(fittedModel = frog.null9, plot = T)
-# still fails
+frog_detections$Year <- factor(format(frog_detections$Start_Date, "%Y"))
 ```
 
-```{r frog model comparison, warning = FALSE}
+### Family level analysis
+
+```{r frog family model comparison, warning = FALSE}
 
 # null
-frog.null <- glmmTMB(n_frogs_500m ~ 1 + (1|Segment), data = frogs, family = tweedie)
+frog.null <- glmmTMB(n ~ 1 + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
 simulateResiduals(fittedModel = frog.null, plot = T)
 
-# null2 (2s = zero inflated gamma versions of the models)
-frog.null2 <- glmmTMB(n_frogs_500m ~ 1 + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+# add year....
 
-simulateResiduals(fittedModel = frog.null2, plot = T)
+frog.yr <- glmmTMB(n ~ Year + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+simulateResiduals(fittedModel = frog.yr, plot = T)
 
-# survey type
-frog.survey <-glmmTMB(n_frogs_500m ~ Survey_Type + (1|Segment), data = frogs, family = tweedie)
+# yr + family
+frog.yr.fam <-glmmTMB(n ~ Year + Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-simulateResiduals(frog.survey, plot = TRUE)
-# fails
+simulateResiduals(frog.yr.fam, plot = TRUE)
+# close to passing but not quite
 
-# survey type 2
-frog.survey2 <-glmmTMB(n_frogs_500m ~ Survey_Type + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+# yr + family + station + fam x station
+frog.yr.famxst <-glmmTMB(n ~ Year + Family*Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-simulateResiduals(frog.survey2, plot = TRUE)
-# passes
+simulateResiduals(frog.yr.famxst, plot = TRUE)
 
-# station
-frog.station <-glmmTMB(n_frogs_500m ~ Station + (1|Segment), data = frogs, family = tweedie)
+# yr + family + station + fam x station + humidity
+frog.yr.famxst.hum <-glmmTMB(n ~ Year + Family*Station + humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# station 2
-frog.station2 <-glmmTMB(n_frogs_500m ~ Station + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+simulateResiduals(frog.yr.famxst.hum, plot = TRUE)
 
-simulateResiduals(frog.station2, plot = TRUE)
+# yr + family + station + fam x station + humidity + temperature
+frog.yr.famxst.hum.temp <-glmmTMB(n ~ Year + Family*Station + humidity_scaled + temp_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# station + survey type
-frog.survey.station <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + (1|Segment), data = frogs, family = tweedie)
+simulateResiduals(frog.yr.famxst.hum.temp, plot = TRUE)
 
-# station + survey type 2
-frog.survey.station2 <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+# compare
+frog_mod_names <- c("frog.null", "frog.yr", "frog.yr.famxst", "frog.yr.famxst.hum", "frog.yr.famxst.hum.temp")
 
-simulateResiduals(fittedModel = frog.survey.station2, plot = TRUE)
+aictab(cand.set = list(frog.null, frog.yr, frog.yr.famxst, frog.yr.famxst.hum, frog.yr.famxst.hum.temp), modnames = frog_mod_names)
 
-# Compare models so far
+# year doesn't actually help, so get rid of that
 
-# Tweedie versions
-frog_mod_names <- c("frog.null", "frog.survey", "frog.survey.station", "frog.station")
-aictab(cand.set = list(frog.null, frog.survey, frog.survey.station, frog.station), modnames = frog_mod_names)
-# station only is top model
+# family
+frog.fam <-glmmTMB(n ~ Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# compare the zero inflated gamma versions (the 2s)
-frog_mod_names2 <- c("frog.null2", "frog.survey2", "frog.survey.station2", "frog.station2")
+simulateResiduals(frog.fam, plot = TRUE)
+# close to passing but not quite
 
-aictab(cand.set = list(frog.null2, frog.survey2, frog.survey.station2, frog.station2), modnames = frog_mod_names2)
-# station only is top model
+# family + station + fam x station
+frog.famxst <-glmmTMB(n ~ Family*Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-##################
-# add env variables + station
-##################
+simulateResiduals(frog.famxst, plot = TRUE)
 
-# station + humidity
-frog.st.hum <- glmmTMB(n_frogs_500m ~ Station + humidity_scaled + (1|Segment), data = frogs, family = tweedie)
+# family + station + fam x station + humidity
+frog.famxst.hum <-glmmTMB(n ~ Family*Station + humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# station + humidity2 (zi gamma)
-frog.st.hum2 <- glmmTMB(n_frogs_500m ~ Humidity + (1|Segment), ziformula = ~1, data = frogs, family = ziGamma)
+simulateResiduals(frog.famxst.hum, plot = TRUE)
 
-simulateResiduals(fittedModel = frog.st.hum2, plot = TRUE)
+# family + station + fam x station + humidity + temperature
+frog.famxst.hum.temp <-glmmTMB(n ~ Family*Station + humidity_scaled + temp_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# survey type + station + temp
-frog.sur.temp.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + (1|Segment) ,  data = frogs, family = tweedie)
+simulateResiduals(frog.famxst.hum.temp, plot = TRUE)
 
-# survey type + station + temp + hum
-frog.sur.temp.hum.st <- glmmTMB(n_frogs_500m ~ Survey_Type + Station + temp_scaled + humidity_scaled + (1|Segment) ,  data = frogs, family = tweedie)
-summary(test)
-frog_mod_names <- c("frog.null", "frog.survey", "frog.station", "frog.survey.station", "frog.sur.hum.st", "frog.sur.temp.st", "frog.sur.temp.hum.st")
-aictab(cand.set = list(frog.null, frog.survey, frog.station, frog.survey.station, test, frog.sur.temp.st, frog.sur.temp.hum.st), modnames = frog_mod_names)
+# compare
+frog_mod_names <- c("frog.null", "frog.famxst", "frog.famxst.hum", "frog.famxst.hum.temp")
 
-# ok this makes sense- trust this model over log normal
-summary(frog.sur.hum.st)
+aictab(cand.set = list(frog.null, frog.famxst, frog.famxst.hum, frog.famxst.hum.temp), modnames = frog_mod_names)
 
-simulateResiduals(fittedModel = frog.sur.hum.st, plot = TRUE)
 ```
 
 # Lizards
@@ -1172,6 +1109,7 @@ plot(n_boid.colub.na.removed$mean_relative_humidity, n_boid.colub.na.removed$n_5
 
 hist(n_boid.colub.na.removed$n_500m)
 ```
+
 ```{r snake fam mods} 
 
 # null mod
@@ -1269,7 +1207,7 @@ p + facet_wrap(~taxa, scales = "free") + theme_pubclean() + theme(axis.text.x = 
   )
 
 
-ggsave(file="Figures/detections_panel_updatedAug2026_v2.png", width = 4,  height = 3)
+#ggsave(file="Figures/detections_panel_updatedAug2026_v2.png", width = 4,  height = 3)
 
 ```
 
