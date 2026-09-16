@@ -556,6 +556,30 @@ understory_summary_yr_survey_type <- understory_all %>%
 
 # Frogs
 
+## frog summary data
+
+```{r liz summaries}
+
+amph_lz_detections %>%
+  filter(Survey_Type != "Morning") %>%
+  group_by(Station, Survey_Type) %>%
+  reframe(mean_frogs_500m = mean(n_frogs_500m),
+         sd = sd(n_frogs_500m),
+           sample_size = n(),
+         n_found = sum(n_frogs)) %>%
+  mutate(se = sd / sqrt(sample_size))
+
+
+frogs.mean.se <- amph_lz_detections %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_frogs_500m),
+           sd = sd(n_frogs_500m),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+```
+
+
 ### Frog closer look
 
 What families and genera do we have the most of? What specifically is going on with the frogs? They are fucking impossible to model with the environmental data. 
