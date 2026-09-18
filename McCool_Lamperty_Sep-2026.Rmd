@@ -198,6 +198,11 @@ amph_lz <- amph_lz %>%
 amph_lz_counts <- amph_lz %>%
   group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Gross_ID) %>% tally()
 
+# repeat with lizard data, family level
+lz_counts <- amph_lz %>%
+  filter(Gross_ID == "Lizard") %>%
+  group_by(Station, Start_Date, Survey_Type, Parent_Trail_LongName, Segment, Seg_dist_m, Family) %>% tally()
+
 # repeat with the frog data, family level
 frog_counts <- frogs_df %>%
   group_by(Station, Start_Date, Survey_Type, Segment, Seg_dist_m, Family) %>% tally()
@@ -206,6 +211,8 @@ zeros<-anti_join(all_surv_records, amph_lz_counts, by = "Segment") # I think the
 
 zeros_frogs<-anti_join(all_surv_records, frog_counts, by = "Segment") 
 
+zeros_liz <- anti_join(all_surv_records, lz_counts, by = "Segment")
+
 amph_lz_wide <- amph_lz_counts %>%
   pivot_wider(
     names_from = c(Gross_ID), 
@@ -213,6 +220,12 @@ amph_lz_wide <- amph_lz_counts %>%
     values_fill = 0)
 
 frogs_wide <- frog_counts %>%
+  pivot_wider(
+    names_from = Family, 
+    values_from = n, 
+    values_fill = 0)
+
+lz_wide <- lz_counts %>%
   pivot_wider(
     names_from = Family, 
     values_from = n, 
@@ -227,6 +240,7 @@ zeros_frogs <- zeros_frogs %>%
 
 #bind it with the amph_lz_wide df so that it has the full record of all survey results, even zeros
 amph_lz_wide <- rbind(amph_lz_wide, zeros)
+lz_wide <- rbind(lz_wide, zeros)
 zeros_frogs$Start_Date <- ymd(zeros_frogs$Start_Date)
 
 frogs_wide <- rbind(frogs_wide, zeros_frogs)
@@ -235,6 +249,8 @@ frogs_wide <- rbind(frogs_wide, zeros_frogs)
 amph_lz_wide<- amph_lz_wide %>% mutate(across(c(Lizard, Frog, Salamander), ~replace_na(.x, 0)))
 
 frogs_wide<- frogs_wide %>% mutate(across(where(is.numeric), ~replace_na(.x, 0)))
+
+lz_wide<- lz_wide %>% mutate(across(where(is.numeric), ~replace_na(.x, 0)))
 
 # detection rates per 500 m - calculated based per segment (as opposed to being calculated across the entire survey, which I think can affect the mean values and the SD for sure)
 amph_lz_detections <- amph_lz_wide %>%
@@ -250,12 +266,21 @@ frog_detections <- frogs_wide %>%
                cols = Aromobatidae:Pipidae,
                values_to = "n", names_repair = "unique")
 
+lz_detections <- lz_wide %>%
+  select(Start_Date, Station, Survey_Type, Segment, Seg_dist_m, 
+         Teiidae:Sphaerodactylidae) %>%
+  pivot_longer(names_to = "Family",
+               cols = Teiidae:Sphaerodactylidae,
+               values_to = "n", names_repair = "unique")
+
 amph_lz_detections <- amph_lz_detections %>%
   mutate(n_frogs_500m = (n_frogs/Seg_dist_m)*500,
          n_sal_500m = 500*(n_sal/Seg_dist_m),
            n_liz_500m = 500*(n_liz/Seg_dist_m))
 
 frog_detections$n_500m <- (frog_detections$n/frog_detections$Seg_dist_m)*500
+
+lz_detections$n_500m <- (lz_detections$n/lz_detections$Seg_dist_m)*500
 
 ```
 
@@ -472,6 +497,11 @@ n_boid.colub <- left_join(n_boid.colub, temperature_means)
 frog_detections$Start_Date<-ymd(frog_detections$Start_Date)
 frog_detections <- left_join(frog_detections, humidity_means)
 frog_detections <- left_join(frog_detections, temperature_means)
+
+# and to lizards
+lz_detections$Start_Date<-ymd(lz_detections$Start_Date)
+lz_detections <- left_join(lz_detections, humidity_means)
+lz_detections <- left_join(lz_detections, temperature_means)
 ```
 
 ```{r summarize hum and temp and und}
@@ -559,6 +589,7 @@ frogs_per_surv <- amph_lz_detections %>%
 
 frogs_per_surv$n_500m <- (frogs_per_surv$Total_frogs/frogs_per_surv$Total_m)*500
 
+
 frogs.per.surv.mean.se <- frogs_per_surv %>%
   filter(Survey_Type != "Morning") %>%
   group_by(Station) %>%
@@ -576,10 +607,11 @@ frogs.per.surv.mean.se <- frogs_per_surv %>%
 ### Frogs
 
 ```{r frog per fam plot}
+
 # could also check our visuals of n frogs in each fam per 500m calculated based off cumulative meters surveyed per night/day survey to see if that makes a clearer story
 
 # visualization, SE 
-frog_fam_df <- frog_fam %>%
+frog_fam_df <- frog_detections %>%
   na.omit() %>%
   group_by(Station, Family) %>%
   reframe(mean_n_per_500m = mean(n_500m),
@@ -589,19 +621,14 @@ frog_fam_df <- frog_fam %>%
   mutate(se = sd / sqrt(sample_size))
 
 # A width of 0.9 matches the default behavior of geom_col
-spec_dodge <- position_dodge(width = 0.9)
+spec_dodge <- position_dodge(width = 0.5)
 
-# Maybe thin out to any cases where we found fewer than 12 individuals of a family?
+frog_plot <- ggplot(frog_fam_df, aes(x = Family, y = mean_n_per_500m, fill = Station)) +
+  geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)+
+  geom_point(position = spec_dodge, color = "black", shape = 21) + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") + theme_bw() +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 90)) 
 
-frog_fam_red <- frog_fam_df %>%
-  filter(total_frogs_found > 12)
-
-ggplot(frog_fam_red, aes(x = Family, y = mean_n_per_500m, fill = Station)) +
-  geom_col(position = spec_dodge, color = "black") + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
-  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +
-  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 90))  +
-  geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)
-
+frog_plot
 
 # Craugastoridae: Many species, specifically C. megacephalus, in this family have been found to be more abundant when peccaries are around (Reider et al 2013, Biol. Cons, "Effects of collared peccary (Pecari tajacu) exclusion on leaf litter amphibians and reptiles in Neotropical wet forest, Costa Rica") https://doi.org/10.1016/j.biocon.2012.12.015
 
@@ -615,23 +642,11 @@ We will have to use families in our models
 
 ```{r frog models}
 
-# look at distribution - models are giving me issues
-hist(frog_gen_detections$n_500m)
-
-# remove morning and instances where env data are missing
-frog_gen_detections <- frog_gen_detections %>%
-  na.omit()
-
 # remove morning and instances where env data are missing
 frog_detections <- frog_detections %>%
   na.omit()
 
-# scale and center predictors
-frog_gen_detections$humidity_scaled <- scale(frog_gen_detections$mean_relative_humidity)
-frog_gen_detections$temp_scaled <- scale(frog_gen_detections$mean_temp_F)
-
 # pull out year... may need to put this in the models
-
 frog_detections$Year <- factor(format(frog_detections$Start_Date, "%Y"))
 ```
 
@@ -642,134 +657,219 @@ frog_detections$Year <- factor(format(frog_detections$Start_Date, "%Y"))
 # null
 frog.null <- glmmTMB(n ~ 1 + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-simulateResiduals(fittedModel = frog.null, plot = T)
+summary(frog.null)
+# aic 3100.1
+
+#simulateResiduals(fittedModel = frog.null, plot = T)
+# passes
 
 # add year....
 
 frog.yr <- glmmTMB(n ~ Year + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-simulateResiduals(fittedModel = frog.yr, plot = T)
+#simulateResiduals(fittedModel = frog.yr, plot = T)
+# passes
 
-# yr + family
-frog.yr.fam <-glmmTMB(n ~ Year + Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+# year doesn't improve, so remove
 
-simulateResiduals(frog.yr.fam, plot = TRUE)
-# close to passing but not quite
+# station
+frog.station <-glmmTMB(n ~ Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+summary(frog.station)
+# improves fit (station is marginally insignificant at p = 0.05) AIC =   3098.5
 
-# yr + family + station + fam x station
-frog.yr.famxst <-glmmTMB(n ~ Year + Family*Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-
-simulateResiduals(frog.yr.famxst, plot = TRUE)
-
-# yr + family + station + fam x station + humidity
-frog.yr.famxst.hum <-glmmTMB(n ~ Year + Family*Station + humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-
-simulateResiduals(frog.yr.famxst.hum, plot = TRUE)
-
-# yr + family + station + fam x station + humidity + temperature
-frog.yr.famxst.hum.temp <-glmmTMB(n ~ Year + Family*Station + humidity_scaled + temp_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-
-simulateResiduals(frog.yr.famxst.hum.temp, plot = TRUE)
-
-# compare
-frog_mod_names <- c("frog.null", "frog.yr", "frog.yr.famxst", "frog.yr.famxst.hum", "frog.yr.famxst.hum.temp")
-
-aictab(cand.set = list(frog.null, frog.yr, frog.yr.famxst, frog.yr.famxst.hum, frog.yr.famxst.hum.temp), modnames = frog_mod_names)
-
-# year doesn't actually help, so get rid of that
+#simulateResiduals(frog.station, plot = TRUE)
+# passes
 
 # family
 frog.fam <-glmmTMB(n ~ Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-simulateResiduals(frog.fam, plot = TRUE)
-# close to passing but not quite
+# simulateResiduals(frog.fam, plot = TRUE)
+# passes
 
-# family + station + fam x station
-frog.famxst <-glmmTMB(n ~ Family*Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+summary(frog.fam)
+# aic 2523.1 
+# improvement from null for sure 
 
-simulateResiduals(frog.famxst, plot = TRUE)
+# family + station
+frog.fam.station <-glmmTMB(n ~ Family*Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# family + station + fam x station + humidity
-frog.famxst.hum <-glmmTMB(n ~ Family*Station + humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+summary(frog.fam.station)
+# simulateResiduals(frog.fam.station, plot = TRUE)
+# passes
+# AIC 2491.2 
+# improvement
 
-simulateResiduals(frog.famxst.hum, plot = TRUE)
+# add humidity
+frog.famXst.hum <-glmmTMB(n ~ Family*Station + humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# family + station + fam x station + humidity + temperature
-frog.famxst.hum.temp <-glmmTMB(n ~ Family*Station + humidity_scaled + temp_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+simulateResiduals(frog.famXst.hum, plot = TRUE)
+# doesn't pass
+summary(frog.famXst.hum)
 
-simulateResiduals(frog.famxst.hum.temp, plot = TRUE)
+# 2490.9 # makes it worse
+
+# add temperature
+frog.famXst.temp <-glmmTMB(n ~ Family*Station + temp_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+
+simulateResiduals(frog.famXst.temp, plot = TRUE)
 
 # compare
-frog_mod_names <- c("frog.null", "frog.famxst", "frog.famxst.hum", "frog.famxst.hum.temp")
+frog_mod_names <- c("frog.null", "frog.yr", "frog.station", "frog.fam", "frog.fam.station", "frog.famXst.hum", "frog.famXst.temp")
 
-aictab(cand.set = list(frog.null, frog.famxst, frog.famxst.hum, frog.famxst.hum.temp), modnames = frog_mod_names)
+aictab(cand.set = list(frog.null, frog.yr, frog.station, frog.fam, frog.fam.station, frog.famXst.hum, frog.famXst.temp), modnames = frog_mod_names)
 
+# top model is Family * Station and Humidity; would make sense that there is an interaction between humidity and family, so add that in too 
+
+frog.famXst.humxfam <-glmmTMB(n ~ Family*Station + Family*humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+
+summary(frog.famXst.humxfam)
+
+# compare
+frog_mod_names <- c("frog.null", "frog.yr", "frog.station", "frog.fam", "frog.fam.station", "frog.famXst.hum", "frog.famXst.temp", "frog.famXstxtemp")
+
+aictab(cand.set = list(frog.null, frog.yr, frog.station, frog.fam, frog.fam.station, frog.famXst.hum, frog.famXst.temp, frog.famXst.humxfam), modnames = frog_mod_names)
+
+# AIC 2477.0 
+# lowers AIC substantially
+
+# simplify output with Anova
+Anova(frog.famXst.humxfam)
+# report this
 ```
 
 # Lizards
 
-## lizard summary data
+## Lizard summary data
 
 ```{r liz summaries}
 
-amph_lz_detections %>%
-  filter(Survey_Type != "Morning") %>%
-  group_by(Station, Survey_Type) %>%
-  reframe(mean_liz_500m = mean(n_liz_500m),
-         sd = sd(n_liz_500m),
-           sample_size = n(),
-         n_found = sum(n_liz)) %>%
-  mutate(se = sd / sqrt(sample_size))
+# n per site total
+amph_lz %>%
+  filter(Gross_ID == "Lizard") %>%
+  group_by(Station) %>%
+  reframe(total = n())
 
-liz.mean.se <- amph_lz_detections %>%
+# n species per site total
+amph_lz %>%
+  filter(Gross_ID == "Lizard") %>%
+  group_by(Station) %>%
+  reframe(species = n_distinct(Common_Name))
+  
+# get a summary of n found per survey and per 500m
+lizards.mean.se <- amph_lz_detections %>%
   group_by(Station) %>%
   summarise(mean = mean(n_liz_500m),
            sd = sd(n_liz_500m),
            n = n()) %>%
   mutate(se = sd / sqrt(n))
 
+liz_per_surv.mean.se <- liz_per_surv %>%
+  filter(Survey_Type != "Morning") %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_500m),
+           sd = sd(n_500m),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
 ```
 
+
+```{r visualize}
+
+# visualization, SE 
+lz_fam_df <- lz_detections %>%
+  na.omit() %>%
+  group_by(Station, Family) %>%
+  reframe(mean_n_per_500m = mean(n_500m),
+         sd = sd(n_500m),
+           sample_size = n(),
+         total_lzs_found = sum(n)) %>%
+  mutate(se = sd / sqrt(sample_size))
+
+# Maybe thin out to any cases where we found fewer than 12 individuals of a family?
+
+lz_plot <- ggplot(lz_fam_df, aes(x = Family, y = mean_n_per_500m, fill = Station)) +
+  geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)+
+  geom_point(position = spec_dodge, color = "black", shape = 21) + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + 
+  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 90))
+
+lz_plot
+
+
+```
 ## lizard models
 
 ```{r lizard models}
+# pull out year... may need to put this in the models
+lz_detections$Year <- factor(format(lz_detections$Start_Date, "%Y"))
 
-# null mod
-liz.null <- glmmTMB(n_liz_500m ~ 1 + (1|Segment),  data = amph_lz_detections, family = tweedie())
+# null
+lz.null <- glmmTMB(n ~ 1 + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+summary(lz.null)
+# aic 876.4
 
-simulateResiduals(fittedModel = liz.null, plot = T)
-# passes
+simulateResiduals(fittedModel = lz.null, plot = T)
 
-# add survey type
-liz.survey <-glmmTMB(n_liz_500m ~ Survey_Type + (1|Segment),  data = amph_lz_detections, family = tweedie)
+# add year....
+
+lz.yr <- glmmTMB(n ~ Year + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+
+simulateResiduals(fittedModel = lz.yr, plot = T)
+summary(lz.yr)
+
+# year doesn't improve, so remove
 
 # station
-liz.station <- glmmTMB(n_liz_500m ~ Station + (1|Segment) ,  data = amph_lz_detections, family = tweedie)
+lz.station <-glmmTMB(n ~ Station + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
 
+summary(lz.station)
+
+# improves fit (station is marginally insignificant at p = 0.05) AIC =   878.3
+
+simulateResiduals(lz.station, plot = TRUE)
+
+# family
+lz.fam <-glmmTMB(n ~ Family + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+
+simulateResiduals(lz.fam, plot = TRUE)
+# passes
+
+summary(lz.fam)
+# AIC 732.2
+
+# family + station
+lz.fam.station <-glmmTMB(n ~ Family*Station + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+
+summary(lz.fam.station)
+# simulateResiduals(lz.fam.station, plot = TRUE)
+# passes
+# AIC 727.6 improves
+# improvement
+
+# add humidity
+lz.famXst.hum <-glmmTMB(n ~ Family*Station + humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+
+simulateResiduals(lz.famXst.hum, plot = TRUE)
+summary(lz.famXst.hum)
+
+# 684 huge improvement
+
+# add temperature
+lz.famXst.hum.temp <-glmmTMB(n ~ Family*Station + humidity_scaled + temp_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+
+simulateResiduals(lz.famXst.hum.temp, plot = TRUE)
+summary(lz.famXst.hum.temp) # 684
 
 # compare
-liz_mod_names <- c("liz.null", "liz.survey", "liz.station")
-aictab(cand.set = list(liz.null, liz.survey, liz.station), modnames = liz_mod_names)
+lz_mod_names <- c("lz.null", "lz.yr", "lz.station", "lz.fam", "lz.fam.station", "lz.famXst.hum", "lz.famXst.hum.temp")
 
-# station + humidity?
-liz.station.humidity <-glmmTMB(n_liz_500m ~ Station + humidity_scaled + (1|Segment),  data = amph_lz_detections, family = tweedie)
+aictab(cand.set = list(lz.null, lz.yr, lz.station, lz.fam, lz.fam.station, lz.famXst.hum, lz.famXst.hum.temp), modnames = lz_mod_names)
 
-# compare
-liz_mod_names <- c("liz.null", "liz.station", "liz.station.humidity")
-aictab(cand.set = list(liz.null, liz.station, liz.station.humidity), modnames = liz_mod_names)
-# humidity actually doesn't help things
+# top model is lz.famXst.hum.temp
 
-# what about temperature?
-
-# station + temp
-liz.station.temp  <-glmmTMB(n_liz_500m ~ Station + temp_scaled + (1|Segment) ,  data = amph_lz_detections, family = tweedie)
-
-# compare
-liz_mod_names <- c("liz.null", "liz.station", "liz.station.temp")
-aictab(cand.set = list(liz.null, liz.station, liz.station.temp), modnames = liz_mod_names)
-
-# temp and station best mod
-
-summary(liz.station.temp)
+# simplify output with Anova
+Anova(lz.famXst.hum.temp)
+# report this
 ```
 
 # Snakes
