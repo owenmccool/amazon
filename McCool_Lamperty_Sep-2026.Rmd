@@ -797,30 +797,32 @@ lz_plot
 
 
 ```
-## lizard models
+## Lizard models
 
 ```{r lizard models}
+
 # pull out year... may need to put this in the models
 lz_detections$Year <- factor(format(lz_detections$Start_Date, "%Y"))
 
 # null
-lz.null <- glmmTMB(n ~ 1 + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+lz.null <- glmmTMB(n_500m ~ 1 + (1|Segment), data = lz_detections, family = tweedie)
+
 summary(lz.null)
 # aic 876.4
 
 simulateResiduals(fittedModel = lz.null, plot = T)
 
-# add year....
-
-lz.yr <- glmmTMB(n ~ Year + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+# add year...
+lz.yr <- glmmTMB(n_500m ~ Year + (1|Segment), data = lz_detections, family = tweedie)
 
 simulateResiduals(fittedModel = lz.yr, plot = T)
+
 summary(lz.yr)
 
 # year doesn't improve, so remove
 
 # station
-lz.station <-glmmTMB(n ~ Station + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+lz.station <-glmmTMB(n_500m ~ Station + (1|Segment), data = lz_detections, family = tweedie)
 
 summary(lz.station)
 
@@ -829,7 +831,7 @@ summary(lz.station)
 simulateResiduals(lz.station, plot = TRUE)
 
 # family
-lz.fam <-glmmTMB(n ~ Family + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+lz.fam <-glmmTMB(n_500m ~ Family + (1|Segment), data = lz_detections, family = tweedie)
 
 simulateResiduals(lz.fam, plot = TRUE)
 # passes
@@ -838,26 +840,28 @@ summary(lz.fam)
 # AIC 732.2
 
 # family + station
-lz.fam.station <-glmmTMB(n ~ Family*Station + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+lz.fam.station <-glmmTMB(n_500m ~ Family*Station + (1|Segment), data = lz_detections, family = tweedie)
 
 summary(lz.fam.station)
-# simulateResiduals(lz.fam.station, plot = TRUE)
+
+simulateResiduals(lz.fam.station, plot = TRUE)
 # passes
 # AIC 727.6 improves
 # improvement
 
 # add humidity
-lz.famXst.hum <-glmmTMB(n ~ Family*Station + humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+lz.famXst.hum <-glmmTMB(n_500m ~ Family*Station + humidity_scaled + (1|Segment), data = lz_detections, family = tweedie)
 
 simulateResiduals(lz.famXst.hum, plot = TRUE)
 summary(lz.famXst.hum)
 
-# 684 huge improvement
+# AIC 684 huge improvement
 
 # add temperature
-lz.famXst.hum.temp <-glmmTMB(n ~ Family*Station + humidity_scaled + temp_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2())
+lz.famXst.hum.temp <-glmmTMB(n_500m ~ Family*Station + humidity_scaled + temp_scaled + (1|Segment), data = lz_detections, family = tweedie)
 
 simulateResiduals(lz.famXst.hum.temp, plot = TRUE)
+
 summary(lz.famXst.hum.temp) # 684
 
 # compare
@@ -868,8 +872,7 @@ aictab(cand.set = list(lz.null, lz.yr, lz.station, lz.fam, lz.fam.station, lz.fa
 # top model is lz.famXst.hum.temp
 
 # simplify output with Anova
-Anova(lz.famXst.hum.temp)
-# report this
+Anova(lz.famXst.hum)
 ```
 
 # Snakes
@@ -903,6 +906,7 @@ snakes.mean.se <- n_snakes_per_3guilds %>%
 ## guilds snake models
 
 ```{r snake mods}
+
 n_snakes_per_3guilds.na.removed <- n_snakes_per_3guilds %>%
   na.omit()
 
@@ -929,6 +933,7 @@ sim <- simulateResiduals(fittedModel = guildXstation.temp, plot = T)
 
 # compare
 snake_mod_names <- c("null", "guildXstation", "guildXstation.temp")
+
 aictab(cand.set = list(null, guildXstation, guildXstation.temp), modnames = snake_mod_names)
 
 # temp does not make model better
@@ -1095,8 +1100,8 @@ ggplot(smams.distance.mean.se, aes(x = Station, y = mean, fill = Station)) + geo
 
 # NOTE there was one survey in 2025 where the humidity readings appear to be outliers.There's a fuckton of humidity data and I am not worried about removing the outliers, so doing that here:
 
-amph_lz_detections_plotting_df <- amph_lz_detections %>%
-  filter(!mean_relative_humidity < 75 )
+#amph_lz_detections_plotting_df <- amph_lz_detections %>%
+ # filter(!mean_relative_humidity < 75 )
 
 ggplot(amph_lz_detections_plotting_df, aes(x = mean_temp_F, y = n_frogs_500m, color = Station)) + geom_point() + ylab("Frogs detected per 500m") + theme(axis.title = element_text(size = 12, color = "black"), axis.text = element_text(size = 14, color = "black")) + theme_bw() + geom_smooth(method = "glm", colour = "black") + labs(x = "Mean temp per survey(F)")
 ```
