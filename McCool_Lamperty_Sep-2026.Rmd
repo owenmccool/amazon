@@ -358,6 +358,10 @@ humidity_long$Start_Date <- mdy(humidity_long$Date)
 
 humidity_long <- humidity_long %>%
   select(-Date)
+# there are 3 humidity readings that are very low (<70) and are all the 1 (or 2nd) reading of the night - this could be error, and our sampling intensity is robust enough for us to not worry about influencing results by removing these outliers. 
+
+humidity_long <- humidity_long %>%
+  filter(Humidity > 70)
 
 # repeat with temp
 temp_long <- env_2025 %>%
@@ -454,6 +458,7 @@ understory_all <-rbind(understory_long, understory_long_2024)
 
 # get means
 humidity_means <- humidity_all %>%
+  filter(Humidity > 73) %>% # two afternoon survey outliers
   group_by(Station, Start_Date, Survey_Type) %>%
   summarize(mean_relative_humidity = mean(Humidity))
 
@@ -623,7 +628,7 @@ frog_fam_df <- frog_detections %>%
 # A width of 0.9 matches the default behavior of geom_col
 spec_dodge <- position_dodge(width = 0.5)
 
-frog_plot <- ggplot(frog_fam_df, aes(x = Family, y = mean_n_per_500m, fill = Station)) +
+frog_plot <- ggplot(frog_fam_df, aes(x = reorder(Family, -mean_n_per_500m), y = mean_n_per_500m, fill = Station)) +
   geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2) + labs(fill = NULL)+
   geom_point(position = spec_dodge, color = "black", shape = 21) + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") + theme_bw() +
   theme(axis.text.x = element_text(color = "black", face = "plain", angle = 90)) 
@@ -633,7 +638,7 @@ frog_plot
 # Craugastoridae: Many species, specifically C. megacephalus, in this family have been found to be more abundant when peccaries are around (Reider et al 2013, Biol. Cons, "Effects of collared peccary (Pecari tajacu) exclusion on leaf litter amphibians and reptiles in Neotropical wet forest, Costa Rica") https://doi.org/10.1016/j.biocon.2012.12.015
 
 # Craugastoridae - no tadpole stage, litter dwelling (Oreobates shows strong trend)
-
+rm(frog_fam_df)
 ```
 
 ## Frog models
@@ -657,83 +662,74 @@ frog_detections$Year <- factor(format(frog_detections$Start_Date, "%Y"))
 # null
 frog.null <- glmmTMB(n ~ 1 + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-summary(frog.null)
-# aic 3100.1
+frog.hunt <- glmmTMB(n ~ Station + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-#simulateResiduals(fittedModel = frog.null, plot = T)
-# passes
+frog.hunt.yr <- glmmTMB(n ~ Station + Year + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# add year....
+# humidity 
+frog.hunt.hum <- glmmTMB(n ~ Station + humidity_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-frog.yr <- glmmTMB(n ~ Year + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-#simulateResiduals(fittedModel = frog.yr, plot = T)
-# passes
+# temperature
+frog.hunt.hum.temp <- glmmTMB(n ~ Station + humidity_scaled + temp_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# year doesn't improve, so remove
+# add family
+frog.hum.hunt.fam <-glmmTMB(n ~ humidity_scaled + Station + Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# station
-frog.station <-glmmTMB(n ~ Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-summary(frog.station)
-# improves fit (station is marginally insignificant at p = 0.05) AIC =   3098.5
+# Investigate interaction between Family and humidity
+frog.hum.hunt.famXhum <-glmmTMB(n ~ humidity_scaled*Family + Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-#simulateResiduals(frog.station, plot = TRUE)
-# passes
+# What about interaction between Family and hunting status instead?
+frog.hum.hunt.famXhunt <-glmmTMB(n ~ humidity_scaled + Station*Family + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# family
-frog.fam <-glmmTMB(n ~ Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+# What about removing humidity, looking only at the Station*Family interaction?
+frog.hunt.famXhunt <-glmmTMB(n ~ Station*Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# simulateResiduals(frog.fam, plot = TRUE)
-# passes
+# what about both interactions?
+frog.hunt.famXhunt.famXhum <-glmmTMB(n ~ Station*Family + Family:humidity_scaled+ (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-summary(frog.fam)
-# aic 2523.1 
-# improvement from null for sure 
-
-# family + station
-frog.fam.station <-glmmTMB(n ~ Family*Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-
-summary(frog.fam.station)
-# simulateResiduals(frog.fam.station, plot = TRUE)
-# passes
-# AIC 2491.2 
-# improvement
-
-# add humidity
-frog.famXst.hum <-glmmTMB(n ~ Family*Station + humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-
-simulateResiduals(frog.famXst.hum, plot = TRUE)
-# doesn't pass
-summary(frog.famXst.hum)
-
-# 2490.9 # makes it worse
-
-# add temperature
-frog.famXst.temp <-glmmTMB(n ~ Family*Station + temp_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
-
-simulateResiduals(frog.famXst.temp, plot = TRUE)
+# what about humidity*family, no hunting status?
+frog.hum.famXhum <-glmmTMB(n ~ Family*humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
 # compare
-frog_mod_names <- c("frog.null", "frog.yr", "frog.station", "frog.fam", "frog.fam.station", "frog.famXst.hum", "frog.famXst.temp")
+frog_mod_names <- c("frog.null", "frog.hunt", "frog.hunt.yr", "frog.hunt.hum", "frog.hunt.hum.temp", "frog.hum.hunt.fam", "frog.hum.hunt.famXhum", "frog.hum.hunt.famXhunt", "frog.hunt.famXhunt", "frog.hunt.famXhunt.famXhum", "frog.hum.famXhum")
 
-aictab(cand.set = list(frog.null, frog.yr, frog.station, frog.fam, frog.fam.station, frog.famXst.hum, frog.famXst.temp), modnames = frog_mod_names)
+aictab(cand.set = list(frog.null, frog.hunt, frog.hunt.yr, frog.hunt.hum, frog.hunt.hum.temp, frog.hum.hunt.fam, frog.hum.hunt.famXhum, frog.hum.hunt.famXhunt, frog.hunt.famXhunt, frog.hunt.famXhunt.famXhum, frog.hum.famXhum), modnames = frog_mod_names)
 
-# top model is Family * Station and Humidity; would make sense that there is an interaction between humidity and family, so add that in too 
+# top model by a lot is frog.hunt.famXhunt.famXhum
+summary(frog.hunt.famXhunt.famXhum)
 
-frog.famXst.humxfam <-glmmTMB(n ~ Family*Station + Family*humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+Anova(frog.hunt.famXhunt.famXhum)
 
-summary(frog.famXst.humxfam)
+```
 
-# compare
-frog_mod_names <- c("frog.null", "frog.yr", "frog.station", "frog.fam", "frog.fam.station", "frog.famXst.hum", "frog.famXst.temp", "frog.famXstxtemp")
+```{r visualize frog interaction terms}
 
-aictab(cand.set = list(frog.null, frog.yr, frog.station, frog.fam, frog.fam.station, frog.famXst.hum, frog.famXst.temp, frog.famXst.humxfam), modnames = frog_mod_names)
+frog_humidity_scatterplot <- frog_detections %>%
+ggplot(aes(x = mean_relative_humidity, y = n_500m, fill = Family)) + geom_point(color = "black", shape = 21, alpha = 0.75, position = "jitter") + geom_smooth(method = "glm", color = "black", linewidth = 0.5) + theme_bw()+ylab("# frogs/500m") + xlab("% relative humidity") + facet_wrap(~Family, scales = "free")
 
-# AIC 2477.0 
-# lowers AIC substantially
+frog_humidity_scatterplot
+```
 
-# simplify output with Anova
-Anova(frog.famXst.humxfam)
-# report this
+
+```{r frog families between sites}
+
+# overall
+frogs.mean.se <- frog_detections %>%
+  group_by(Family, Station) %>%
+  summarise(mean = mean(n_500m),
+           sd = sd(n_500m),
+           n_samps = n()) %>%
+  mutate(se = sd / sqrt(n_samps))
+
+spec_dodge <- position_dodge(width = 0.3)
+
+frog_plot <- ggplot(frogs.mean.se, aes(x = reorder(Family, -mean), y = mean, fill = Station)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), position = spec_dodge, width = 0.2) +
+  geom_point(position = spec_dodge, color = "black", shape = 21) + scale_fill_manual(values = c("cyan3", "chocolate"), labels = c("Unhunted", "Hunted")) + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") + theme_bw() +
+  theme(axis.text.x = element_text(color = "black", face = "plain", angle = 90))
+
+frog_plot
+
 ```
 
 # Lizards
@@ -762,13 +758,6 @@ lizards.mean.se <- amph_lz_detections %>%
            n = n()) %>%
   mutate(se = sd / sqrt(n))
 
-liz_per_surv.mean.se <- liz_per_surv %>%
-  filter(Survey_Type != "Morning") %>%
-  group_by(Station) %>%
-  summarise(mean = mean(n_500m),
-           sd = sd(n_500m),
-           n = n()) %>%
-  mutate(se = sd / sqrt(n))
 
 ```
 
@@ -797,6 +786,7 @@ lz_plot
 
 
 ```
+
 ## Lizard models
 
 ```{r lizard models}
@@ -805,74 +795,61 @@ lz_plot
 lz_detections$Year <- factor(format(lz_detections$Start_Date, "%Y"))
 
 # null
-lz.null <- glmmTMB(n_500m ~ 1 + (1|Segment), data = lz_detections, family = tweedie)
+lz.null <- glmmTMB(n ~ 1 + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2)
+# summary(lz.null)
+# AIC 876.4
+# simulateResiduals(fittedModel = lz.null, plot = T)
 
-summary(lz.null)
-# aic 876.4
-
-simulateResiduals(fittedModel = lz.null, plot = T)
-
-# add year...
-lz.yr <- glmmTMB(n_500m ~ Year + (1|Segment), data = lz_detections, family = tweedie)
-
-simulateResiduals(fittedModel = lz.yr, plot = T)
-
-summary(lz.yr)
+# Add year...
+lz.yr <- glmmTMB(n ~ Year + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2)
+# AIC 878.3 (worse)
+# simulateResiduals(fittedModel = lz.yr, plot = T)
+# summary(lz.yr)
 
 # year doesn't improve, so remove
 
-# station
-lz.station <-glmmTMB(n_500m ~ Station + (1|Segment), data = lz_detections, family = tweedie)
+# Hunting status (station)
+lz.st <-glmmTMB(n ~ Station + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2)
+# AIC 878.3 (weirdly same as Year)
+# summary(lz.st)
+# simulateResiduals(lz.st, plot = TRUE)
 
-summary(lz.station)
+# Family
+lz.fam <-glmmTMB(n ~ Family + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2)
 
-# improves fit (station is marginally insignificant at p = 0.05) AIC =   878.3
-
-simulateResiduals(lz.station, plot = TRUE)
-
-# family
-lz.fam <-glmmTMB(n_500m ~ Family + (1|Segment), data = lz_detections, family = tweedie)
-
-simulateResiduals(lz.fam, plot = TRUE)
+# simulateResiduals(lz.fam, plot = TRUE)
 # passes
-
-summary(lz.fam)
-# AIC 732.2
-
-# family + station
-lz.fam.station <-glmmTMB(n_500m ~ Family*Station + (1|Segment), data = lz_detections, family = tweedie)
-
-summary(lz.fam.station)
-
-simulateResiduals(lz.fam.station, plot = TRUE)
-# passes
-# AIC 727.6 improves
-# improvement
+# summary(lz.fam)
+# AIC 732.2 (improves, not surprising)
 
 # add humidity
-lz.famXst.hum <-glmmTMB(n_500m ~ Family*Station + humidity_scaled + (1|Segment), data = lz_detections, family = tweedie)
+lz.famXst.hum <-glmmTMB(n ~ Family + Family:Station + humidity_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2)
 
 simulateResiduals(lz.famXst.hum, plot = TRUE)
 summary(lz.famXst.hum)
 
-# AIC 684 huge improvement
+# AIC 684.8 huge improvement
 
-# add temperature
-lz.famXst.hum.temp <-glmmTMB(n_500m ~ Family*Station + humidity_scaled + temp_scaled + (1|Segment), data = lz_detections, family = tweedie)
+# Add temperature
+lz.famXst.hum.temp <-glmmTMB(n ~ Family + Family:Station + humidity_scaled + temp_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2)
 
 simulateResiduals(lz.famXst.hum.temp, plot = TRUE)
+summary(lz.famXst.hum.temp) # AIC 684.6 - insig improvement
+# family and family x station
+lz.fam.station <-glmmTMB(n ~ Family + Family:Station + (1|Segment)+ offset(log(Seg_dist_m)), data = lz_detections, family = nbinom2)
 
-summary(lz.famXst.hum.temp) # 684
+summary(lz.fam.station)
+# AIC 727.6 improves, significant hunting status x family interaction 
 
+# simulateResiduals(lz.fam.station, plot = TRUE)
+# passes
 # compare
 lz_mod_names <- c("lz.null", "lz.yr", "lz.station", "lz.fam", "lz.fam.station", "lz.famXst.hum", "lz.famXst.hum.temp")
 
 aictab(cand.set = list(lz.null, lz.yr, lz.station, lz.fam, lz.fam.station, lz.famXst.hum, lz.famXst.hum.temp), modnames = lz_mod_names)
 
-# top model is lz.famXst.hum.temp
+Anova(lz.famXst.hum.temp)
 
-# simplify output with Anova
-Anova(lz.famXst.hum)
 ```
 
 # Snakes
