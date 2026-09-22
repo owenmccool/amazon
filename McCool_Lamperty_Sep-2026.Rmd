@@ -1085,7 +1085,7 @@ p + facet_wrap(~taxa, scales = "free") + theme_pubclean() + theme(axis.text.x = 
   theme(
     axis.text = element_text(color = "black", size = 14)
   )
-
+ggplot(smams.distance.mean.se, aes(x = Station, y = mean, fill = Station)) + geom_point()
 
 #ggsave(file="Figures/detections_panel_updatedAug2026_v2.png", width = 4,  height = 3)
 

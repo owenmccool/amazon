@@ -558,7 +558,7 @@ understory_summary_yr_survey_type <- understory_all %>%
 
 ## frog summary data
 
-```{r liz summaries}
+```{r frog summaries}
 
 amph_lz_detections %>%
   filter(Survey_Type != "Morning") %>%
