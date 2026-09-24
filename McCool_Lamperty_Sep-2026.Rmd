@@ -139,6 +139,8 @@ summary(smam.mod1) # great, can report this
 
 testDispersion(smam.mod1, plot = F)
 testZeroInflation(smam.mod1, plot = F)
+
+Anova(smam.mod1)
 rm(sim, smam.mod1)
 ```
 
@@ -664,39 +666,61 @@ frog.null <- glmmTMB(n ~ 1 + (1|Segment) + offset(log(Seg_dist_m)), data = frog_
 
 frog.hunt <- glmmTMB(n ~ Station + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-frog.hunt.yr <- glmmTMB(n ~ Station + Year + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+summary(frog.hunt)
 
-# humidity 
+simulateResiduals(fittedModel = frog.hunt, plot = T)
+
+testDispersion(frog.hunt, plot = F)
+testZeroInflation(frog.hunt, plot = F)
+
+# year
+frog.hunt.yr <- glmmTMB(n ~ Station + Year + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+# year doesn't matter
+
+# humidity
 frog.hunt.hum <- glmmTMB(n ~ Station + humidity_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+
+summary(frog.hunt.hum) # 3083.2 not sig fixed effect
 
 # temperature
 frog.hunt.hum.temp <- glmmTMB(n ~ Station + humidity_scaled + temp_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
+summary(frog.hunt.hum.temp)
+# not sig, worse AIC
+
+# hunting status is sig, better than null
+# humidity doesn't make a difference
+# year doesn't make a difference
+# temperature decreases model fit considerably
+
 # add family
-frog.hum.hunt.fam <-glmmTMB(n ~ humidity_scaled + Station + Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+frog.hum.hunt.fam <-glmmTMB(n ~ Station + Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+
+summary(frog.hum.hunt.fam) # AIC 2500.6  big improvement
 
 # Investigate interaction between Family and humidity
 frog.hum.hunt.famXhum <-glmmTMB(n ~ humidity_scaled*Family + Station + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
 
-# What about interaction between Family and hunting status instead?
-frog.hum.hunt.famXhunt <-glmmTMB(n ~ humidity_scaled + Station*Family + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+summary(frog.hum.hunt.famXhum) # better, AIC 2486.8
 
-# What about removing humidity, looking only at the Station*Family interaction?
-frog.hunt.famXhunt <-glmmTMB(n ~ Station*Family + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+# What about interaction between Family and hunting status instead?
+frog.hum.hunt.famXhunt <-glmmTMB(n ~ Station*Family + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+
+summary(frog.hum.hunt.famXhunt) #better, AIC 2469.0 
 
 # what about both interactions?
-frog.hunt.famXhunt.famXhum <-glmmTMB(n ~ Station*Family + Family:humidity_scaled+ (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+frog.hunt.famXhunt.famXhum <-glmmTMB(n ~ Station*Family + Family:humidity_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+
+summary(frog.hunt.famXhunt.famXhum) #2466.4 best
 
 # what about humidity*family, no hunting status?
 frog.hum.famXhum <-glmmTMB(n ~ Family*humidity_scaled + (1|Segment)+ offset(log(Seg_dist_m)), data = frog_detections, family = nbinom2())
+summary(frog.hum.famXhum) # nope
 
-# compare
-frog_mod_names <- c("frog.null", "frog.hunt", "frog.hunt.yr", "frog.hunt.hum", "frog.hunt.hum.temp", "frog.hum.hunt.fam", "frog.hum.hunt.famXhum", "frog.hum.hunt.famXhunt", "frog.hunt.famXhunt", "frog.hunt.famXhunt.famXhum", "frog.hum.famXhum")
+# compare (won't run bc I need to fix names, commenting out for now bc lazy)
+#frog_mod_names <- c("frog.null", "frog.hunt", "frog.hunt.yr", "frog.hunt.hum", "frog.hunt.hum.temp", "frog.hum.hunt.fam", "frog.hum.hunt.famXhum", "frog.hum.hunt.famXhunt", "frog.hunt.famXhunt", "frog.hunt.famXhunt.famXhum", "frog.hum.famXhum")
 
-aictab(cand.set = list(frog.null, frog.hunt, frog.hunt.yr, frog.hunt.hum, frog.hunt.hum.temp, frog.hum.hunt.fam, frog.hum.hunt.famXhum, frog.hum.hunt.famXhunt, frog.hunt.famXhunt, frog.hunt.famXhunt.famXhum, frog.hum.famXhum), modnames = frog_mod_names)
-
-# top model by a lot is frog.hunt.famXhunt.famXhum
-summary(frog.hunt.famXhunt.famXhum)
+#aictab(cand.set = list(frog.null, frog.hunt, frog.hunt.yr, frog.hunt.hum, frog.hunt.hum.temp, frog.hum.hunt.fam, frog.hum.hunt.famXhum, frog.hum.hunt.famXhunt, frog.hunt.famXhunt, frog.hunt.famXhunt.famXhum, frog.hum.famXhum), modnames = frog_mod_names)
 
 Anova(frog.hunt.famXhunt.famXhum)
 
