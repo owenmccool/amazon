@@ -24,8 +24,39 @@ library(glmmTMB)
 library(unmarked) #density estimates with hierarchical distance sampling models
 library(tidyr)
 library(AICcmodavg) # has convenient functions for comparing models based on AIC
+library(ggpubr)
+```
+
+```{r gof function}
+
+# using this resource: https://www.montana.edu/screel/teaching/bioe-440r-521/bioe-440-distance-sampling.html
+
+# Goodness of fit test: good fit if results of these tests show p > 0.05. First, fit a model: use your best-supported model (Lowest AIC). Then check GOF for that model.
+
+# Function returning three fit-statistics.
+
+fitstats <- function(fm) {
+
+  observed <- getY(fm@data)
+
+  expected <- fitted(fm)
+
+  resids <- residuals(fm)
+
+  sse <- sum(resids^2)
+
+  chisq <- sum((observed - expected)^2 / expected)
+
+  freeTuke <- sum((sqrt(observed) - sqrt(expected))^2)
+
+  out <- c(SSE=sse, Chisq=chisq, freemanTukey=freeTuke)
+
+  return(out)
+
+}
 
 ```
+
 
 # Read in and prep data
 
@@ -66,312 +97,195 @@ snakes.sur <- read.csv("Data/snake_surveys_cleaned_aug2026.csv")
 
 ```
 
-# Prep env data
-
-```{r prep env and join to obs dfs}
-
-humidity_long <- env_2025 %>%
-  filter(Survey_Type == "Night") %>%
-  select(Date, Station, 
-         Humidity_1:Humidity_8, Humidity_Final) %>%
-  pivot_longer(names_to = "Measurement",
-               cols = Humidity_1:Humidity_Final,
-               values_to = "Humidity", names_repair = "unique")
-# remove NAs
-humidity_long <- humidity_long %>%
-  na.omit()
-
-# fix date
-humidity_long$Start_Date <- mdy(humidity_long$Date)
-
-humidity_long <- humidity_long %>%
-  select(-Date)
-# there are 3 humidity readings that are very low (<70) and are all the 1 (or 2nd) reading of the night - this could be error, and our sampling intensity is robust enough for us to not worry about influencing results by removing these outliers. 
-
-humidity_long <- humidity_long %>%
-  filter(Humidity > 70)
-
-# repeat with temp
-temp_long <- env_2025 %>%
-  filter(Survey_Type == "Night") %>%
-  select(Date, Station, 
-         Temperature_1:Temperature_8, Temperature_Final) %>%
-  pivot_longer(names_to = "Measurement",
-               cols = Temperature_1:Temperature_Final,
-               values_to = "Temperature", names_repair = "unique")
-
-# remove NAs
-temp_long <- temp_long %>%
-  na.omit()
-
-# date
-temp_long$Start_Date <- mdy(temp_long$Date)
-temp_long <- temp_long %>%
-  select(-Date)
-
-
-# 2024 data
-
-# pull out 2024 year only
-env_24_25_nights$Start_Date <- ymd(env_24_25_nights$Start_Date)
-env_24_25_nights$Year<- factor(format(env_24_25_nights$Start_Date, "%Y"))
-  
-env_2024 <- env_24_25_nights %>%
-  filter(Year == "2024")
-
-# humidity - 2024 - pivot
-
-# simplify
-env_2024 <- env_2024 %>%
-  select(-Effort_hrs, -Notes, -Number_of_Small_Mammals_Spotted, -Number_of_Water_Bodies_Spotted, -Surveyors, -Searching_Time, -Meters, -Order, -Survey_Start_Time, -Survey_End_Time)
-
-humidity_long_2024 <- env_2024 %>%
-  select(Start_Date, Station,
-         Humidity_1:Humidity_8, Humidity_Final) %>%
-  pivot_longer(names_to = "Measurement",
-               cols = Humidity_1:Humidity_Final,
-               values_to = "Humidity", names_repair = "unique")
-# remove NAs
-
-humidity_long_2024 <- humidity_long_2024 %>%
-  na.omit()
-
-# repeat with temp
-temperature_long_2024 <- env_2024 %>%
-  select(Start_Date, Station,
-         Temperature_1:Temperature_8, Temperature_Final) %>%
-  pivot_longer(names_to = "Measurement",
-               cols = Temperature_1:Temperature_Final,
-               values_to = "Temperature", names_repair = "unique")
-# remove NAs
-
-temperature_long_2024 <- temperature_long_2024 %>%
-  na.omit()
-
-# join
-humidity_all <- rbind(humidity_long, humidity_long_2024)
-temperature_all <- rbind(temp_long, temperature_long_2024)
-
-# get means
-humidity_means <- humidity_all %>%
-  group_by(Station, Start_Date) %>%
-  reframe(mean_relative_humidity = mean(Humidity))
-
-temperature_means <- temperature_all %>%
-  group_by(Station, Start_Date) %>%
-  reframe(mean_temp_F = mean(Temperature))
-
-# center and scale
-humidity_means$humidity_scaled <-scale(humidity_means$mean_relative_humidity)
-
-temperature_means$temp_scaled <-scale(temperature_means$mean_temp_F)
-
-# understory not included in models so not bothering with it here
-
-# clean 
-rm(humidity_all, humidity_long, humidity_long_2024, temp_long, temperature_all, temperature_long_2024, env_2024, env_2025, env_24_25_nights)
-
-```
-
 # Prep snake data
 
-```{r add bins}
+```{r prep snake data}
+snakes.sur$Distance_From_Trail_m <- as.numeric(snakes.sur$Distance_From_Trail_m)
 
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_mammal_eaters = ifelse(Distance_From_Trail_m <= 0.75, "0_0.75", NA))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_mammal_eaters = ifelse(Distance_From_Trail_m > 0.75 & Distance_From_Trail_m <= 1.75, "0.75_1.75", Dist_bin_mammal_eaters))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_mammal_eaters = ifelse(Distance_From_Trail_m > 1.75 & Distance_From_Trail_m <= 2.5, "1.75_2.5", Dist_bin_mammal_eaters))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_mammal_eaters = ifelse(Distance_From_Trail_m > 2.5 & Distance_From_Trail_m <= 3.5, "2.5_3.5", Dist_bin_mammal_eaters))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_mammal_eaters = ifelse(Distance_From_Trail_m > 3.5 & Distance_From_Trail_m <= 5, "3.5_5", Dist_bin_mammal_eaters))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_mammal_eaters = ifelse(Distance_From_Trail_m > 5, "5_8", Dist_bin_mammal_eaters))
-
-# v 2 for non_mammal_eaters
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_no_mams = ifelse(Distance_From_Trail_m <= 1.25, "0_1.25", NA))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_no_mams = ifelse(Distance_From_Trail_m > 1.25 & Distance_From_Trail_m <= 2.5, "1.25_2.5", Dist_bin_no_mams))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_no_mams = ifelse(Distance_From_Trail_m > 2.5 & Distance_From_Trail_m <= 3.5, "2.5_3.5", Dist_bin_no_mams))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_no_mams = ifelse(Distance_From_Trail_m > 3.5 & Distance_From_Trail_m <= 4.5, "3.5_4.5", Dist_bin_no_mams))
-
-snakes.sur <- snakes.sur %>%
-  mutate(Dist_bin_no_mams = ifelse(Distance_From_Trail_m > 4.5 & Distance_From_Trail_m <= 6, "4.5_6", Dist_bin_no_mams))
-
-```
-
-```{r prep snake data 2 diet types}
-
-# make one data frame of only the snake records (remove NAs where no snakes were found) 
-surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID))
-
-# likewise, make one df of only cases where no snakes were found and keep relevant columns with it
+# make one df of only cases where no snakes were found and keep relevant columns with it
 surveys_without_snakes <- snakes.sur %>% filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Station, Segment, Seg_dist_m, Dist_bin_no_mams, Dist_bin_mammal_eaters)
+  select(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m)
 
-# get counts of n snakes found per diet type per segment per survey
-n_snakes_per_guild <- surveys_with_snakes %>%
-  group_by(Start_Date, Station, Diet_Type, Segment, Seg_dist_m, Dist_bin_no_mams, Dist_bin_mammal_eaters) %>%
+# tally up mammal eaters
+n_mamm_eaters <- snakes.sur %>%
+  filter(Diet_Type == "consumes_mammals") %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m) %>%
   reframe(n_snakes = n()) 
 
-# account for cases when no snakes for a given guild were found on a segment
-# this is step 1 of accounting for cases where a snake in a given guild wasn't found on a segment and needs to be noted with a zero
-n_snakes_per_guild <- n_snakes_per_guild %>% 
-  complete(Diet_Type, nesting(Start_Date, Segment, Station, Seg_dist_m, Dist_bin_no_mams, Dist_bin_mammal_eaters), fill = list(n_snakes = 0))
+# tally up non mammal eaters
+n_non_mamm_eaters <- snakes.sur %>%
+  filter(Diet_Type == "no_mammals") %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m) %>%
+  reframe(n_snakes = n()) 
 
-# add in the instances where no snakes were found for a given survey
-n_snakes_per_guild <- bind_rows(n_snakes_per_guild, surveys_without_snakes)
+# tally up Boidae
+n_boids <- snakes.sur %>%
+  filter(Family == "Boidae") %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m) %>%
+  reframe(n_snakes = n()) 
 
-# and repeat the process of making sure we have a numerical record (including 0s if none were found) for each diet type for each segment
-n_snakes_per_guild <-n_snakes_per_guild %>% 
-  complete(Diet_Type, nesting(Start_Date, Segment, Station, Seg_dist_m, Dist_bin_no_mams, Dist_bin_mammal_eaters), fill = list(n_snakes = 0))
+# tally up Colubridae
+n_colubrids <- snakes.sur %>%
+  filter(Family == "Colubridae") %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m) %>%
+  reframe(n_snakes = n()) 
 
-n_snakes_per_guild <- n_snakes_per_guild %>% na.omit
+surveys_without_snakes$n_snakes <- 0
 
+# add zeros
+n_mamm_eaters <- rbind(surveys_without_snakes, n_mamm_eaters)
+
+n_non_mamm_eaters <- rbind(surveys_without_snakes, n_non_mamm_eaters)
+
+n_boids <- rbind(surveys_without_snakes, n_boids)
+n_colubrids <- rbind(surveys_without_snakes, n_colubrids)
+
+# detection matrices with bins
+mamm_eaters_DistDat <- formatDistData(n_mamm_eaters, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1,2,4,6,12))
+
+# repeat for non mamm eaters
+non_mamm_eaters_DistDat <- formatDistData(n_non_mamm_eaters, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1.5,2.5,4,6))
+
+# boids
+boids_DistDat <- formatDistData(n_boids, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1,2,4,6,12))
+
+# colubrids
+colubrids_DistDat <- formatDistData(n_colubrids, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1.5,2.5,4,6))
+
+covs.mamm.eaters <- n_mamm_eaters %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
+
+covs.non.mamm.eaters <- n_non_mamm_eaters %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
+
+covs.boids <- n_boids %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
+
+covs.colubrids <- n_colubrids %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
 ```
 
-## Add env data to dfs
 
-```{r add env to dfs}
+```{r prep frog data}
+snakes.sur$Distance_From_Trail_m <- as.numeric(snakes.sur$Distance_From_Trail_m)
 
-# n snakes per guild
-# fix date first
-n_snakes_per_guild$Start_Date <- mdy(n_snakes_per_guild$Start_Date)
+# make one df of only cases where no snakes were found and keep relevant columns with it
+surveys_without_snakes <- snakes.sur %>% filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m)
 
-# add humidity
-n_snakes_per_guild <- left_join(n_snakes_per_guild, humidity_means)
-# and add temp
-n_snakes_per_guild <- left_join(n_snakes_per_guild, temperature_means)
+# tally up mammal eaters
+n_mamm_eaters <- snakes.sur %>%
+  filter(Diet_Type == "consumes_mammals") %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m) %>%
+  reframe(n_snakes = n()) 
 
-# drop NA where datalogger wasn't working
-n_snakes_per_guild <- n_snakes_per_guild %>%
-  na.omit()
+# tally up non mammal eaters
+n_non_mamm_eaters <- snakes.sur %>%
+  filter(Diet_Type == "no_mammals") %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m) %>%
+  reframe(n_snakes = n()) 
 
+# tally up Boidae
+n_boids <- snakes.sur %>%
+  filter(Family == "Boidae") %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m) %>%
+  reframe(n_snakes = n()) 
+
+# tally up Colubridae
+n_colubrids <- snakes.sur %>%
+  filter(Family == "Colubridae") %>%
+  group_by(Start_Date, Station, Segment, Seg_dist_m, Distance_From_Trail_m) %>%
+  reframe(n_snakes = n()) 
+
+surveys_without_snakes$n_snakes <- 0
+
+# add zeros
+n_mamm_eaters <- rbind(surveys_without_snakes, n_mamm_eaters)
+
+n_non_mamm_eaters <- rbind(surveys_without_snakes, n_non_mamm_eaters)
+
+n_boids <- rbind(surveys_without_snakes, n_boids)
+n_colubrids <- rbind(surveys_without_snakes, n_colubrids)
+
+# detection matrices with bins
+mamm_eaters_DistDat <- formatDistData(n_mamm_eaters, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1,2,4,6,12))
+
+# repeat for non mamm eaters
+non_mamm_eaters_DistDat <- formatDistData(n_non_mamm_eaters, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1.5,2.5,4,6))
+
+# boids
+boids_DistDat <- formatDistData(n_boids, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1,2,4,6,12))
+
+# colubrids
+colubrids_DistDat <- formatDistData(n_colubrids, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1.5,2.5,4,6))
+
+covs.mamm.eaters <- n_mamm_eaters %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
+
+covs.non.mamm.eaters <- n_non_mamm_eaters %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
+
+covs.boids <- n_boids %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
+
+covs.colubrids <- n_colubrids %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
 ```
 
-# Density estimates
 
-Sort of following Hierarchical distance sampling to estimate population sizes of common lizards across a desert ecoregion (in Zotero shared library)
+```{r make mamm eater umf}
 
-```{r make umf two diet types}
-
-n_snakes_per_guild$Diet_Type <- as.factor(n_snakes_per_guild$Diet_Type)
-n_snakes_per_guild$Seg_dist_m <- as.numeric(n_snakes_per_guild$Seg_dist_m)
-n_snakes_per_guild$Segment <- as.factor(n_snakes_per_guild$Segment)
-n_snakes_per_guild$Station <- as.factor(n_snakes_per_guild$Station)
-
-# make one dataframe for each diet type
-mammal_eaters<- n_snakes_per_guild %>%
-  filter(Diet_Type == "consumes_mammals")
-
-mammal_eaters <- mammal_eaters %>% 
-  pivot_wider(names_from = Dist_bin_mammal_eaters,
-              values_from = n_snakes, 
-              values_fill = 0)
-
-non_mammal_eaters <- n_snakes_per_guild %>%
-  filter(Diet_Type == "no_mammals")
-
-non_mammal_eaters <- non_mammal_eaters %>% 
-  pivot_wider(names_from = Dist_bin_no_mams,
-              values_from = n_snakes, 
-              values_fill = 0)
-
-# why the fuck are the columns out of order
-colnames(mammal_eaters)
-
-non_mammal_eaters<- non_mammal_eaters[, c("Diet_Type","Start_Date","Segment","Station", "Seg_dist_m",         "humidity_scaled", "temp_scaled", "0_1.25", "1.25_2.5", "2.5_3.5", "3.5_4.5", "4.5_6")]  
-
-mammal_eaters<- mammal_eaters[, c("Diet_Type","Start_Date","Segment","Station", "Seg_dist_m",         "humidity_scaled", "temp_scaled", "0_0.75", "0.75_1.75", "1.75_2.5", "2.5_3.5", "3.5_5", "5_8")]  
-
-# separate out the covariates
-mammal_eaters.covs <- mammal_eaters[,c("Station", "Diet_Type", "Segment", "Seg_dist_m", "humidity_scaled", "temp_scaled")]
-
-non.mammal_eaters.covs <- non_mammal_eaters[,c("Station", "Diet_Type", "Segment", "Seg_dist_m", "humidity_scaled", "temp_scaled")]
-
-mammal.eaters.umf <- unmarkedFrameDS(y=as.matrix(mammal_eaters[,8:ncol(mammal_eaters)]), siteCovs=data.frame(mammal_eaters.covs), dist.breaks=c(0, 0.75, 1.75, 2.5, 3.5, 5, 8), unitsIn="m", survey="line", tlength=mammal_eaters.covs$Seg_dist_m)
+mammal.eaters.umf <- unmarkedFrameDS(y=as.matrix(mamm_eaters_DistDat), siteCovs=covs.mamm.eaters, dist.breaks=c(0,1,2,4,6,12), unitsIn="m", survey="line", tlength = covs.mamm.eaters$Seg_dist_m)
 
 hist(mammal.eaters.umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
+```
 
-non.mammal.eaters.umf <- unmarkedFrameDS(y=as.matrix(non_mammal_eaters[,8:ncol(non_mammal_eaters)]), siteCovs=data.frame(non.mammal_eaters.covs), dist.breaks=c(0, 1.25, 2.5, 3.5, 4.5, 6), unitsIn="m", survey="line", tlength=non.mammal_eaters.covs$Seg_dist_m)
+```{r make non mamm eater umf}
+
+non.mammal.eaters.umf <- unmarkedFrameDS(y=as.matrix(non_mamm_eaters_DistDat), siteCovs=covs.non.mamm.eaters, dist.breaks=c(0,1.5,2.5,4,6), unitsIn="m", survey="line", tlength = covs.non.mamm.eaters$Seg_dist_m)
 
 hist(non.mammal.eaters.umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
 ```
 
-### GOF function
+```{r make colubrid umf}
 
-Goodness of fit tests
+colubrid.umf <- unmarkedFrameDS(y=as.matrix(colubrids_DistDat), siteCovs=covs.colubrids, dist.breaks=c(0,1.5,2.5,4,6), unitsIn="m", survey="line", tlength = covs.colubrids$Seg_dist_m)
 
-```{r gof function}
-
-# using this resource: https://www.montana.edu/screel/teaching/bioe-440r-521/bioe-440-distance-sampling.html
-
-# Goodness of fit test: good fit if results of these tests show p > 0.05. First, fit a model: use your best-supported model (Lowest AIC). Then check GOF for that model.
-
-# Function returning three fit-statistics.
-
-fitstats <- function(fm) {
-
-  observed <- getY(fm@data)
-
-  expected <- fitted(fm)
-
-  resids <- residuals(fm)
-
-  sse <- sum(resids^2)
-
-  chisq <- sum((observed - expected)^2 / expected)
-
-  freeTuke <- sum((sqrt(observed) - sqrt(expected))^2)
-
-  out <- c(SSE=sse, Chisq=chisq, freemanTukey=freeTuke)
-
-  return(out)
-
-}
+hist(colubrid.umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 
 ```
+```{r boidae umf}
 
-## Model Diet Types
+boid.umf <- unmarkedFrameDS(y=as.matrix(boids_DistDat), siteCovs=covs.boids, dist.breaks=c(0,1,2,4,6,12), unitsIn="m", survey="line", tlength = covs.boids$Seg_dist_m)
+
+hist(boid.umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
+```
+# Guild Density Estimates
+
+## Models
 
 ```{r mammal eaters}
 
 # first term is p, detection probability
 # second term is density, N
 
-null <- distsamp(~1 ~ 1, mammal.eaters.umf, unitsOut = "kmsq", keyfun = "hazard")
-summary(null)
+null.mamm.eaters <- distsamp(~1 ~ 1, mammal.eaters.umf, unitsOut = "kmsq", keyfun = "uniform")
 
-Station <- distsamp(~ 1 ~ Station, mammal.eaters.umf, unitsOut = "kmsq", keyfun = "hazard")
-summary(Station)
-
-# temp
-Station_Temp <- distsamp(~ 1 ~ Station + temp_scaled, mammal.eaters.umf, unitsOut = "kmsq", keyfun = "hazard")
-
-# humidity
-Station_humidity <- distsamp(~ 1 ~ Station + humidity_scaled, mammal.eaters.umf, unitsOut = "kmsq", keyfun = "hazard")
-
-# both
-Station_Temp_Humidity <- distsamp(~ 1 ~ Station + temp_scaled + humidity_scaled, mammal.eaters.umf, unitsOut = "kmsq", keyfun = "hazard")
+Station.mamm.eaters <- distsamp(~ 1 ~ Station, mammal.eaters.umf, unitsOut = "kmsq", keyfun = "uniform")
 
 # Make a table to compare models
 
 # put mods in a list
-mod.set<- list(null = null, Station = Station, Station_Temp = Station_Temp, Station_humidity = Station_humidity, Station_Temp_Humidity)
+mod.set<- list(null.mamm.eaters = null.mamm.eaters, Station.mamm.eaters = Station.mamm.eaters)
 
 # make table
 aic_table <- aictab(cand.set = mod.set, sort = TRUE)
@@ -379,153 +293,83 @@ aic_table <- aictab(cand.set = mod.set, sort = TRUE)
 aic_table
 ```
 
-### GOF
+```{r non mammal eaters}
 
-```{r goodness of fit three guilds}
-pb_station_mammal_eaters <- parboot(Station, fitstats, nsim=100)
+# first term is p, detection probability
+# second term is density, N
+
+null.non.mamm.eaters <- distsamp(~1 ~ 1, non.mammal.eaters.umf, unitsOut = "kmsq", keyfun = "halfnorm")
+
+Station.non.mamm.eaters <- distsamp(~ 1 ~ Station, non.mammal.eaters.umf, unitsOut = "kmsq", keyfun = "halfnorm")
+
+# Make a table to compare models
+
+# put mods in a list
+mod.set<- list(null.non.mamm.eaters = null.non.mamm.eaters, Station.non.mamm.eaters = Station.non.mamm.eaters)
+
+# make table
+aic_table <- aictab(cand.set = mod.set, sort = TRUE)
+
+aic_table
+```
+
+## GOF
+
+```{r goodness of fit mamm eater mod}
+pb_station_mammal_eaters <- parboot(Station.mamm.eaters, fitstats, nsim=200)
 pb_station_mammal_eaters
 # fine
 ```
 
-## Predicted values
+```{r goodness of fit non mamm eater mod}
+pb_null_non_mammal_eaters <- parboot(null.non.mamm.eaters, fitstats, nsim=100)
+pb_null_non_mammal_eaters
+# fine
+```
 
-```{r predicted values}
+## Guild density predictions
 
-new.data <- mammal_eaters %>%
-  ungroup() %>%
+### Mammal eaters
+
+```{r mamm eater predicted values}
+
+new.data <- covs.mamm.eaters %>%
   dplyr::select(Station) %>%
   distinct()
-  
 
 #Predict
-
-predictions <- predict(Station, type="state", newdata=new.data, appendData=TRUE)
+predictions_mamm_eaters <- predict(Station.mamm.eaters, type="state", newdata=new.data, appendData=TRUE)
 
 ```
 
-```{r plot guilds, message=FALSE, warning=FALSE}
+```{r plot mamm eaters, message=FALSE, warning=FALSE}
 
-p_mammal_eaters<-ggplot(predictions, aes(x=Station, y=Predicted)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(size = 2) + theme_pubclean() + scale_fill_manual(values = c("goldenrod1", "gray")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Density estimates of mammal-eating snakes") + theme(axis.text = element_text(color = "black"))+
+p_mammal_eaters<-ggplot(predictions_mamm_eaters, aes(x=Station, y=Predicted)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(size = 2) + theme_pubclean() + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Density estimates of mammal-eating snakes") + theme(axis.text = element_text(color = "black"))+
   scale_x_discrete(labels = c("Unhunted", "Hunted"))
 
 p_mammal_eaters
 
-#ggsave(p_3cats, file="snk_dens_3diet.png", width = 8, height = 5)
 ```
 
-Appears to be elevated numbers in hunted forest in the guild that is mostly mammal consumers.
+More mammal eating snakes predicted in hunted area. 
 
-## Family level
+### Non-Mammal eaters
 
-The two most detected families are Boidae and Colubridae. Limitting the analysis to these 2 families allows the models to run without error with Family as a covariate. Including all families detected creates model issues with uncertainty because the other families were only detected 1 or 2 times. 
-
-```{r format for unmarked based on fams}
-
-# also isolate surveys that DID have snakes detected
-surveys.no.zeros <- snakes.sur %>%
-  filter(!is.na(Snake_ID))
-
-# SK04 and SK05 are duplicated
-# remove the duplicate entries
-
-surveys.no.zeros <- surveys.no.zeros %>%
-  filter(!duplicated(Snake_ID))
-
-# tally counts - df without zeros
-survey.tally <- surveys.no.zeros %>%
-  filter(Family != "Viperidae") %>%
-filter(Family != "Elapidae") %>%
-  group_by(Start_Date, Year, Station, Family, Segment, Seg_dist_m, Distance_bin_m) %>% tally()
-
-# generate all possible combinations based on family to get zeros
-
-df_long <- survey.tally %>%
-  as_tibble() %>%
-  complete(Family, Distance_bin_m, nesting(Start_Date, Year, Station, Segment, Seg_dist_m), fill = list(n = 0))
-
-# also, which families eat what?
-snakes.sur %>%
-  group_by(Family) %>%
-  reframe(unique(Diet_Type)) # colubridae is only possibility for mixed in our data?
-
-# pivot wider that wider
-density_fam_df <- df_long %>% 
-  pivot_wider(names_from = Distance_bin_m,
-              values_from = n, 
-              values_fill = 0)
-```
-
-## Model family level density
-
-```{r model at fam level}
-# separate out the covariates
-
-# model not running bc of sparse data at fam level - removed elapidae, which only had 1 detection, and Viperidae which only had 2
-
-covs.fam <- density_fam_df[,c("Station", "Year", "Family", "Segment", "Seg_dist_m")]
-
-umf.fam <- unmarkedFrameDS(y=as.matrix(density_fam_df[,7:ncol(density_fam_df)]), siteCovs=data.frame(covs.fam), dist.breaks=c( 0,2,4,6, 8), unitsIn="m", survey="line", tlength=covs.fam$Seg_dist_m)
-
-# run models
-# null
-null.fam <- distsamp(~1 ~ 1, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
-summary(null.fam)
-
-# family as detection covariate, no density covariate
-fam.null  <- distsamp(~Family ~ 1, umf.fam, unitsOut = "kmsq",keyfun = "uniform")
-summary(fam.null)
-
-# add year as density covariate
-year <- distsamp(~ 1 ~ Year, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
-summary(year)
-
-# add station as density covariate
-station <- distsamp(~1 ~ Station, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
-summary(station)
-
-# add station and station x family interaction term 
-
-station_stationXfam <- distsamp(~1 ~ Station/Family, umf.fam, unitsOut = "kmsq", keyfun = "uniform")
-
-summary(station_stationXfam)
-# best mod by far
-
-# put mods in a list
-mod.set.family <- list(null.fam = null.fam, fam.null = fam.null, year = year, station = station, station_stationXfam = station_stationXfam)
-
-# make table
-aic_table.fam <- aictab(cand.set = mod.set.family, sort = TRUE)
-
-aic_table.fam
-```
-
-## Predicted vals fam
-
-```{r predicted values three guilds}
-
-new.data.fam <- density_fam_df %>%
-  ungroup() %>%
-  dplyr::select(Station, Family) %>%
-  distinct()
-  
+```{r non mamm eater predicted values}
 
 #Predict
-
-predictions.fam <- predict(station_stationXfam, type="state", newdata=new.data.fam, appendData=TRUE)
+predictions_non_mamm_eaters <- predict(null.non.mamm.eaters, type="state", newdata=new.data, appendData=TRUE)
 
 ```
 
+```{r plot non mamm eaters, message=FALSE, warning=FALSE}
 
-```{r plot fam, message=FALSE, warning=FALSE}
+p_non_mammal_eaters<-ggplot(predictions_non_mamm_eaters, aes(x=Station, y=Predicted)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(size = 2) + theme_pubclean() + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Density estimates of non-mammal-eating snakes") + theme(axis.text = element_text(color = "black"))+
+  scale_x_discrete(labels = c("Unhunted", "Hunted"))
 
-p_3cats_fam<-ggplot(predictions.fam, aes(x=Station, y=Predicted, fill = Family, group = Station)) +
-  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(pch = 21, size = 3) + theme_bw() + scale_fill_manual(values = c("purple2","goldenrod1", "black")) + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Snake Density Estimates by Family") +
-  scale_x_discrete(labels = c("Unhunted", "Hunted")) + theme(text = element_text(family = "Tahoma"), axis.text = element_text(color = "black", size = 12), axis.title = element_text(family = "Tahoma"), plot.title = element_text(family = "Tahoma", 
-      hjust = 0.5,face = "bold", size = 12)) 
+p_non_mammal_eaters
 
-p_3cats_fam
-
-#ggsave(p_3cats_fam, file="snk_dens_3diet_fam.png", width = 8, height = 5)
 ```
 
