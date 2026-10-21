@@ -1,0 +1,559 @@
+---
+title: "Snake_Analysis"
+author: "Owen McCool, Therese Lamperty"
+date: "2025-07-16"
+output: word_document
+---
+
+# Code Setup & package read in 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r read in packages}
+library(vegan)
+library(stringr)
+library(ggplot2)
+library(tidyverse)
+library(ggpubr)
+library(iNEXT) # species diversity
+library(hillR) # species diversity
+library(DHARMa) # checking models
+library(car) # reporting model stats
+library(glmmTMB)
+library(unmarked) #density estimates with hierarchical distance sampling models
+library(AICcmodavg) # has convenient functions for comparing models based on AIC
+library(showtext)
+library(ggsignif)
+showtext_auto()
+font_add(family = "Tahoma", regular = "tahoma.ttf")
+
+```
+
+# Project Overview
+
+Study Site: Research was split between two different zones within the greater Yasuni Biosphere Reserve. Tiputini Biodiversity Station (TBS) served as the faunally intact site, whereas Yasuni Research Station (YRS) served as the defaunated site. Both sites are situated along the Tiputini River within the province of Orellana, Ecuador. TBS, approximately 45 km east of YRS, is only accessible by boat. YRS is along the Maxus Oil Road, and is less integrated into the Amazonian ecosystem. Additionally, unsustainable hunting activities by the indigenous communities have been prominent in the surrounding region at YRS for multiple decades, as noted from 2014. This is thought to be the root cause of defaunation in this zone. 
+
+	I transferred between the two research stations every two weeks, starting my first rotation at TBS on June 10. Time at each station was spent working on 3 separate projects: my herpetofauna surveys, frugivory surveys, and an overarching seed enemy and dispersal project. 
+
+	The rainy season in Northeastern Ecuador is at its peak between March and July. I conducted my study between the months of June and August, 2024. The average high temperature for June in this region is 85.66° F, with the average low of 70.05° F. July has an average high temperature of 86.29° F and an average low of 69.13° F. August has an average high temperature of 91.35° F and an average low of 69.60° F. June receives 143mm of precipitation on average each year, whereas July receives 99.69mm and August receives 77.55mm. (https://weatherandclimate.com/ecuador/orellana/boca-tiputini) 
+Put project description here (field sites, time frame of collection,sampling scheme, type of data (eg. species ID,temp, etc.) )
+
+Surveys: Herpetofauna were sampled using visual surveys on foot by two surveyors/night. Trail systems at each site served as the sampling paths. The surveys were repeated around 6 times on each rotation while in the field, and resampled on the second rotations. The surveys typically began around 20:00-20:30 and lasted until 23:00-00:00 CST. At each site, habitat matches were compared and assessed and trails through that habitat were consistently walked. Two different types of habitat, Terra Firma (uplands) and Varzea (flooded forest) were surveyed on the herp nocturnal walks. In addition to this, two significant bodies of water were also surveyed at each site, primarily consisting of oxbow lakes with one year-round large pond. 
+
+	Surveyors used FENIX HM60R headlamps while conducting night surveys. They carefully examined all surrounding habitat, including understory trees, shrubs, vines, water bodies, forest floor, and middle-canopy. Amphibians of the order Anura gave off reflective eyeshine and were easier to sample for, whereas members of Squamata did not. More information about this will be within the discussion section. Effort hours will be calculated based on survey time length and number of surveyors. 
+
+	Additionally, environmental information was taken throughout the course of each survey. Temperature and humidity data was collected with a Mengshen meter in 30 minute intervals on surveys. Understory vegetation density was also measured every 15 minutes along each trail. A 1.5m PVC pipe was randomly placed upright just off the right side of the trail at each measuring point, and the number of leaves making contact with the pipe was counted. 
+
+	Weather and wind were noted before each survey in four nominal categories, with weather either being “clear, partly cloudy, cloudy, rainy” and wind being “no wind, felt on face, branches move, trees move”. I also accounted for precipitation that had already occurred in 6-hour blocks as “time window of last rain event”. 
+
+	Once an animal was found, the first step of the protocol was to note what time of night the find occurred. After this, the temperature and humidity was once again collected. A rangefinder was used to estimate the perpendicular distance of each animal from the trail. A GPS was used to mark and log the coordinates of each animal found. Animals were given a two-letter code based on the Order and Suborder followed by a number, indicating its position of being found. For example, the code of the 9th snake found of the season would be SK09. Species found were also identified to the lowest taxonomic level in the field, and photographs of individuals were taken both to get positive IDs later in the lab when not possible in the field, but also to avoid counting re-captures.
+
+	Snakes found during non-survey times were also recorded. These individuals were split into one of two categories of detection. The first is an “Opportunistic Encounter” (OE), which is any snake that was found by me while out working on other non-herpetofauna projects in the field. The other type of detection is the Third Party Encounter (TPE). This was any snake that was found by other research groups during my rotations at each station, identified to lowest possible taxonomy. The same data was taken for these individuals. GPS coordinates, time of detection, trail, observer, estimation of distance from trail, and habitat type. Because the third-party observers often didn’t have access to the climate data logger, this information was retrieved later on from each station’s respective weather tower data, based on the time of detection. 
+
+Snakes were given a classification as to whether they were small mammal consumers or not. Information on this was retrieved from literature such as online publications, the book Reptiles and Amphibians of the Amazon by R.D. and Patricia Bartlett, and the expert field book Reptiles of Ecuador. 
+
+# Read in and prep data
+
+## Read in
+
+This data was cleaned some in initial steps in 2024-2026 (see archived code). Note that temp and humidity data was removed for 4 surveys at YRS that took place after July 11, 2025, during which the team lost confidence in the data collection instrument. 
+
+```{r data read in}
+all_surv_records <- read.csv("Data/all_survey_records_aug2026.csv")
+# a record of every segment surveyed, afternoon and night, with length and time
+# remove morning
+
+amph_lz <- read.csv("Data/amph_lz_cleaned_aug2026.csv")
+# cleaned amphibian and lizard data - a record of every individual found, when, and what segment
+# make sure there are no duplicates...
+amph_lz <- amph_lz %>%
+  distinct(Animal_ID, .keep_all = TRUE) # evidently there was 1
+
+# I cleaned frogs and added a tadpole phase column, now they are a sep df
+frogs_df <- read.csv("frogs.csv")
+frogs_df$Start_Date <- mdy(frogs_df$Start_Date)
+# remove morning survey
+frogs_df <- frogs_df %>%
+  filter(Survey_Type != "Morning")
+
+effort <- read.csv("Data/effort_aug2026.csv")
+# Date, effort hours, segment length
+
+env_2025 <- read.csv("Data/env_2025_cleaned.csv", encoding = "latin1")
+# 2025 env data
+
+env_24_25_nights <- read.csv("Data/env_24_25_nights_aug2026.csv")
+# night time survey environmental data both years
+
+small.mamms.df <- read.csv("Data/small_mammals_aug2026.csv")
+# records of small mammals spotted during surveys
+
+```
+
+# Prep survey data
+
+## Frogs
+
+```{r frogs}
+
+# survey distance data
+survey_distance <- all_surv_records %>%
+group_by(Station, Start_Date, Survey_Type) %>%
+reframe(survey_length_m = sum(Seg_dist_m))
+
+survey_distance$Start_Date<- ymd(survey_distance$Start_Date)
+
+surveys_without_frogs <- survey_distance %>%
+  filter(Start_Date %in% (setdiff(survey_distance$Start_Date, frogs_df$Start_Date))) %>%
+  mutate(n = 0)
+
+# add survey lengths to frog df
+frogs_df<- left_join(frogs_df, survey_distance, by = c("Station", "Start_Date", "Survey_Type"))
+
+# tallies
+frogs_tallied <- frogs_df %>%
+  group_by(Station, Start_Date, Survey_Type, survey_length_m) %>% tally()
+
+# add instances without frogs found
+frogs_tallied <- rbind(frogs_tallied, surveys_without_frogs)
+
+rm(surveys_without_frogs)
+
+frogs_tallied$n_500m <-(frogs_tallied$n/frogs_tallied$survey_length_m)*500
+```
+
+## Lizards
+
+```{r lizards}
+liz_df <- amph_lz %>%
+  filter(Survey_Type != "Morning") %>%
+  filter(Gross_ID == "Lizard")
+
+liz_df$Start_Date <- ymd(liz_df$Date)
+
+surveys_without_liz <- survey_distance %>%
+  filter(Start_Date %in% (setdiff(survey_distance$Start_Date, liz_df$Start_Date))) %>%
+  mutate(n = 0)
+
+# add survey lengths to frog df
+liz_df <- liz_df %>%
+  select(Start_Date, Station, Survey_Type, Animal_ID)
+
+liz_df<- left_join(liz_df, survey_distance, by = c("Station", "Start_Date", "Survey_Type"))
+
+# tallies
+liz_tallied <- liz_df %>%
+  group_by(Station, Start_Date, Survey_Type, survey_length_m) %>% tally()
+
+# add instances without frogs found
+liz_tallied <- rbind(liz_tallied, surveys_without_liz)
+
+rm(surveys_without_liz)
+
+# get n per 500m
+liz_tallied$n_500m <-(liz_tallied$n/liz_tallied$survey_length_m)*500
+```
+
+# Prep env data
+
+Format the humidity and understory and the temp data and then get means and add them to the herp dfs
+
+```{r prep env and join to obs dfs}
+
+humidity_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Humidity_1:Humidity_8, Humidity_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Humidity_1:Humidity_Final,
+               values_to = "Humidity", names_repair = "unique")
+# remove NAs
+humidity_long <- humidity_long %>%
+  na.omit()
+
+# fix date
+humidity_long$Start_Date <- mdy(humidity_long$Date)
+
+humidity_long <- humidity_long %>%
+  select(-Date)
+# there are 3 humidity readings that are very low (<70) and are all the 1 (or 2nd) reading of the night - this could be error, and our sampling intensity is robust enough for us to not worry about influencing results by removing these outliers. 
+
+#humidity_long <- humidity_long %>%
+ # filter(Humidity > 70)
+
+# repeat with temp
+temp_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Temperature_1:Temperature_8, Temperature_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Temperature_1:Temperature_Final,
+               values_to = "Temperature", names_repair = "unique")
+
+# remove NAs
+temp_long <- temp_long %>%
+  na.omit()
+
+# date
+temp_long$Start_Date <- mdy(temp_long$Date)
+temp_long <- temp_long %>%
+  select(-Date)
+
+# understory
+understory_long <- env_2025 %>%
+  select(Date, Station, Survey_Type, 
+         Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Understory_Density_1:Understory_Density_Final,
+               values_to = "Understory", names_repair = "unique")
+# remove NAs
+understory_long <- understory_long %>%
+  na.omit()
+
+# fix date
+understory_long$Start_Date <- mdy(understory_long$Date)
+understory_long <- understory_long %>%
+  select(-Date)
+
+# 2024 data
+
+# pull out 2024 year only
+env_24_25_nights$Start_Date <- ymd(env_24_25_nights$Start_Date)
+env_24_25_nights$Year<- factor(format(env_24_25_nights$Start_Date, "%Y"))
+  
+env_2024 <- env_24_25_nights %>%
+  filter(Year == "2024")
+
+# humidity - 2024 - pivot
+
+# simplify
+env_2024 <- env_2024 %>%
+  select(-Effort_hrs, -Notes, -Number_of_Small_Mammals_Spotted, -Number_of_Water_Bodies_Spotted, -Surveyors, -Searching_Time, -Meters, -Order, -Survey_Start_Time, -Survey_End_Time)
+
+humidity_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Humidity_1:Humidity_8, Humidity_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Humidity_1:Humidity_Final,
+               values_to = "Humidity", names_repair = "unique")
+# remove NAs
+
+humidity_long_2024 <- humidity_long_2024 %>%
+  na.omit()
+
+# repeat with temp
+temperature_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Temperature_1:Temperature_8, Temperature_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Temperature_1:Temperature_Final,
+               values_to = "Temperature", names_repair = "unique")
+# remove NAs
+
+temperature_long_2024 <- temperature_long_2024 %>%
+  na.omit()
+
+# repeat with understory
+understory_long_2024 <- env_2024 %>%
+  select(Start_Date, Station,
+         Understory_Density_1:Understory_Density_13, Understory_Density_Final) %>%
+  pivot_longer(names_to = "Measurement",
+               cols = Understory_Density_1:Understory_Density_Final,
+               values_to = "Understory", names_repair = "unique")
+# remove NAs
+
+understory_long_2024 <- understory_long_2024 %>%
+  na.omit()
+
+# join
+# add survey type column to 2024 env data
+humidity_long_2024$Survey_Type <-"Night"
+temperature_long_2024$Survey_Type <-"Night"
+understory_long_2024$Survey_Type <-"Night"
+
+humidity_all <- rbind(humidity_long, humidity_long_2024)
+temperature_all <- rbind(temp_long, temperature_long_2024)
+understory_all <-rbind(understory_long, understory_long_2024)
+
+# get means
+humidity_means <- humidity_all %>%
+  filter(Humidity > 73) %>% # two afternoon survey outliers
+  group_by(Station, Start_Date, Survey_Type) %>%
+  reframe(mean_relative_humidity = mean(Humidity))
+
+temperature_means <- temperature_all %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  reframe(mean_temp_F = mean(Temperature))
+
+understory_means <- understory_all %>%
+  group_by(Station, Start_Date, Survey_Type) %>%
+  reframe(mean_understory_leaves = mean(Understory))
+
+# center and scale
+humidity_means$humidity_scaled <-scale(humidity_means$mean_relative_humidity)
+
+temperature_means$temp_scaled <-scale(temperature_means$mean_temp_F)
+
+understory_means$mean_understory_leaves <-scale(understory_means$mean_understory_leaves)
+```
+
+## Add Env to dfs
+
+```{r add env to dfs}
+liz_tallied <- left_join(liz_tallied, temperature_means)
+liz_tallied <- left_join(liz_tallied, humidity_means)
+liz_tallied <- left_join(liz_tallied, understory_means)
+
+frogs_tallied <- left_join(frogs_tallied, temperature_means)
+frogs_tallied <- left_join(frogs_tallied, humidity_means)
+frogs_tallied <- left_join(frogs_tallied, understory_means)
+```
+```{r clean}
+rm(humidity_all, humidity_long, humidity_long_2024, humidity_means, temperature_all, temp_long, temperature_long_2024, temperature_means, understory_all, understory_long, understory_long_2024, understory_means, effort, env_2025, env_2024, env_24_25_nights)
+
+```
+
+# Analysis
+
+## Frog models
+
+```{r frog model prep}
+
+# remove morning and instances where env data are missing
+frogs_tallied <- frogs_tallied %>%
+  na.omit()
+
+# pull out year... may need to put this in the models
+frogs_tallied$Year <- factor(format(frogs_tallied$Start_Date, "%Y"))
+
+hist(frogs_tallied$n_500m)
+
+```
+
+```{r frog det rate model comparison, warning = FALSE}
+
+# null
+frog.null <- glmmTMB(n_500m ~ 1, data = frogs_tallied, family = tweedie())
+
+summary(frog.null)
+# AIC 245.9
+
+# hunting
+frog.hunt <- glmmTMB(n_500m ~ Station, data = frogs_tallied, family = tweedie())
+summary(frog.hunt)
+# 247.8 worse
+
+# year
+frog.year <- glmmTMB(n_500m ~ Year, data = frogs_tallied, family = tweedie())
+summary(frog.year)
+
+# 246.8 no diff from null
+
+# humidity
+frog.humidity <- glmmTMB(n_500m ~ humidity_scaled, data = frogs_tallied, family = tweedie())
+summary(frog.humidity)
+# AIC 243.7 significantly better fit
+
+# temperature
+
+frog.humidity.temperature <- glmmTMB(n_500m ~ humidity_scaled + temp_scaled, data = frogs_tallied, family = tweedie())
+summary(frog.humidity.temperature)
+# AIC 240.8 significantly better fit
+# significant positive association between temperature and humidity and frog detection rates
+
+# just temp?
+frog.temperature <- glmmTMB(n_500m ~ temp_scaled, data = frogs_tallied, family = tweedie())
+summary(frog.temperature)
+# nope worse
+
+frog_mod_names <- c("frog.null", "frog.hunt", "frog.year", "frog.humidity", "frog.humidity.temperature", "frog.temperature")
+
+# compare
+aictab(cand.set = list(frog.null, frog.hunt, frog.year, frog.humidity, frog.humidity.temperature, frog.temperature), modnames = frog_mod_names)
+
+# best fit model results:
+Anova(frog.humidity.temperature) # temp and humidity both have significant effects on frog detection rates
+
+simulateResiduals(fittedModel = frog.humidity.temperature, plot = T) # passes
+testZeroInflation(frog.humidity.temperature) # passes
+testDispersion(frog.humidity.temperature) # passes
+
+```
+
+## Frogs and humidity plot
+
+```{r frog humidity plot}
+
+frog_humidity_scatterplot <- frogs_tallied %>%
+ggplot(aes(x = mean_relative_humidity, y = n_500m)) + geom_point(aes(color = Station), position = "jitter") + geom_smooth(method = "glm", color = "black", linewidth = 0.5) + theme_bw()+ylab("# frogs/500m") + xlab("% relative humidity") + scale_color_manual(values = c("orange3", "blue"), labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank())
+
+frog_humidity_scatterplot 
+```
+
+## Frogs and temperature plot
+
+```{r frog temperature trend}
+
+# temperature
+frog_temperature_scatterplot <- frogs_tallied %>%
+ggplot(aes(x = mean_temp_F, y = n_500m)) + geom_point(aes(color = Station), position = "jitter") + geom_smooth(method = "glm", color = "black", linewidth = 0.5) + theme_bw()+ylab("# frogs/500m") + xlab("Mean temperature during survey (F)") + scale_color_manual(values = c("orange3", "blue"), labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank())
+
+frog_temperature_scatterplot 
+```
+
+## Frogs and Hunting status plot
+
+```{r frogs and hunting}
+
+# summary data to plot
+
+frogs.mean.se <- frogs_tallied %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_500m),
+           sd = sd(n_500m),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+# dodge amount specified
+spec_dodge <- position_dodge(width = 0.5)
+
+frog.hunting.plot <- ggplot(frogs.mean.se, aes(x = Station, y = mean)) +
+  geom_point(data = frogs_tallied, aes(x = Station, y = n_500m), color = "grey", alpha = 0.5) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se), position = spec_dodge, width = 0.2, linewidth = 0.2) +
+  geom_point(position = spec_dodge) + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(legend.title = element_blank(), axis.text = element_text(color = "black", size = 12)) + theme(axis.text.x = element_text(angle = 45, hjust=1, vjust = 1)) + ylab("Individuals per 500m") + labs(title = "Frog detection rates") 
+
+frog.hunting.plot<-ggplot(frogs.mean.se, aes(x = Station, y = mean)) +
+  geom_point(data = frogs_tallied, aes(x = Station, y = n_500m), color = "grey", alpha = 0.5) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1)) +
+  geom_point(position = spec_dodge) + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Frog detection rates") 
+
+frog.hunting.plot
+
+# maybe remove the outlier for clarity?
+frog.hunting.plot.no.outlier <-ggplot(frogs.mean.se, aes(x = Station, y = mean)) +
+  geom_point(data = frogs_tallied, aes(x = Station, y = n_500m), color = "darkgrey", alpha = 0.75, position = position_jitterdodge()) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1)) +
+  geom_point(position = spec_dodge) + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Frog detection rates") + ylim(c(0,5))
+
+frog.hunting.plot.no.outlier 
+
+
+```
+
+## Lizard models
+
+```{r lizard model prep}
+
+# remove morning and instances where env data are missing
+liz_tallied <- liz_tallied %>%
+  na.omit()
+
+# pull out year... may need to put this in the models
+liz_tallied$Year <- factor(format(liz_tallied$Start_Date, "%Y"))
+
+hist(liz_tallied$n_500m)
+
+```
+
+```{r liz det rate model comparison, warning = FALSE}
+
+# null
+liz.null <- glmmTMB(n_500m ~ 1, data = liz_tallied, family = tweedie())
+
+summary(liz.null)
+# AIC 89.4
+
+# hunting
+liz.hunt <- glmmTMB(n_500m ~ Station, data = liz_tallied, family = tweedie())
+summary(liz.hunt)
+# 81.9 much better
+
+# year
+liz.hunt.year <- glmmTMB(n_500m ~ Station + Year, data = liz_tallied, family = tweedie())
+summary(liz.hunt.year)
+
+# 81.9 no difference
+
+# humidity
+liz.hunt.humidity <- glmmTMB(n_500m ~ Station + humidity_scaled, data = liz_tallied, family = tweedie())
+summary(liz.hunt.humidity)
+# AIC 81.6 no difference
+
+# temperature
+liz.hunt.temperature <- glmmTMB(n_500m ~ Station + temp_scaled, data = liz_tallied, family = tweedie())
+summary(liz.hunt.temperature)
+# AIC 80.5 best so far
+
+# just temp
+liz.temperature <- glmmTMB(n_500m ~ temp_scaled, data = liz_tallied, family = tweedie())
+summary(liz.temperature)
+# 89.6 nope worse
+
+liz_mod_names <- c("liz.null", "liz.hunt", "liz.hunt.year", "liz.hunt.humidity", "liz.hunt.temperature", "liz.temperature")
+
+# compare
+aictab(cand.set = list(liz.null, liz.hunt, liz.hunt.year, liz.hunt.humidity, liz.hunt.temperature, liz.temperature), modnames = liz_mod_names)
+
+# best fit model results:
+Anova(liz.hunt.temperature) # temp and humidity both have significant effects on liz detection rates
+
+simulateResiduals(fittedModel = liz.hunt.temperature, plot = T) # passes
+testZeroInflation(liz.hunt.temperature) # passes
+testDispersion(liz.hunt.temperature) # passes
+
+```
+
+## Lizards and temperature plot
+
+```{r liz temperature trend}
+
+# temperature
+liz_temperature_scatterplot <- liz_tallied %>%
+ggplot(aes(x = mean_temp_F, y = n_500m)) + geom_point(position = "jitter") + theme_bw()+ylab("# lizards/500m") + xlab("Mean temperature during survey (F)") + scale_color_manual(values = c("orange3", "blue"), labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank())
+
+liz_temperature_scatterplot 
+```
+
+## Liz and Hunting status plot
+
+```{r liz and hunting}
+
+# summary data to plot
+liz.mean.se <- liz_tallied %>%
+  group_by(Station) %>%
+  summarise(mean = mean(n_500m),
+           sd = sd(n_500m),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+liz.hunting.plot <-ggplot(liz.mean.se, aes(x = Station, y = mean)) +
+  geom_point(data = liz_tallied, aes(x = Station, y = n_500m), color = "darkgrey", alpha = 0.75, position = position_jitterdodge()) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1)) +
+  geom_point(position = spec_dodge) + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Lizard detection rates") 
+
+liz.hunting.plot
+
+```
+
+# Small mammal plot
+
+```{r plot small mammal dets}
+# make summary of mean and SE and keep for plotting later
+smams.distance.mean.se <- small.mamms.df %>%
+  group_by(Station) %>%
+  summarise(mean = mean(smamm.500m),
+            sd = sd(smamm.500m),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+smamm.hunting.plot <-ggplot(smams.distance.mean.se, aes(x = Station, y = mean)) +
+  geom_point(data = small.mamms.df, aes(x = Station, y = smamm.500m), color = "darkgrey", alpha = 0.75, position = position_jitterdodge()) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1)) +
+  geom_point(position = spec_dodge) + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Small mammal detection rates") 
+
+smamm.hunting.plot
+```
