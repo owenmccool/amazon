@@ -160,45 +160,124 @@ rm(surveys_without_liz)
 liz_tallied$n_500m <-(liz_tallied$n/liz_tallied$survey_length_m)*500
 ```
 
-## Snakes
+## Snakes 2 diets
 
-```{r prep snakes}
+```{r prep snakes 2 diets}
 
 # make one data frame of only the snake records (remove NAs where no snakes were found)
-surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID))
+surveys_with_snakes <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+all_surv_records %>%
+  group_by(Survey_Type) %>%
+  reframe(n_distinct(Start_Date))
 
 # likewise, make one df of only cases where no snakes were found and keep relevant columns with it
 surveys_without_snakes <- snakes.sur %>% filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Station)
+  select(Start_Date, Station) %>%
+  distinct()
 
-# get counts of n snakes found per diet type per segment per survey
+# get counts of n snakes found per diet type segment per survey
 snake_guilds_tallied <- surveys_with_snakes %>%
   group_by(Start_Date, Station, Diet_Type) %>%
-  reframe(n_snakes = n()) 
+  reframe(n_snakes = n())
 
 # account for cases when no snakes for a given guild were found on a survey
 
 # this is step 1 of accounting for cases where a snake in a given guild wasn't found on a survey and needs to be noted with a zero
-snake_guilds_tallied <- snake_guilds_tallied %>% 
-  complete(Diet_Type, nesting(Start_Date, Station), fill = list(n_snakes = 0))
+snake_guilds_tallied <- snake_guilds_tallied %>%
+  complete(Diet_Type, nesting(Start_Date, Station),
+           fill = list(n_snakes = 0))
 
 # add in the instances where no snakes were found for a given survey
-snake_guilds_tallied <- bind_rows(snake_guilds_tallied, surveys_without_snakes)
 
-# and repeat the process of making sure we have a numerical record (including 0s if none were found) for each diet type for each survey
-snake_guilds_tallied <-snake_guilds_tallied %>% 
-  complete(Diet_Type, nesting(Start_Date, Station), fill = list(n_snakes = 0))
+# join specifically the dates without any snake record
 
-snake_guilds_tallied <- snake_guilds_tallied %>% na.omit
-snake_guilds_tallied$Start_Date<-mdy(snake_guilds_tallied$Start_Date)
+# make dates
+snake_guilds_tallied$Start_Date <-mdy(snake_guilds_tallied$Start_Date)
+# make dates
+surveys_without_snakes$Start_Date <- mdy(surveys_without_snakes$Start_Date)
+
+# filter out the dates that are already included in the guilds tallied records
+surveys_without_snakes <- surveys_without_snakes %>%
+  filter(!Start_Date %in% snake_guilds_tallied$Start_Date)
+
+snake_guilds_tallied <- full_join(surveys_without_snakes, snake_guilds_tallied)
+
+# and build out one more time to get record per diet type
+snake_guilds_tallied <- snake_guilds_tallied %>%
+  complete(Diet_Type, nesting(Start_Date, Station),
+           fill = list(n_snakes = 0)) %>%
+  na.omit() # records that cropped up as NA in response to the diet type column for the surveys without snakes that was just added to the snake guilds tallied in the line of code starting at 205 make it so that the start date and station are made in triplicate, so remove NAs
 
 # add in survey length
 snake_survey_distances <- survey_distance %>%
   filter(Survey_Type == "Night")
 
-snake_guilds_tallied2 <- left_join(snake_guilds_tallied, snake_survey_distances)
+snake_guilds_tallied <- left_join(snake_guilds_tallied, snake_survey_distances)
+
+# clean
+rm(snake_survey_distances, surveys_with_snakes, surveys_without_snakes)
 ```
 
+## Snakes 3 diets
+
+```{r prep snakes 3 diets}
+# make one data frame of only the snake records (remove NAs where no snakes were found)
+surveys_with_snakes <- snakes.sur %>%
+  filter(!is.na(Snake_ID))
+
+all_surv_records %>%
+  group_by(Survey_Type) %>%
+  reframe(n_distinct(Start_Date))
+
+# likewise, make one df of only cases where no snakes were found and keep relevant columns with it
+surveys_without_snakes <- snakes.sur %>% filter(is.na(Snake_ID)) %>%
+  select(Start_Date, Station) %>%
+  distinct()
+
+# get counts of n snakes found per diet type segment per survey
+snake_3guilds_tallied <- surveys_with_snakes %>%
+  group_by(Start_Date, Station, Diet_Type_3categories) %>%
+  reframe(n_snakes = n())
+
+# account for cases when no snakes for a given guild were found on a survey
+
+# this is step 1 of accounting for cases where a snake in a given guild wasn't found on a survey and needs to be noted with a zero
+snake_3guilds_tallied <- snake_3guilds_tallied %>%
+  complete(Diet_Type_3categories, nesting(Start_Date, Station),
+           fill = list(n_snakes = 0))
+
+# add in the instances where no snakes were found for a given survey
+
+# join specifically the dates without any snake record
+
+# make dates
+snake_3guilds_tallied$Start_Date <-mdy(snake_3guilds_tallied$Start_Date)
+# make dates
+surveys_without_snakes$Start_Date <- mdy(surveys_without_snakes$Start_Date)
+
+# filter out the dates that are already included in the guilds tallied records
+surveys_without_snakes <- surveys_without_snakes %>%
+  filter(!Start_Date %in% snake_3guilds_tallied$Start_Date)
+
+snake_3guilds_tallied <- full_join(surveys_without_snakes, snake_3guilds_tallied)
+
+# and build out one more time to get record per diet type
+snake_3guilds_tallied <- snake_3guilds_tallied %>%
+  complete(Diet_Type_3categories, nesting(Start_Date, Station),
+           fill = list(n_snakes = 0)) %>%
+  na.omit() # records that cropped up as NA in response to the diet type column for the surveys without snakes that was just added to the snake guilds tallied in the line of code starting at 205 make it so that the start date and station are made in triplicate, so remove NAs
+
+# add in survey length
+snake_survey_distances <- survey_distance %>%
+  filter(Survey_Type == "Night")
+
+snake_3guilds_tallied <- left_join(snake_3guilds_tallied, snake_survey_distances)
+
+# clean
+rm(snake_survey_distances, surveys_with_snakes, surveys_without_snakes)
+```
 
 # Prep env data
 
@@ -351,7 +430,16 @@ liz_tallied <- left_join(liz_tallied, understory_means)
 frogs_tallied <- left_join(frogs_tallied, temperature_means)
 frogs_tallied <- left_join(frogs_tallied, humidity_means)
 frogs_tallied <- left_join(frogs_tallied, understory_means)
+
+snake_guilds_tallied <- left_join(snake_guilds_tallied, temperature_means)
+snake_guilds_tallied <- left_join(snake_guilds_tallied, humidity_means)
+snake_guilds_tallied <- left_join(snake_guilds_tallied, understory_means)
+
+snake_3guilds_tallied <- left_join(snake_3guilds_tallied, temperature_means)
+snake_3guilds_tallied <- left_join(snake_3guilds_tallied, humidity_means)
+snake_3guilds_tallied <- left_join(snake_3guilds_tallied, understory_means)
 ```
+
 ```{r clean}
 rm(humidity_all, humidity_long, humidity_long_2024, humidity_means, temperature_all, temp_long, temperature_long_2024, temperature_means, understory_all, understory_long, understory_long_2024, understory_means, effort, env_2025, env_2024, env_24_25_nights)
 
@@ -560,7 +648,7 @@ ggplot(aes(x = mean_temp_F, y = n_500m)) + geom_point(position = "jitter") + the
 liz_temperature_scatterplot 
 ```
 
-## Liz and Hunting status plot
+## Lizards and Hunting status plot
 
 ```{r liz and hunting}
 
@@ -579,6 +667,287 @@ liz.hunting.plot <-ggplot(liz.mean.se, aes(x = Station, y = mean)) +
   theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Lizard detection rates") 
 
 liz.hunting.plot
+
+```
+
+
+## Snake models
+
+```{r snake model prep}
+
+# remove morning and instances where env data are missing
+snake_guilds_tallied <- snake_guilds_tallied %>%
+ na.omit()
+
+# pull out year... may need to put this in the models
+snake_guilds_tallied$Year <- factor(format(snake_guilds_tallied$Start_Date, "%Y"))
+
+# make the detection rate column
+snake_guilds_tallied$n_500m <- 500*(snake_guilds_tallied$n_snakes/snake_guilds_tallied$survey_length_m)
+hist(snake_guilds_tallied$n_500m)
+
+```
+
+```{r snake det rate model comparison, warning = FALSE}
+
+# null
+snake.null <- glmmTMB(n_500m ~ 1, data = snake_guilds_tallied, family = tweedie())
+
+summary(snake.null)
+# AIC 137.1
+
+# hunting
+snake.hunt <- glmmTMB(n_500m ~ Station, data = snake_guilds_tallied, family = tweedie())
+summary(snake.hunt)
+# 139.1 worse
+
+# diet type
+snake.diet <- glmmTMB(n_500m ~ Diet_Type, data = snake_guilds_tallied, family = tweedie())
+summary(snake.diet)
+# AIC 113.6 way better unsurprisingly
+
+# interaction of hunting and diet type
+snake.hunt.diet <- glmmTMB(n_500m ~ Diet_Type/Station, data = snake_guilds_tallied, family = tweedie())
+summary(snake.hunt.diet)
+
+# 117.4 worse
+
+# Year
+snake.diet.year <- glmmTMB(n_500m ~ Diet_Type + Year, data = snake_guilds_tallied, family = tweedie())
+summary(snake.diet.year)
+
+# AIC 112.8 better
+
+# humidity
+snake.diet.hum.year <- glmmTMB(n_500m ~ Diet_Type + Year + humidity_scaled, data = snake_guilds_tallied, family = tweedie())
+summary(snake.diet.hum.year)
+# AIC 114.4 not better
+
+# temperature
+snake.diet.temp.year <- glmmTMB(n_500m ~ Diet_Type + Year + temp_scaled, data = snake_guilds_tallied, family = tweedie())
+summary(snake.diet.temp.year)
+# AIC 114.2 not better
+
+snake_mod_names <- c("snake.null", "snake.hunt", "snake.diet", "snake.hunt.diet", "snake.diet.year", "snake.diet.hum.year", "snake.diet.temp.year")
+
+# compare
+aictab(cand.set = list(snake.null, snake.hunt, snake.diet, snake.hunt.diet, snake.diet.year, snake.diet.hum.year, snake.diet.temp.year), modnames = snake_mod_names)
+
+# best fit model results:
+Anova(snake.diet)
+
+simulateResiduals(fittedModel = snake.diet, plot = T) # passes
+testZeroInflation(snake.diet) # passes
+testDispersion(snake.diet) # not great
+
+#########################
+# counts any better?
+
+# null
+snake.null <- glmmTMB(n_snakes ~ 1 + offset(log(survey_length_m)), data = snake_guilds_tallied, family = nbinom2())
+
+summary(snake.null)
+
+# AIC 307.0
+
+# hunting
+snake.hunt <- glmmTMB(n_snakes ~ Station + offset(log(survey_length_m)), data = snake_guilds_tallied, family = nbinom2())
+
+summary(snake.hunt)
+# 308.9 tad worse
+
+# diet type
+snake.diet <- glmmTMB(n_snakes ~ Diet_Type + offset(log(survey_length_m)), data = snake_guilds_tallied, family = nbinom2())
+
+summary(snake.diet)
+# AIC 288.9 way better unsurprisingly
+
+# interaction of hunting and diet type
+snake.hunt.diet <- glmmTMB(n_snakes ~ Diet_Type/Station+ offset(log(survey_length_m)), data = snake_guilds_tallied, family = nbinom2())
+
+summary(snake.hunt.diet)
+# 292.1 worse
+
+# Year
+snake.diet.hunt.year <- glmmTMB(n_snakes ~ Diet_Type/Station + Year + offset(log(survey_length_m)), data = snake_guilds_tallied, family = nbinom2())
+
+summary(snake.diet.year)
+
+# AIC 292.3 worse
+
+# humidity
+snake.diet.hunt.hum <- glmmTMB(n_snakes ~ Diet_Type/Station + humidity_scaled + offset(log(survey_length_m)), data = snake_guilds_tallied, family = nbinom2())
+
+summary(snake.diet.hunt.hum)
+# AIC 292.7  not better
+
+# temperature
+snake.diet.hunt.temp <- glmmTMB(n_snakes ~ Diet_Type/Station + temp_scaled + offset(log(survey_length_m)), data = snake_guilds_tallied, family = nbinom2())
+
+summary(snake.diet.hunt.temp)
+# AIC 293.1 not better
+
+snake_mod_names <- c("snake.null", "snake.hunt", "snake.diet", "snake.hunt.diet", "snake.diet.year", "snake.diet.hunt.hum", "snake.diet.hunt.temp")
+
+# compare
+aictab(cand.set = list(snake.null, snake.hunt, snake.diet, snake.hunt.diet, snake.diet.year, snake.diet.hunt.hum, snake.diet.hunt.temp), modnames = snake_mod_names)
+
+# best fit model results:
+Anova(snake.diet)
+
+simulateResiduals(fittedModel = snake.diet, plot = T) # passes
+testZeroInflation(snake.diet) # passes
+testDispersion(snake.diet) # passes - is better
+
+```
+
+```{r snake det rate plot hunting}
+
+# summary data to plot
+snake_guilds.mean.se <- snake_guilds_tallied %>%
+  group_by(Station, Diet_Type) %>%
+  summarise(mean = mean(n_500m),
+           sd = sd(n_500m),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake_guilds.hunting.plot <-ggplot(snake_guilds.mean.se, aes(x = Station, y = mean)) +
+  geom_point(data = snake_guilds_tallied, aes(x = Station, y = n_500m, group = Diet_Type), color = "darkgrey", alpha = 0.75, position = position_jitterdodge()) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1)) + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Snake detection rates per guild") + facet_wrap(~Diet_Type, scales = "free")
+
+snake_guilds.hunting.plot
+
+```
+
+## Snake 3 guilds models
+
+```{r snake 3 guild model prep}
+
+# remove morning and instances where env data are missing
+snake_3guilds_tallied <- snake_3guilds_tallied %>%
+ na.omit()
+
+# pull out year... may need to put this in the models
+snake_3guilds_tallied$Year <- factor(format(snake_3guilds_tallied$Start_Date, "%Y"))
+
+# make the detection rate column
+snake_3guilds_tallied$n_500m <- 500*(snake_3guilds_tallied$n_snakes/snake_3guilds_tallied$survey_length_m)
+hist(snake_3guilds_tallied$n_500m)
+
+```
+
+```{r snake det rate model comparison, warning = FALSE}
+
+# null
+snake.null <- glmmTMB(n_500m ~ 1, data = snake_3guilds_tallied, family = tweedie())
+
+summary(snake.null)
+# AIC 190
+
+# hunting
+snake.hunt <- glmmTMB(n_500m ~ Station, data = snake_3guilds_tallied, family = tweedie())
+summary(snake.hunt)
+# 192 worse
+
+# diet type
+snake.diet <- glmmTMB(n_500m ~ Diet_Type_3categories, data = snake_3guilds_tallied, family = tweedie())
+summary(snake.diet)
+# AIC 131.1 way better unsurprisingly
+
+# interaction of hunting and diet type
+snake.hunt.diet <- glmmTMB(n_500m ~ Diet_Type_3categories/Station, data = snake_3guilds_tallied, family = tweedie())
+summary(snake.hunt.diet)
+
+# 134.9 worse
+
+# Year
+snake.diet.year <- glmmTMB(n_500m ~ Diet_Type_3categories/Station + Year, data = snake_3guilds_tallied, family = tweedie())
+summary(snake.diet.year)
+
+# AIC 133.9 tad better
+
+# humidity
+snake.diet.hum.year <- glmmTMB(n_500m ~ Diet_Type_3categories/Station + Year + humidity_scaled, data = snake_3guilds_tallied, family = tweedie())
+summary(snake.diet.hum.year)
+# AIC 135.4 not better
+
+# temperature
+snake.diet.temp.year <- glmmTMB(n_500m ~ Diet_Type_3categories/Station + Year + temp_scaled, data = snake_3guilds_tallied, family = tweedie())
+summary(snake.diet.temp.year)
+# AIC 135.3 not better
+
+snake_mod_names <- c("snake.null", "snake.hunt", "snake.diet", "snake.hunt.diet", "snake.diet.year", "snake.diet.hum.year", "snake.diet.temp.year")
+
+# compare
+aictab(cand.set = list(snake.null, snake.hunt, snake.diet, snake.hunt.diet, snake.diet.year, snake.diet.hum.year, snake.diet.temp.year), modnames = snake_mod_names)
+
+# best fit model results:
+Anova(snake.diet)
+
+simulateResiduals(fittedModel = snake.diet, plot = T) # passes
+testZeroInflation(snake.diet) # passes
+testDispersion(snake.diet) # not great
+
+#########################
+# counts any better?
+
+# null
+snake.null <- glmmTMB(n_snakes ~ 1 + offset(log(survey_length_m)), data = snake_3guilds_tallied, family = nbinom1())
+
+# hunting
+snake.hunt <- glmmTMB(n_snakes ~ Station + offset(log(survey_length_m)), data = snake_3guilds_tallied, family = nbinom1())
+
+# diet type
+snake.diet <- glmmTMB(n_snakes ~ Diet_Type_3categories + offset(log(survey_length_m)), data = snake_3guilds_tallied, family = nbinom1())
+
+# interaction of hunting and diet type
+snake.hunt.diet <- glmmTMB(n_snakes ~ Diet_Type_3categories:Station + offset(log(survey_length_m)), ziformula = ~1, data = snake_3guilds_tallied, family = nbinom1())
+summary(snake.hunt.diet)
+
+Anova(snake.hunt.diet)
+
+# Year
+snake.diet.hunt.year <- glmmTMB(n_snakes ~ Diet_Type_3categories/Station + Year + offset(log(survey_length_m)), data = snake_3guilds_tallied, family = nbinom1())
+
+# humidity
+snake.diet.hunt.hum <- glmmTMB(n_snakes ~ Diet_Type_3categories/Station + humidity_scaled + offset(log(survey_length_m)), data = snake_3guilds_tallied, family = nbinom1())
+
+# temperature
+snake.diet.hunt.temp <- glmmTMB(n_snakes ~ Diet_Type_3categories/Station + temp_scaled + offset(log(survey_length_m)), data = snake_3guilds_tallied, family = nbinom1())
+
+snake_mod_names <- c("snake.null", "snake.hunt", "snake.diet", "snake.hunt.diet", "snake.diet.hunt.year", "snake.diet.hunt.hum", "snake.diet.hunt.temp")
+
+# compare
+aictab(cand.set = list(snake.null, snake.hunt, snake.diet, snake.hunt.diet, snake.diet.hunt.year, snake.diet.hunt.hum, snake.diet.hunt.temp), modnames = snake_mod_names)
+
+# best fit model results:
+Anova(snake.diet)
+
+simulateResiduals(fittedModel = snake.diet, plot = T) # passes
+testZeroInflation(snake.diet) # passes
+testDispersion(snake.diet) # passes - is better
+
+```
+
+## Snake 3 guilds plot
+
+```{r snake_3guilds and hunting}
+
+# summary data to plot
+snake_3guilds.mean.se <- snake_3guilds_tallied %>%
+  group_by(Station, Diet_Type_3categories) %>%
+  summarise(mean = mean(n_500m),
+           sd = sd(n_500m),
+           n = n()) %>%
+  mutate(se = sd / sqrt(n))
+
+snake_3guilds.hunting.plot <-ggplot(snake_3guilds.mean.se, aes(x = Station, y = mean)) +
+  geom_point(data = snake_3guilds_tallied, aes(x = Station, y = n_500m, group = Diet_Type_3categories), color = "darkgrey", alpha = 0.75, position = position_jitterdodge()) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1)) + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Snake detection rates per guild") + facet_wrap(~Diet_Type_3categories, scales = "free")
+
+snake_3guilds.hunting.plot
 
 ```
 
