@@ -1064,56 +1064,241 @@ Anova(familyXstation)
 
 ```{r poster figure}
 
-frog_plot <- ggplot(frogs.mean.se, aes(x = reorder(Family, -mean), y = mean, fill = Station, shape = Station)) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), position = spec_dodge, width = 0.2, linewidth = 0.2) +
-  geom_point(position = spec_dodge, color = "black") + scale_shape_discrete(labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank()) + ylab("Individuals per 500m")+ labs(x=NULL) + labs(title = "Frog detection rates") +  theme(legend.title = element_blank())+ theme_bw() +
-  theme(axis.text = element_text(size = 12, color = "black")) +theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, vjust = 1)) 
+frog_plot <- ggplot(
+  frogs.mean.se,
+  aes(x = reorder(Family, -mean), y = mean, color = Station, shape = Station)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se),
+    position = spec_dodge, width = 0.2, linewidth = 0.4, color = "black") +
+  geom_point(position = spec_dodge, size = 2.8) +
+  scale_color_manual(
+    values = c("TBS" = "cyan3", "YRS" = "chocolate"),
+    labels = c("TBS" = "Unhunted", "YRS" = "Hunted")) +
+  scale_shape_discrete(labels = c("TBS" = "Unhunted", "YRS" = "Hunted"))+
+  labs(
+    x = NULL,
+    y = "Individuals per 500m",
+    title = "Frogs",
+    color = NULL,
+    shape = NULL) +
+  theme_bw() +
+  theme(axis.title.y = element_text(size = 14, family = "Tahoma", color = "black", margin = margin(r = 4))) + theme(axis.text.y = element_text(size = 12, face = "plain")) +
+  theme(axis.text = element_text(size = 14, color = "black", family = "Tahoma"),
+    axis.text.x = element_text(
+      color = "black",
+      face = "plain",
+      angle = 45,
+      vjust = 1), legend.text = element_text(size = 14, family = "Tahoma"),
+legend.key.size = unit(1.2, "cm"),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    legend.position = "bottom", legend.margin = margin(t = -45)
+  ) + coord_cartesian(ylim = c(0, 1.6)) + annotate("text", x = 1, y = 1.55, label = "***", size = 7, fontface = "bold") + annotate("text", x = 2, y = 1.55, label = "***", size = 7, fontface = "bold") + annotate("text", x = 4, y = 1.55, label = "***", size = 7, fontface = "bold") + annotate("text", x = 6, y = 1.55, label = "***", size = 7, fontface = "bold") + annotate("text", x = 7, y = 1.55, label = "***", size = 7, fontface = "bold")
 
-lz_plot <- ggplot(lz_fam_df, aes(x = reorder(x = Family, -mean_n_per_500m), y = mean_n_per_500m, fill = Station,shape = Station)) +
-  geom_errorbar(aes(ymin = mean_n_per_500m - se, ymax = mean_n_per_500m + se), position = spec_dodge, width = 0.2, linewidth = 0.2) + labs(fill = NULL)+
-  geom_point(position = spec_dodge, color = "black") + scale_shape_discrete(labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank()) + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") +   theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45)) + labs(x = NULL) + theme(legend.text = element_text(size = 12)) + labs(title = "Lizard detection rates") + theme_bw()+
-  theme(axis.text = element_text(size = 12, color = "black")) + theme(axis.text.x = element_text(color = "black", face = "plain", angle = 45, vjust = 1)) 
+frog_plot
+
+
+
+
+
+
+
+
+lz_plot <- ggplot(lz_fam_df,
+  aes(x = reorder(Family, -mean_n_per_500m), y = mean_n_per_500m, color = Station, shape = Station)) +
+  geom_errorbar(aes(
+      ymin = mean_n_per_500m - se,
+      ymax = mean_n_per_500m + se),
+    position = spec_dodge,
+    width = 0.2,
+    linewidth = 0.4,
+    color = "black") +
+  geom_point(position = spec_dodge, size = 2.8) +
+  scale_color_manual(
+    values = c("TBS" = "cyan3", "YRS" = "chocolate"),
+    labels = c("TBS" = "Unhunted", "YRS" = "Hunted")) +
+  scale_shape_discrete(labels = c("TBS" = "Unhunted", "YRS" = "Hunted")) +
+  labs(
+    x = NULL, y = "Individuals per 500m",
+    title = "Lizards",color = NULL,
+    shape = NULL) +
+  theme_bw() +
+  theme(axis.title.y = element_text(
+      size = 14,
+      family = "Tahoma",
+      color = "black",
+      margin = margin(r = 4)),
+    axis.text.y = element_text(
+      size = 12,
+      face = "plain"),
+    axis.text = element_text(
+      size = 14,
+      color = "black",
+      family = "Tahoma"),
+    axis.text.x = element_text(
+      color = "black", face = "plain", angle = 45, vjust = 1),
+    legend.text = element_text(size = 14, family = "Tahoma"),
+    legend.key.size = unit(1.2, "cm"),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    legend.position = "bottom", legend.margin = margin(t = -45)) + coord_cartesian(ylim = c(0, 1.2)) + annotate("text", x = 3, y = 1, label = "***", size = 7, fontface = "bold") + annotate("text", x = 4, y = 1, label = "***", size = 7, fontface = "bold")
+
+lz_plot
  
 
-lz_frog_plot <- ggarrange(frog_plot, lz_plot, labels = c("a)", "b)"), common.legend = TRUE)
+#lz_frog_plot <- ggarrange(frog_plot, lz_plot, labels = c("a)", "b)"), common.legend = TRUE)
 
-lz_frog_plot 
+#lz_frog_plot 
 
 
 ```
 
 ```{r smamm and snake}
 
-smamm_plot <- ggplot(smams.distance.mean.se, aes(x = Station, y = mean, shape = Station)) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), position = spec_dodge, width = 0.2, linewidth = 0.3) + labs(fill = NULL)+
-  geom_point(position = spec_dodge, size = 1) + scale_shape_discrete(labels = c("Unhunted", "Hunted")) + 
-  theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") + labs(x = NULL)+ theme(legend.title = element_blank()) +
-  theme(axis.text = element_text(size = 12, color = "black"))+ scale_x_discrete(labels = c("Unhunted", "Hunted")) +
-  theme(axis.text = element_text(size = 12, color = "black")) + theme(legend.text = element_text(size = 12))
+smamm_plot <- ggplot(
+  smams.distance.mean.se,
+  aes(x = Station, y = mean)) +
+  geom_errorbar(
+    aes(ymin = mean - se, ymax = mean + se),
+    position = spec_dodge,
+    width = 0.2,
+    linewidth = 0.8) +
+  geom_point(aes(color = Station), position = spec_dodge, size = 4, stroke = .5) +
+  scale_color_manual(values = c(
+      "TBS" = "cyan3",
+      "YRS" = "chocolate"),
+    labels = c(
+      "TBS" = "Unhunted",
+      "YRS" = "Hunted"
+    )
+  ) + 
+  scale_x_discrete(labels = c("TBS" = "", "YRS" = "")) + annotate("text", x = 1.5, y = 1.4, label = "* * *", size = 7, fontface = "bold") +
+  theme_bw() +
+  theme(
+    axis.text.y = element_text(color = "black", size = 13),
+    axis.title.y = element_text(size = 15, family = "Tahoma", margin = margin(r = 10)),
+    legend.text = element_text(size = 14, family = "Tahoma"),
+    legend.title = element_blank(),
+    legend.position = "bottom", 
+    plot.title = element_text(size = 16, face = "bold", color = "black", hjust = .5, margin = margin(b = 10))) +
+  ylab("Individuals per 500m") +
+  labs(x = NULL) + 
+  labs(title = "Small Mammals") + coord_cartesian(ylim = c(0, 1.5))
 
 smamm_plot
 
+
+
+
+
 # boidae vs collubridae
 
-boid_colub_plot <- ggplot(snakes.boid.colub.mean.se, aes(x = Family, y = mean, shape = Station)) +  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), position = spec_dodge, width = 0.2, linewidth = 0.3) + labs(fill = NULL) + theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") + labs(x = NULL) +
-  geom_point(position = spec_dodge, size = 1, color = "black") + scale_shape_discrete(labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank()) +
-  theme(axis.text = element_text(size = 12, color = "black")) +
-  theme(axis.text = element_text(size = 12, color = "black")) + theme(legend.text = element_text(size = 12))
+boid_colub_plot <- ggplot(
+  snakes.boid.colub.mean.se,
+  aes(x = Family, y = mean, shape = Family, fill = Station)
+) +
+  geom_errorbar(
+    aes(ymin = mean - se, ymax = mean + se),
+    position = spec_dodge,
+    width = 0.2,
+    linewidth = 0.8
+  ) +
+  geom_point(
+    aes(shape = Family, fill = Station),
+    position = spec_dodge,
+    size = 4,
+    stroke = .5,
+    color = "black"
+  ) +
+  scale_x_discrete(limits = c("Colubridae", "Boidae")) +
+  scale_shape_manual(values = c(
+    "Colubridae" = 21,
+    "Boidae" = 24
+  )) +
+  scale_fill_manual(
+    values = c(
+      "TBS" = "cyan3",
+      "YRS" = "chocolate"
+    ),
+    labels = c(
+      "TBS" = "Unhunted",
+      "YRS" = "Hunted"
+    )
+  ) +
+  guides(shape = "none") +
+  annotate("text", x = 2, y = 0.15, label = "* * *", size = 7, fontface = "bold") +
+  theme_bw() +
+  theme(
+    axis.text.y = element_text(color = "black", size = 13),
+    axis.text.x = element_text(color = "black", size = 13),
+    axis.title.y = element_text(size = 15, family = "Tahoma", margin = margin(r = 10)),
+    legend.text = element_text(size = 14, family = "Tahoma"),
+    legend.title = element_blank(),
+    legend.position = "bottom",
+    plot.title = element_text(size = 16, face = "bold", color = "black", hjust = .5, margin = margin(b = 10))
+  ) +
+  ylab("Individuals per 500m") +
+  labs(x = NULL) +
+  labs(title = "Snakes (Family Comparison)") + 
+  guides(shape = "none", fill = guide_legend(override.aes = list(shape = 21)))
 
-boid_colub_plot
+ boid_colub_plot
+
+
+
+
+
 
 # diet type
 
-snake_3_guild_plot <- ggplot(snakes.mean.se, aes(x = Diet_Type_3categories, y = mean, shape = Station)) +  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), position = spec_dodge, width = 0.2, linewidth = 0.3) + labs(fill = NULL) + theme_minimal() + theme(axis.text.y = element_text(color = "black")) + ylab("Individuals per 500m") + labs(x = NULL) + 
-  geom_point(position = spec_dodge, size = 1, color = "black") + scale_x_discrete(labels = c("Mixed diet", "Mammal-based diet", "Excludes mammals")) + scale_shape_discrete(labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank()) +
-  theme(axis.text = element_text(size = 12, color = "black")) + theme(legend.text = element_text(size = 12))
+snake_3_guild_plot <- ggplot(
+  snakes.mean.se,
+  aes(x = Diet_Type_3categories, y = mean, shape = Diet_Type_3categories, fill = Station)
+) + geom_errorbar(
+    aes(ymin = mean - se, ymax = mean + se),
+    position = spec_dodge,
+    width = 0.2,
+    linewidth = 0.8) +
+  geom_point(
+    aes(shape = Diet_Type_3categories, fill = Station),
+    position = spec_dodge,
+    size = 4,
+    stroke = .5,
+    color = "black") +
+  scale_x_discrete(
+    limits = c("no_mammals", "mixed", "mostly_mammals"),
+    labels = c("Non-mammal-eating Snakes", "Generalist Snakes", "Mammal-eating Snakes")) +
+  scale_shape_manual(values = c(
+    "no_mammals" = 21,
+    "mixed" = 22,
+    "mostly_mammals" = 24)) +
+  scale_fill_manual(
+    values = c(
+      "TBS" = "cyan3",
+      "YRS" = "chocolate"),
+    labels = c(
+      "TBS" = "Unhunted",
+      "YRS" = "Hunted")) +
+  guides(shape = "none") +
+  annotate("text", x = 3, y = 0.15, label = "* * *", size = 7, fontface = "bold") +
+  theme_bw() +
+  theme(
+    axis.text.y = element_text(color = "black", size = 13),
+    axis.text.x = element_text(color = "black", size = 13),
+    axis.title.y = element_text(size = 15, family = "Tahoma", margin = margin(r = 10)),
+    legend.text = element_text(size = 14, family = "Tahoma"),
+    legend.title = element_blank(),
+    legend.position = "bottom",
+    plot.title = element_text(size = 16, face = "bold", color = "black", hjust = .5, margin = margin(b = 10))) +
+  ylab("Individuals per 500m") +
+  labs(x = NULL) +
+  labs(title = "Snakes (Guild Comparison)") + 
+  guides(shape = "none", fill = guide_legend(override.aes = list(shape = 21)))
 
 snake_3_guild_plot
 
-det.plot <- ggarrange(smamm_plot, snake_3_guild_plot, boid_colub_plot, labels = c("a)", "b)", "c)"), nrow = 1, common.legend = TRUE)
+
+#det.plot <- ggarrange(smamm_plot, snake_3_guild_plot, boid_colub_plot, labels = c("a)", "b)", "c)"), nrow = 1, common.legend = TRUE)
 
 
-det.plot
+#det.plot
 
 #ggsave(det.plot, filename= "smamm_snake.png")
 ```
