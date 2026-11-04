@@ -283,13 +283,10 @@ lizard.summ <- liz_tallied %>%
 
 ## Snakes overall
 
-### Prep snake info by dietary guild
-
-```{r prep three guild snake df}
-
+```{r prep tot snake data}
 # make one data frame of only the snake records (remove NAs where no snakes were found) 
-surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>%
-  select(Start_Date, Station, Snake_ID, Diet_Type_3categories)
+surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>% # if snake ID is na, there were no snakes found that survey
+  select(Start_Date, Station)
 
 # dates
 surveys_with_snakes$Start_Date <- mdy(surveys_with_snakes$Start_Date)
@@ -302,76 +299,184 @@ select(-Survey_Type)
 # add n
 surveys_without_snakes$n_snakes <-0
 
-# dates
-surveys_without_snakes_completed$Start_Date <-mdy(surveys_without_snakes_completed$Start_Date)
-
-# add survey length data
+# add survey length data to surveys with snakes
+# isolate distance info for nighttime surveys
+survey_distance_nights <- survey_distance %>%
+  filter(Survey_Type == "Night") %>%
+  select(-Survey_Type) %>%
+  distinct()
+# now add
 surveys_with_snakes <- left_join(surveys_with_snakes, survey_distance_nights)
 
-surveys_without_snakes_completed <- left_join(surveys_without_snakes_completed, survey_distance_nights)
+# add a n snakes column to surveys with snakes
+surveys_with_snakes$n_snakes <-1
 
-# dont need survey type
-surveys_without_snakes_completed <- surveys_without_snakes_completed %>% select(-Survey_Type)
-# get counts of n snakes found per diet type per segment per survey
-n_snakes_per_3guilds <- surveys_with_snakes %>%
-  group_by(Start_Date, Station, Diet_Type_3categories, survey_length_m) %>%
-  reframe(n_snakes = n()) 
+surveys_with_snakes <- left_join(surveys_with_snakes, survey_distance_nights)
 
-# and repeat the process of making sure we have a numerical record (including 0s if none were found) for each diet type for each segment
-n_snakes_per_3guilds <-n_snakes_per_3guilds %>% 
-  complete(Diet_Type_3categories, nesting(Start_Date, Station, survey_length_m), fill = list(n_snakes = 0))
+# rbind to add the surveys without snakes
+all_surveys_data <- rbind(surveys_without_snakes, surveys_with_snakes)
 
-# join with zeros
-n_snakes_per_3guilds <- rbind(surveys_without_snakes_completed, n_snakes_per_3guilds)
+# tally
+n_snakes <- all_surveys_data %>%
+  group_by(Station, Start_Date, survey_length_m) %>%
+  reframe(n_snakes = sum(n_snakes))
+# detection rate
+
+n_snakes$n_500m <- 500*(n_snakes$n_snakes/n_snakes$survey_length_m)
+
+# clean
+rm(all_surveys_data, surveys_with_snakes, surveys_without_snakes)
+```
+
+### Prep snake info by dietary guild
+
+```{r prep three guild snake df}
+
+# make one data frame of only the snake records (remove NAs where no snakes were found) 
+surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>% # if snake ID is na, there were no snakes found that survey
+  select(Start_Date, Station, Snake_ID, Diet_Type_3categories)
+
+length(unique(surveys_with_snakes$Start_Date))
+# 46 surveys with snakes
+
+# dates
+surveys_with_snakes$Start_Date <- mdy(surveys_with_snakes$Start_Date)
+
+# add survey length data to surveys with snakes
+# isolate distance info for nighttime surveys
+survey_distance_nights <- survey_distance %>%
+  filter(Survey_Type == "Night") %>%
+  select(-Survey_Type) %>%
+  distinct()
+
+# now add
+surveys_with_snakes <- left_join(surveys_with_snakes, survey_distance_nights)
+
+# count up snakes
+surveys_with_snakes <- surveys_with_snakes %>%
+  group_by(Station, Start_Date, survey_length_m, Diet_Type_3categories) %>%
+  reframe(n_snakes = n())
+
+# pivot wider
+surveys_with_snakes_wide <- surveys_with_snakes %>%
+  pivot_wider(names_from = Diet_Type_3categories,
+              values_from = n_snakes,
+              values_fill = 0)
+
+# now that we have 0s for cases where a certain guild wasn't found on a survey, collapse back with pivot longer
+
+surveys_with_snakes <- surveys_with_snakes_wide %>%
+  pivot_longer(cols = c(no_mammals, mixed, mostly_mammals),
+               names_to = "diet_type",
+               values_to = "n_snakes")
+
+surveys_without_snakes <- survey_distance %>%
+  filter(Survey_Type == "Night" & !Start_Date %in% surveys_with_snakes$Start_Date) %>%
+select(-Survey_Type)
+
+# add n
+surveys_without_snakes$n_snakes <-0
+
+# add diet type
+surveys_without_snakes_nomamms <- surveys_without_snakes
+surveys_without_snakes_nomamms$diet_type <-"no_mammals"
+
+surveys_without_snakes_mixed <- surveys_without_snakes
+surveys_without_snakes_mixed$diet_type<- "mixed"
+
+surveys_without_snakes_mostlymamms <- surveys_without_snakes
+
+surveys_without_snakes_mostlymamms$diet_type <- "mostly_mammals"
+
+surveys_without_snakes_compelete <- rbind(surveys_without_snakes_mixed, surveys_without_snakes_mostlymamms, surveys_without_snakes_nomamms)
+
+# add zero survey instances to surveys with snakes
+all_surveys_data_3guilds <- rbind(surveys_without_snakes_compelete, surveys_with_snakes)
+
+# pivot wider
+#snakes_per_guild_wide <- all_surveys_data_3guilds %>%
+ # pivot_wider(names_from = Diet_Type_3categories,
+  #            values_from = n_snakes,
+   #           values_fill = 0)
+
+all_surveys_data_3guilds$n_500m <- 500*(all_surveys_data_3guilds$n_snakes/all_surveys_data_3guilds$survey_length_m)
+
+rm(surveys_with_snakes, surveys_with_snakes_wide, surveys_without_snakes, surveys_without_snakes_compelete, surveys_without_snakes_mixed, surveys_without_snakes_mostlymamms, surveys_without_snakes_nomamms)
+```
+
+```{r prep two guild snake df}
+
+# make one data frame of only the snake records (remove NAs where no snakes were found) 
+surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>% # if snake ID is na, there were no snakes found that survey
+  select(Start_Date, Station, Snake_ID, Diet_Type)
+
+# dates
+surveys_with_snakes$Start_Date <- mdy(surveys_with_snakes$Start_Date)
+
+# add survey length data to surveys with snakes
+# isolate distance info for nighttime surveys
+survey_distance_nights <- survey_distance %>%
+  filter(Survey_Type == "Night") %>%
+  select(-Survey_Type) %>%
+  distinct()
+
+# now add
+surveys_with_snakes <- left_join(surveys_with_snakes, survey_distance_nights)
+
+# count up snakes
+surveys_with_snakes <- surveys_with_snakes %>%
+  group_by(Station, Start_Date, survey_length_m, Diet_Type) %>%
+  reframe(n_snakes = n())
+
+# pivot wider
+surveys_with_snakes_wide <- surveys_with_snakes %>%
+  pivot_wider(names_from = Diet_Type,
+              values_from = n_snakes,
+              values_fill = 0)
+
+# now that we have 0s for cases where a certain guild wasn't found on a survey, collapse back with pivot longer
+
+surveys_with_snakes <- surveys_with_snakes_wide %>%
+  pivot_longer(cols = c(no_mammals,consumes_mammals),
+               names_to = "diet_type",
+               values_to = "n_snakes")
+
+surveys_without_snakes <- survey_distance %>%
+  filter(Survey_Type == "Night" & !Start_Date %in% surveys_with_snakes$Start_Date) %>%
+select(-Survey_Type)
+
+# add n
+surveys_without_snakes$n_snakes <-0
+
+# add diet type
+surveys_without_snakes_nomamms <- surveys_without_snakes
+surveys_without_snakes_nomamms$diet_type <-"no_mammals"
+
+surveys_without_snakes_yesmamms <- surveys_without_snakes
+
+surveys_without_snakes_yesmamms$diet_type <- "consumes_mammals"
+
+surveys_without_snakes_compelete <- rbind(surveys_without_snakes_yesmamms, surveys_without_snakes_nomamms)
+
+# add zero survey instances to surveys with snakes
+all_surveys_data_2guilds <- rbind(surveys_without_snakes_compelete, surveys_with_snakes)
+
+# pivot wider
+#snakes_per_guild_wide <- all_surveys_data_3guilds %>%
+ # pivot_wider(names_from = Diet_Type_3categories,
+  #            values_from = n_snakes,
+   #           values_fill = 0)
+
+all_surveys_data_2guilds$n_500m <- 500*(all_surveys_data_2guilds$n_snakes/all_surveys_data_2guilds$survey_length_m)
+
 ```
 
 ### Snakes by family Colubridae vs Boidae
 
 ```{r prep snake fam df}
 
-# make one data frame of only the snake records (remove NAs where no snakes were found) 
-surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID))
 
-# likewise, make one df of only cases where no snakes were found and keep relevant columns with it
-surveys_without_snakes <- snakes.sur %>% filter(is.na(Snake_ID)) %>%
-  select(Start_Date, Station, Segment, Seg_dist_m)
 
-# get counts of n snakes found per diet type per segment per survey
-n_colub_boid <- surveys_with_snakes %>%
-  filter(Family == "Colubridae" | Family == "Boidae") %>%
-  group_by(Start_Date, Station, Family, Segment, Seg_dist_m) %>%
-  reframe(n_snakes = n()) 
-
-# account for cases when no snakes for a given guild were found on a segment
-# this is step 1 of accounting for cases where a snake in a given fam wasn't found on a segment and needs to be noted with a zero
-n_colub_boid <- n_colub_boid %>% 
-  complete(Family, nesting(Start_Date, Segment, Station, Seg_dist_m), fill = list(n_snakes = 0))
-
-# add in the instances where no snakes were found for a given survey
-surveys_without_snakes_boid <- surveys_without_snakes
-surveys_without_snakes_boid$Family<- "Boidae"
-surveys_without_snakes_col <- surveys_without_snakes
-surveys_without_snakes_col$Family<- "Colubridae"
-
-n_colub_boid <- bind_rows(n_colub_boid, surveys_without_snakes_col, surveys_without_snakes_boid)
-
-n_colub_boid[is.na(n_colub_boid)] <- 0
-
-# check, should have 61 unique surveys
-length(unique(n_colub_boid$Start_Date))
-
-# each survey should have 2 species
-n_colub_boid %>%
-  group_by(Start_Date) %>%
-  reframe(n_fam = n_distinct(Family))
-
-# checks out
-
-# make column for n found per 500m
-n_colub_boid$n_500m <- (n_colub_boid$n_snakes/n_colub_boid$Seg_dist_m)*500
-
-# clean
-rm(surveys_without_snakes_col, surveys_without_snakes_boid, surveys_without_snakes, surveys_with_snakes)
 ```
 
 # Env data
@@ -507,52 +612,50 @@ understory_means <- understory_all %>%
   group_by(Station, Start_Date, Survey_Type) %>%
   reframe(mean_understory_leaves = mean(Understory))
 
+# repeat with only the night time surveys for the snake data
+
+humidity_means_night <- humidity_all %>%
+  filter(Survey_Type == "Night") %>%
+  group_by(Station, Start_Date) %>%
+  reframe(mean_humidity = mean(Humidity))
+
+temperature_means_night <- temperature_all %>%
+  filter(Survey_Type == "Night") %>%
+  group_by(Station, Start_Date) %>%
+  reframe(mean_temp_F = mean(Temperature))
+
+
 # center and scale
 humidity_means$humidity_scaled <-scale(humidity_means$mean_relative_humidity)
 
 temperature_means$temp_scaled <-scale(temperature_means$mean_temp_F)
+
+# and for snake survey data only
+humidity_means_night$humidity_scaled <-scale(humidity_means_night$mean_humidity)
+
+temperature_means_night$temp_scaled <-scale(temperature_means_night$mean_temp_F)
 
 # understory not included in models so not bothering to center and scale here
 ```
 
 ## Add Env to dfs
 ```{r add env to dfs}
-# frogs
-# fix date first
-frogs_tallied$Start_Date <- ymd(frogs_tallied$Start_Date)
 
-# add humidity to lizard df
 frogs_tallied <- left_join(frogs_tallied, humidity_means)
-
-# and add temp
 frogs_tallied <- left_join(frogs_tallied, temperature_means)
 
-head(frogs_tallied) # looks right
-
-# and add to snakes - same process
-# total numbers of snakes regardless of family or dietary guild
-# format date
-n_snakes$Start_Date <- mdy(n_snakes$Start_Date)
-
-n_snakes <- left_join(n_snakes, humidity_means)
-n_snakes <- left_join(n_snakes, temperature_means)
-
-# fix dates - guild df
-n_snakes_per_3guilds$Start_Date <- mdy(n_snakes_per_3guilds$Start_Date)
-# and fam df
-n_colub_boid$Start_Date <-mdy(n_colub_boid$Start_Date)
-#add in the humidity and temp
-n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, humidity_means)
-n_snakes_per_3guilds <- left_join(n_snakes_per_3guilds, temperature_means)
-# and do that for snake family df too 
-n_colub_boid <- left_join(n_colub_boid, humidity_means)
-n_colub_boid <- left_join(n_colub_boid, temperature_means)
-
-# add to lizards, same process
-
-liz_tallied$Start_Date<-ymd(liz_tallied$Start_Date)
 liz_tallied <- left_join(liz_tallied, humidity_means)
 liz_tallied <- left_join(liz_tallied, temperature_means)
+
+n_snakes <-left_join(n_snakes, humidity_means_night)
+n_snakes <- left_join(n_snakes, temperature_means_night)
+
+all_surveys_data_3guilds <- left_join(all_surveys_data_3guilds, humidity_means_night)
+all_surveys_data_3guilds <- left_join(all_surveys_data_3guilds, temperature_means_night)
+
+all_surveys_data_2guilds <- left_join(all_surveys_data_2guilds, humidity_means_night)
+all_surveys_data_2guilds <- left_join(all_surveys_data_2guilds, temperature_means_night)
+
 
 ```
 
@@ -680,9 +783,9 @@ aictab(cand.set = list(frog.null, frog.survtype, frog.survtype.hunt, frog.survty
 Anova(frog.survtype.humidity.temperature) # temp and humidity both have significant effects on frog detection rates
 summary(frog.survtype.humidity.temperature)
 
-simulateResiduals(fittedModel = frog.humidity.temperature, plot = T) # passes
-testZeroInflation(frog.humidity.temperature) # passes
-testDispersion(frog.humidity.temperature) # passes
+simulateResiduals(fittedModel = frog.survtype.humidity.temperature, plot = T) # passes
+testZeroInflation(frog.survtype.humidity.temperature) # passes
+testDispersion(frog.survtype.humidity.temperature) # passes
 
 ```
 
@@ -756,9 +859,6 @@ frog.hunting.plot.no.outlier
 # Owen
 # this should be (b) of main text figure 2 (top row)
 ```
-
-
-
 
 # Lizards
 
@@ -878,156 +978,60 @@ liz.hunting.plot
 ## Overall number models
 
 ```{r snakes overall mods}
+
 n_snakes$Year<- factor(format(n_snakes$Start_Date, "%Y"))
 
+# remove NA cases for env vars
+n_snakes.NA.omit <- n_snakes %>%
+  na.omit
 # null
 # 1
-snake.tot.null <- glmmTMB(n_snakes ~ 1 + (1|Segment) + offset(log(Seg_dist_m)), data = n_snakes, family = nbinom2)
-summary(snake.tot.null)
+n_snake.null <- glmmTMB(n_snakes ~ 1 + offset(log(survey_length_m)), data = n_snakes.NA.omit, family = nbinom2)
+                        
+summary(n_snake.null)
+#AIC 208.9
 
-# AIC 499.2
-simulateResiduals(fittedModel = snake.tot.null, plot = T) # passes
-testZeroInflation(snake.tot.null) # passes
-testDispersion(snake.tot.null) # passes
+simulateResiduals(fittedModel = n_snake.null, plot = T) # passes
+testZeroInflation(n_snake.null) # passes
+testDispersion(n_snake.null) # passes
 
-# yr
-# 2 
-snake.tot.yr <-glmmTMB(n_snakes ~ Year + (1|Segment) + offset(log(Seg_dist_m)), data = n_snakes, family = nbinom2)
-# AIC 499.6 # little worse
-summary(snake.tot.yr)
+# Year
+n_snake.yr <- glmmTMB(n_snakes ~ Year + offset(log(survey_length_m)), data = n_snakes.NA.omit, family = nbinom2)
+                        
+summary(n_snake.yr)
+# AIC 208.8, basically the same
 
 # Hunting status (station)
-# 3
-snake.tot.st <-glmmTMB(n_snakes ~ Station + (1|Segment) + offset(log(Seg_dist_m)), data = n_snakes, family = nbinom2)
-# AIC 501.2 # significantly worse
 
-summary(snake.tot.st)
+n_snake.hunt <-glmmTMB(n_snakes ~ Station + offset(log(survey_length_m)), data = n_snakes.NA.omit, family = nbinom2)
+
+summary(n_snake.hunt)
+# AIC 210.7 worse
 
 # humidity
-# 4
-snake.tot.hum <-glmmTMB(n_snakes ~ humidity_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = n_snakes, family = nbinom2)
+n_snake.hum <-glmmTMB(n_snakes ~ humidity_scaled + offset(log(survey_length_m)), data = n_snakes.NA.omit, family = nbinom2)
 
-summary(snake.tot.hum) #490.3 much better
+summary(n_snake.hum) #209.5 not better than null
 
-# Add temperature
-# 5
-snake.tot.hum.temp <-glmmTMB(n_snakes ~ humidity_scaled + temp_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = n_snakes, family = nbinom2)
+# temp
+n_snake.temp <-glmmTMB(n_snakes ~ temp_scaled + offset(log(survey_length_m)), data = n_snakes.NA.omit, family = nbinom2)
 
-summary(snake.tot.hum.temp) # AIC 492.3 # worse
+summary(n_snake.temp) # 209.7 not better than null
 
-snake_overall_mod_names <- c("snake.tot.null", "snake.tot.yr", "snake.tot.st", "snake.tot.hum", "snake.tot.hum.temp")  
+snake_overall_mod_names <- c("n_snake.null", "n_snake.yr", "n_snake.hunt", "n_snake.hum", "n_snake.temp")  
 
 # compare
-aictab(cand.set = list(snake.tot.null, snake.tot.yr, snake.tot.st, snake.tot.hum, snake.tot.hum.temp), modnames = snake_overall_mod_names)
+aictab(cand.set = list(n_snake.null, n_snake.yr, n_snake.hunt, n_snake.hum, n_snake.temp), modnames = snake_overall_mod_names)
 
-Anova(snake.tot.hum)
-
-simulateResiduals(fittedModel = snake.tot.hum, plot = T) # passes
-testZeroInflation(snake.tot.hum) # passes
-testDispersion(snake.tot.hum) # passes
-
-# clean
-rm(snake_overall_mod_names, snake.tot.null, snake.tot.yr, snake.tot.st, snake.tot.hum, snake.tot.hum.temp)
-
-```
-
-## Snake summary data by dietary guild
-
-```{r snake summaries}
-
-n_snakes_per_3guilds$n_snakes_500m <- 500*(n_snakes_per_3guilds$n_snakes/n_snakes_per_3guilds$Seg_dist_m)
-
-n_snakes_per_3guilds %>%
-  group_by(Station, Diet_Type_3categories) %>%
-  reframe(mean_snakes_500m = mean(n_snakes_500m),
-         sd = sd(n_snakes_500m),
-           n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
-snakes.mean.se <- n_snakes_per_3guilds %>%
-  group_by(Station, Diet_Type_3categories) %>%
-  reframe(mean = mean(n_snakes_500m),
-           sd = sd(n_snakes_500m),
-           n = n()) %>%
-  mutate(se = sd / sqrt(n))
-
+# null is best fit
+summary(n_snake.null)
 ```
 
 ## Snake models by dietary guild
 
 ```{r dietary guild mods}
 
-n_snakes_per_3guilds.na.removed <- n_snakes_per_3guilds %>%
-  na.omit()
-
-n_snakes_per_3guilds.na.removed$Year <- factor(format(n_snakes_per_3guilds.na.removed$Start_Date, "%Y"))
-
-# null mod
-# 1
-guild.null <- glmmTMB(n_snakes_500m ~ 1 + (1|Segment), data = n_snakes_per_3guilds.na.removed, family = tweedie)
-
-summary(guild.null)
-# AIC 897.4
-
-# Guild
-# 2
-guild <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie())
-
-summary(guild)
-# AIC 838.9 much improved
-
-# Year
-# 4
-guild.yr <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories + Year + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie())
-
-summary(guild.yr)
-# 839.0 worse
-
-# Guild and Station
-# 3
-guild.station <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories + Station + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie())
-
-summary(guild.station)
-# AIC 840.7 worse
-
-# Guild/Station
-# 4
-guildXstation <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories*Station + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie())
-
-summary(guildXstation)
-# AIC 837.4 better
-
-# Add humidity?
-# 5
-guildXstation.hum <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories*Station + humidity_scaled + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
-summary(guildXstation.hum)
-
-# Interaction with humidity?
-# 6
-guildXstation.guildXhum <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories*Station + Diet_Type_3categories*humidity_scaled + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
-
-summary(guildXstation.guildXhum)
-# AIC 835.1 BEST SO FAR
-
-
-# Temperature
-# 7
-guildXstation.guildXhum.temp <- glmmTMB(n_snakes_500m ~ Diet_Type_3categories*Station + Diet_Type_3categories*humidity_scaled + temp_scaled + (1|Segment), data =  n_snakes_per_3guilds.na.removed, family = tweedie)
-
-summary(guildXstation.guildXhum.temp)
-# worse
-
-# Compare
-
-snake_diet_mod_names <- c("guild.null", "guild", "guild.yr", "guild.station", "guildXstation", "guildXstation.hum", "guildXstation.guildXhum", "guildXstation.guildXhum.temp")
-
-aictab(cand.set = list(guild.null, guild, guild.yr, guild.station, guildXstation, guildXstation.hum, guildXstation.guildXhum, guildXstation.guildXhum.temp), modnames = snake_diet_mod_names)
-
-Anova(guildXstation.guildXhum)
-
-simulateResiduals(fittedModel = guildXstation.guildXhum, plot = T) # close enough
-testZeroInflation(guildXstation.guildXhum) # passes
-testDispersion(guildXstation.guildXhum) # ok not great tho
+ggplot(all_surveys_data_2guilds, aes(x = Station, y = n_500m)) + geom_point(position = position_jitterdodge(jitter.width = 0.3), alpha = 0.5) + theme_bw() + facet_wrap(~diet_type) + ylim(0,1.6)
 
 ```
 
