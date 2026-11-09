@@ -76,9 +76,6 @@ frogs_df$Start_Date <- mdy(frogs_df$Start_Date)
 # remove the morning survey
 frogs_df <- frogs_df %>% filter(Survey_Type != "Morning")
 
-effort <- read.csv("Data/effort_aug2026.csv")
-# Date, effort hours, segment length
-
 env_2025 <- read.csv("Data/env_2025_cleaned.csv", encoding = "latin1")
 # 2025 env data
 
@@ -1025,7 +1022,7 @@ rm(list = names(which(!unlist(eapply(.GlobalEnv,
     \(x) inherits(x, what = "function"))))))
 ```
 
-
+# Density estimates
 
 ```{r gof function}
 
@@ -1066,27 +1063,11 @@ fitstats <- function(fm) {
 all_surv_records <- read.csv("Data/all_survey_records_aug2026.csv")
 # a record of every segment surveyed, afternoon and night, with length and time
 
-amph_lz <- read.csv("Data/amph_lz_cleaned_aug2026.csv")
-# cleaned amphibian and lizard data - a record of every individual found, when, and what segment
-# make sure there are no duplicates...
-amph_lz <- amph_lz %>%
-  distinct(Animal_ID, .keep_all = TRUE) # evidently there was 1
-
-# I cleaned frogs and added a tadpole phase column, now they are a sep df
-frogs_df <- read.csv("frogs.csv")
-frogs_df$Start_Date <- mdy(frogs_df$Start_Date)
-
-effort <- read.csv("Data/effort_aug2026.csv")
-# Date, effort hours, segment length
-
 env_2025 <- read.csv("Data/env_2025_cleaned.csv", encoding = "latin1")
 # 2025 env data
 
 env_24_25_nights <- read.csv("Data/env_24_25_nights_aug2026.csv")
 # night time survey environmental data both years
-
-small.mamms.df <- read.csv("Data/small_mammals_aug2026.csv")
-# records of small mammals spotted during surveys
 
 snakes.master <- read.csv("Data/snakes_master_cleaned_aug2026.csv")
 # all snake records
@@ -1095,40 +1076,398 @@ snakes.sur <- read.csv("Data/snake_surveys_cleaned_aug2026.csv")
 # all the snake survey records, cleaned
 # this version of snakes.sur has those two duplicates (SK04, 05) removed
 
+snakes.sur$Start_Date <- mdy(snakes.sur$Start_Date)
+
 ```
 
 # Prep snake data
 
+```{r data prep for density}
+
+# create an occasion column to show number of times a segment was surveyed. This would be the number of unique start dates associated with a given segment name.
+# I'm not certain this is the way to do occasions though
+snakes.sur <- snakes.sur %>%
+  arrange(Segment, Start_Date) %>%
+  group_by(Segment) %>%
+  mutate(Occasion = row_number()) %>%
+  ungroup()
+
+# reduce columns
+snakes.sur <- snakes.sur %>%
+  select(Start_Date, Station, Segment, Seg_dist_m, Occasion, Distance_From_Trail_m, Diet_Type)
+
+# save this version with fewer columns to read into chatGPT to test some questions
+#write.csv(snakes.sur, file = "snake_survey_data_columns_reduced.csv", row.names = FALSE)
+
+# my version: create backbone of dataframe to be fed into formatDistData function
+snake_DistDat <- snakes.sur %>%
+  select(Segment, Distance_From_Trail_m, Occasion) %>%
+  na.omit()
+
+# isolate segments that never had snakes found on them
+snake_DistDat_empties <- snakes.sur %>%
+ filter(is.na(Snake_ID)) %>%
+  select(Segment, Occasion) %>%
+  filter(!Segment %in% snake_DistDat$Segment)
+
+# make segment and occasion factors
+snake_DistDat$Segment <- as.factor(snake_DistDat$Segment) 
+snake_DistDat$Occasion<-as.factor(snake_DistDat$Occasion)
+
+levels(snake_DistDat$Segment) <- c(levels(snake_DistDat$Segment), snake_DistDat_empties$Segment) # add segments where no snakes were found
+levels(snake_DistDat$Occasion) <- c(levels(snake_DistDat$Occasion), snake_DistDat_empties$Occasion)
+
+snake_DistDat$Distance_From_Trail_m <- as.numeric(snake_DistDat$Distance_From_Trail_m)
+```
+
+```{r using AI help}
+# Import data
+snake_data <- read.csv("snake_survey_data_columns_reduced.csv")
+
+# Define distance breaks
+dist_breaks <- c(0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0)
+
+# Make transect and occasion columns factors
+snake_data <- snake_data %>%
+  mutate(
+    Segment = factor(Segment),
+    Occasion = factor(Start_Date)
+  )
+
+# Create site-level covariates (one row per transect)
+site_covs <- snake_data %>%
+  distinct(Segment, Station, Seg_dist_m) %>%
+  arrange(Segment) %>%
+  as.data.frame()
+
+# Set transect names as row names
+rownames(site_covs) <- as.character(site_covs$Segment)
+
+# Remove Segment from the covariate dataframe
+site_covs <- site_covs %>%
+  select(-Segment) %>%
+  mutate(Station = factor(Station))
+
+# Keep only observations with recorded detection distances
+dist_data <- snake_data %>%
+  filter(!is.na(Distance_From_Trail_m)) %>%
+  mutate(
+    Segment = factor(Segment, levels = levels(snake_data$Segment)),
+    Occasion = factor(Occasion, levels = levels(snake_data$Occasion))
+  )
+
+# Create an effort matrix to identify which transects
+# were surveyed during each occasion
+transects <- levels(snake_data$Segment)
+occasions <- levels(snake_data$Occasion)
+
+effort_matrix <- matrix(
+  0,
+  nrow = length(transects),
+  ncol = length(occasions),
+  dimnames = list(transects, occasions)
+)
+
+surveyed <- snake_data %>%
+  distinct(Segment, Occasion)
+
+effort_matrix[
+  cbind(
+    match(surveyed$Segment, transects),
+    match(surveyed$Occasion, occasions)
+  )
+] <- 1
+
+# Format distance data
+y_dist <- formatDistData(
+  distData = dist_data,
+  distCol = "Distance_From_Trail_m",
+  transectNameCol = "Segment",
+  occasionCol = "Occasion",
+  dist.breaks = dist_breaks,
+  effortMatrix = effort_matrix
+)
+
+# Ensure covariates follow the same transect order as y_dist
+site_covs <- site_covs[rownames(y_dist), , drop = FALSE]
+
+# Create unmarked data frame for repeated distance sampling
+snake_umf <- unmarkedFrameGDS(
+  y = as.matrix(y_dist),
+  siteCovs = site_covs,
+  numPrimary = length(occasions),
+  dist.breaks = dist_breaks,
+  tlength = site_covs$Seg_dist_m,
+  survey = "line",
+  unitsIn = "m"
+)
+
+# Examine the resulting data
+summary(snake_umf)
+
+snake_model <- gdistsamp(
+  lambdaformula = ~ Station,
+  phiformula = ~ 1,
+  pformula = ~ 1,
+  data = snake_umf,
+  K = 100,
+  output = "density"
+)
+
+summary(snake_model)
+```
+
+```{r estimates per diet type}
+library(dplyr)
+library(unmarked)
+
+# Import data
+snake_data <- read.csv("snake_survey_data_columns_reduced.csv")
+
+# Define distance bins
+dist_breaks <- c(0, 0.5, 1, 2, 4, 8, 12)
+
+# Set factors
+snake_data <- snake_data %>%
+  mutate(
+    Segment = factor(Segment),
+    Occasion = factor(Start_Date,
+                      levels = sort(unique(Start_Date))),
+    Station = factor(Station,
+                     levels = c("TBS", "YRS"))
+  )
+
+transects <- levels(snake_data$Segment)
+occasions <- levels(snake_data$Occasion)
+
+# Site-level information
+site_info <- snake_data %>%
+  distinct(Segment, Station, Seg_dist_m) %>%
+  mutate(Segment = as.character(Segment))
+
+# Construct effort matrix using ALL surveys
+effort_matrix <- matrix(
+  0,
+  nrow = length(transects),
+  ncol = length(occasions),
+  dimnames = list(transects, occasions)
+)
+
+surveyed <- snake_data %>%
+  distinct(Segment, Occasion)
+
+effort_matrix[
+  cbind(
+    match(as.character(surveyed$Segment), transects),
+    match(as.character(surveyed$Occasion), occasions)
+  )
+] <- 1
+
+
+# Function to create a distance sampling data object
+make_gds <- function(diet_group) {
+
+  # Select detections belonging to this diet group
+  detections <- snake_data %>%
+    filter(
+      Diet_Type == diet_group,
+      !is.na(Distance_From_Trail_m)
+    )
+
+  # Format distance data
+  y <- formatDistData(
+    distData = detections,
+    distCol = "Distance_From_Trail_m",
+    transectNameCol = "Segment",
+    occasionCol = "Occasion",
+    dist.breaks = dist_breaks,
+    effortMatrix = effort_matrix
+  )
+
+  # Match site covariates to response matrix
+  si <- site_info[
+    match(rownames(y), site_info$Segment),
+  ]
+
+  # Site covariates
+  site_covs <- data.frame(
+    Station = factor(
+      si$Station,
+      levels = levels(snake_data$Station)
+    )
+  )
+
+  rownames(site_covs) <- rownames(y)
+
+  # Create unmarkedFrameGDS
+  umf <- unmarkedFrameGDS(
+    y = as.matrix(y),
+    siteCovs = site_covs,
+    numPrimary = length(occasions),
+    dist.breaks = dist_breaks,
+    tlength = si$Seg_dist_m,
+    survey = "line",
+    unitsIn = "m"
+  )
+
+  return(umf)
+}
+
+
+# Create separate data objects
+umf_no_mammals <- make_gds("no_mammals")
+
+umf_consumes_mammals <- make_gds("consumes_mammals")
+
+
+
+```
+
+```{r null model}
+# NO-MAMMAL diet group
+
+model.no.station <- gdistsamp(
+  lambdaformula = ~ 1,
+  phiformula = ~ 1,
+  pformula = ~ 1,
+  data = umf_no_mammals,
+  output = "density",
+  unitsOut = "km",
+  K = 100
+)
+
+model.no.station.effect <- gdistsamp(
+  lambdaformula = ~ Station,
+  phiformula = ~ 1,
+  pformula = ~ 1,
+  data = umf_no_mammals,
+  output = "density",
+  unitsOut = "km",
+  K = 100
+)
+
+
+# MAMMAL-CONSUMING diet group
+
+model.mammal.null <- gdistsamp(
+  lambdaformula = ~ 1,
+  phiformula = ~ 1,
+  pformula = ~ 1,
+  data = umf_consumes_mammals,
+  output = "density",
+  unitsOut = "km",
+  K = 100
+)
+
+model.mammal.station <- gdistsamp(
+  lambdaformula = ~ Station,
+  phiformula = ~ 1,
+  pformula = ~ 1,
+  data = umf_consumes_mammals,
+  output = "density",
+  unitsOut = "km",
+  K = 100
+)
+
+
+
+```
+
+```{r predictions}
+# Create prediction data
+station_predictions <- data.frame(
+  Station = factor(
+    c("TBS", "YRS"),
+    levels = c("TBS", "YRS")
+  )
+)
+
+# Predict density by station
+pred.no.mammals <- predict(
+  model.no.station.effect,
+  type = "lambda",
+  newdata = station_predictions
+)
+
+pred.mammal.consumers <- predict(
+  model.mammal.station,
+  type = "lambda",
+  newdata = station_predictions
+)
+
+# View results
+pred.no.mammals
+
+pred.mammal.consumers
+
+```
+
 ```{r prep snake data}
 
+# prep snake data pooled
+snake_DistDat_formatted <- formatDistData(as.data.frame(snake_DistDat), distCol= "Distance_From_Trail_m", transectNameCol="Segment", occasionCol = "Occasion", dist.breaks = c(0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0))
+
+# prep snake data pooled with occasion
+#snake_DistDat_formatted <- formatDistData(as.data.frame(snake_DistDat), distCol= "Distance_From_Trail_m", transectNameCol="Segment", occasionCol = "Occasion", dist.breaks = c(0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0))
 
 # detection matrices with bins
-mamm_eaters_DistDat <- formatDistData(n_mamm_eaters, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1,2,4,6,12))
+#mamm_eaters_DistDat <- formatDistData(n_mamm_eaters, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1,2,4,6,12))
 
 # repeat for non mamm eaters
-non_mamm_eaters_DistDat <- formatDistData(n_non_mamm_eaters, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1.5,2.5,4,6))
+#non_mamm_eaters_DistDat <- formatDistData(n_non_mamm_eaters, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1.5,2.5,4,6))
 
 # boids
-boids_DistDat <- formatDistData(n_boids, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1,2,4,6,12))
+#boids_DistDat <- formatDistData(n_boids, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1,2,4,6,12))
 
 # colubrids
-colubrids_DistDat <- formatDistData(n_colubrids, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1.5,2.5,4,6))
+#colubrids_DistDat <- formatDistData(n_colubrids, distCol="Distance_From_Trail_m", transectNameCol="Segment", dist.breaks=c(0,1.5,2.5,4,6))
 
-covs.mamm.eaters <- n_mamm_eaters %>%
-  select(Station, Segment, Seg_dist_m) %>%
+# create covariates dataframe
+covariates <- snakes.sur %>%
+  select(Station, Segment, Seg_dist_m, Diet_Type) %>%
   distinct()
 
-covs.non.mamm.eaters <- n_non_mamm_eaters %>%
-  select(Station, Segment, Seg_dist_m) %>%
-  distinct()
+# make sure factors and numerics are what we want them to be
+covariates$Station <- as.factor(covariates$Station)
+covariates$Segment <- as.factor(covariates$Segment)
+covariates$Diet_Type<- as.factor(covariates$Diet_Type)
+covariates$Seg_dist_m <- as.numeric(covariates$Seg_dist_m)
 
-covs.boids <- n_boids %>%
-  select(Station, Segment, Seg_dist_m) %>%
-  distinct()
+#covs.mamm.eaters <- n_mamm_eaters %>%
+ # select(Station, Segment, Seg_dist_m) %>%
+  #distinct()
 
-covs.colubrids <- n_colubrids %>%
-  select(Station, Segment, Seg_dist_m) %>%
-  distinct()
+#covs.non.mamm.eaters <- n_non_mamm_eaters %>%
+ # select(Station, Segment, Seg_dist_m) %>%
+  #distinct()
+
+#covs.boids <- n_boids %>%
+ # select(Station, Segment, Seg_dist_m) %>%
+  #distinct()
+
+#covs.colubrids <- n_colubrids %>%
+ # select(Station, Segment, Seg_dist_m) %>%
+  #distinct()
+```
+
+```{r make umf}
+n_occasions <- length(unique(snake_DistDat$Occasion))
+
+umf <- unmarkedFrameGDS(
+  y = snake_DistDat_formatted, 
+  siteCovs = covariates,
+  numPrimary = n_occasions, 
+  survey = "line",
+  dist.breaks=c(0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0), 
+  unitsIn = "m",
+  tlength = covariates$Seg_dist_m)
+
+unmarkedFrame
+summary(umf)
+
+#mammal.umf <- unmarkedFrameDS(y=as.matrix(snake_DistDat_formatted), siteCovs=covariates, dist.breaks=c(0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0), unitsIn="m", survey="line", tlength = covariates$Seg_dist_m)
+
+#hist(umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 ```
 
 
@@ -1160,9 +1499,225 @@ boid.umf <- unmarkedFrameDS(y=as.matrix(boids_DistDat), siteCovs=covs.boids, dis
 
 hist(boid.umf, xlab="distance (m)", main="", cex.lab=0.8, cex.axis=0.8)
 ```
+
 # Guild Density Estimates
 
 ## Models
+
+```{r gdist models}
+
+#Fit an intercept-only model
+null <- gdistsamp(
+  lambdaformula = ~1, # Abundance covariates
+  phiformula = ~1,    # Availability covariates 
+  pformula = ~1,      # Detection covariates
+  data = umf, 
+  mixture = "P"       # Mixture distribution: "P" (Poisson) or "NB" (Negative Binomial)
+)
+
+# View results
+summary(null)
+
+# include station
+station <- gdistsamp(
+  lambdaformula = ~Station, # Abundance covariates
+  phiformula = ~1,    # Availability covariates 
+  pformula = ~1,      # Detection covariates
+  data = umf, 
+  mixture = "P"       # Mixture distribution: "P" (Poisson) or "NB" (Negative Binomial)
+)
+
+# View results
+summary(station)
+
+new.data <- covariates %>%
+  dplyr::select(Station) %>%
+  distinct()
+
+#Predict
+predictions_mamm_eaters <- predict(station, type="lambda", newdata=new.data, appendData=TRUE)
+
+ggplot(predictions_mamm_eaters, aes(x=Station, y=Predicted)) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE), width = .2) + geom_point(size = 2) + theme_pubclean() + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Density estimates of mammal-eating snakes") + theme(axis.text = element_text(color = "black"))+
+  scale_x_discrete(labels = c("Unhunted", "Hunted"))
+```
+
+```{r chat gpt 2}
+library(dplyr)
+library(unmarked)
+
+# Import data
+snake_data <- read.csv("snake_survey_data_columns_reduced.csv")
+
+# Define distance bins
+dist_breaks <- c(0, 0.5, 1, 2, 4, 8, 12)
+
+# Prepare data
+snake_data <- snake_data %>%
+  mutate(
+    Segment = factor(Segment),
+    Station = factor(Station, levels = c("TBS", "YRS"))
+  )
+
+# Identify all transects, including those with zero detections
+transects <- levels(snake_data$Segment)
+
+# Calculate total survey effort for each transect
+# Each unique survey date counts as one survey
+site_info <- snake_data %>%
+  distinct(Segment, Start_Date, Station, Seg_dist_m) %>%
+  group_by(Segment) %>%
+  summarise(
+    Station = first(Station),
+    Seg_dist_m = first(Seg_dist_m),
+    n_surveys = n(),
+    total_effort_m = Seg_dist_m * n_surveys,
+    .groups = "drop"
+  ) %>%
+  mutate(Segment = as.character(Segment))
+
+# Function to create a distance sampling data object
+make_ds <- function(diet_group) {
+
+  # Select detections belonging to the specified diet group
+  detections <- snake_data %>%
+    filter(
+      Diet_Type == diet_group,
+      !is.na(Distance_From_Trail_m),
+      Distance_From_Trail_m >= 0,
+      Distance_From_Trail_m <= 12
+    ) %>%
+    mutate(
+      Segment = factor(
+        as.character(Segment),
+        levels = transects
+      )
+    )
+
+  # Format distance data (no occasion column)
+  y <- formatDistData(
+    distData = detections,
+    distCol = "Distance_From_Trail_m",
+    transectNameCol = "Segment",
+    dist.breaks = dist_breaks
+  )
+
+  # Match site covariates to response matrix
+  si <- site_info[
+    match(rownames(y), site_info$Segment),
+  ]
+
+  site_covs <- data.frame(
+    Station = factor(
+      si$Station,
+      levels = c("TBS", "YRS")
+    )
+  )
+
+  rownames(site_covs) <- rownames(y)
+
+  # Create unmarkedFrameDS
+  umf <- unmarkedFrameDS(
+    y = as.matrix(y),
+    siteCovs = site_covs,
+    dist.breaks = dist_breaks,
+    tlength = si$total_effort_m,
+    survey = "line",
+    unitsIn = "m"
+  )
+
+  return(umf)
+}
+
+
+# Create separate data objects for each diet group
+umf_no_mammals <- make_ds("no_mammals")
+
+umf_consumes_mammals <- make_ds("consumes_mammals")
+
+# ---------------------------------
+# NO-MAMMAL SNAKES
+# ---------------------------------
+
+# Null model
+model.no.null <- distsamp(
+  ~ 1 ~ 1,
+  data = umf_no_mammals,
+  keyfun = "halfnorm",
+  output = "density",
+  unitsOut = "ha"
+)
+
+# Station effect on density
+model.no.station <- distsamp(
+  ~ 1 ~ Station,
+  data = umf_no_mammals,
+  keyfun = "halfnorm",
+  output = "density",
+  unitsOut = "ha"
+)
+
+
+# ---------------------------------
+# MAMMAL-CONSUMING SNAKES
+# ---------------------------------
+
+# Null model
+model.mammal.null <- distsamp(
+  ~ 1 ~ 1,
+  data = umf_consumes_mammals,
+  output = "density",
+  unitsOut = "km"
+)
+
+# Station effect on density
+model.mammal.station <- distsamp(
+  ~ 1 ~ Station,
+  data = umf_consumes_mammals,
+  output = "density",
+  unitsOut = "km"
+)
+
+
+
+# Examine model estimates
+summary(model.no.station)
+
+summary(model.mammal.null)
+summary(model.mammal.station)
+
+# Examine data objects
+summary(umf_no_mammals)
+
+summary(umf_consumes_mammals)
+
+# Create prediction dataframe
+station_predictions <- data.frame(
+  Station = factor(
+    c("TBS", "YRS"),
+    levels = c("TBS", "YRS")
+  )
+)
+
+# Predict density of snakes that do not consume mammals
+pred.no.mammals <- predict(
+  model.no.station,
+  type = "state",
+  newdata = station_predictions
+)
+
+# Predict density of mammal-consuming snakes
+pred.mammals <- predict(
+  model.mammal.station,
+  type = "state",
+  newdata = station_predictions
+)
+
+# View predictions
+pred.no.mammals
+pred.mammals
+
+```
 
 ```{r mammal eaters}
 
@@ -1207,7 +1762,7 @@ aic_table
 ## GOF
 
 ```{r goodness of fit mamm eater mod}
-pb_station_mammal_eaters <- parboot(Station.mamm.eaters, fitstats, nsim=200)
+pb_station_mammal_eaters <- parboot(model.mammal.station, fitstats, nsim=200)
 pb_station_mammal_eaters
 # fine
 ```
@@ -1224,12 +1779,12 @@ pb_null_non_mammal_eaters
 
 ```{r mamm eater predicted values}
 
-new.data <- covs.mamm.eaters %>%
+new.data <- site_covs%>%
   dplyr::select(Station) %>%
   distinct()
 
 #Predict
-predictions_mamm_eaters <- predict(Station.mamm.eaters, type="state", newdata=new.data, appendData=TRUE)
+predictions_mamm_eaters <- predict(model.mammal.station, type="state", newdata=new.data, appendData=TRUE)
 
 ```
 
@@ -1263,4 +1818,462 @@ p_non_mammal_eaters<-ggplot(predictions_non_mamm_eaters, aes(x=Station, y=Predic
 p_non_mammal_eaters
 
 ```
+
+
+```{r chat gpt cont}
+library(dplyr)
+library(unmarked)
+
+# Import data
+snake_data <- read.csv("snake_survey_data_columns_reduced.csv")
+
+# Distance bins
+dist_breaks <- c(0, 0.5, 1, 2, 5)
+
+# Prepare data
+snake_data <- snake_data %>%
+  mutate(
+    Segment = as.character(Segment),
+    Station = factor(Station, levels = c("TBS", "YRS"))
+  )
+
+# Create site-level dataset
+site_info <- snake_data %>%
+  group_by(Segment) %>%
+  summarise(
+    Station = first(Station),
+    Seg_dist_m = first(Seg_dist_m),
+    n_surveys = n_distinct(Start_Date),
+    total_effort_m = Seg_dist_m * n_surveys,
+    .groups = "drop"
+  )
+
+# Function to create an unmarkedFrameDS
+make_ds <- function(diet_group, selected_sites) {
+
+  detections <- snake_data %>%
+    filter(
+      Diet_Type == diet_group,
+      !is.na(Distance_From_Trail_m),
+      Distance_From_Trail_m >= 0,
+      Distance_From_Trail_m <= 5
+    ) %>%
+    inner_join(
+      selected_sites,
+      by = c("Segment" = "source_segment")
+    ) %>%
+    mutate(
+      Segment = factor(
+        boot_segment,
+        levels = selected_sites$boot_segment
+      )
+    )
+
+  # Format distance data
+  y <- formatDistData(
+    distData = detections,
+    distCol = "Distance_From_Trail_m",
+    transectNameCol = "Segment",
+    dist.breaks = dist_breaks
+  )
+
+  # Match site covariates
+  si <- selected_sites[
+    match(rownames(y), selected_sites$boot_segment),
+  ]
+
+  site_covs <- data.frame(
+    Station = factor(
+      si$Station,
+      levels = c("TBS", "YRS")
+    )
+  )
+
+  rownames(site_covs) <- rownames(y)
+
+  # Create distance sampling object
+  unmarkedFrameDS(
+    y = as.matrix(y),
+    siteCovs = site_covs,
+    dist.breaks = dist_breaks,
+    tlength = si$total_effort_m,
+    survey = "line",
+    unitsIn = "m"
+  )
+}
+
+
+# Create original site dataset
+original_sites <- site_info %>%
+  mutate(
+    source_segment = Segment,
+    boot_segment = Segment
+  )
+
+# Create original data objects
+umf_no_mammals <- make_ds(
+  "no_mammals",
+  original_sites
+)
+
+umf_consumes_mammals <- make_ds(
+  "consumes_mammals",
+  original_sites
+)
+
+
+# Fit original models
+model_no_mammals <- distsamp(
+  ~ 1 ~ Station,
+  data = umf_no_mammals,
+  keyfun = "halfnorm",
+  output = "density",
+  unitsOut = "km"
+)
+
+model_consumes_mammals <- distsamp(
+  ~ 1 ~ Station,
+  data = umf_consumes_mammals,
+  keyfun = "halfnorm",
+  output = "density",
+  unitsOut = "km"
+)
+
+summary(model_no_mammals)
+summary(model_consumes_mammals)
+
+# 3
+get_station_contrast <- function(model) {
+
+  predictions <- predict(
+    model,
+    type = "state",
+    newdata = data.frame(
+      Station = factor(
+        c("TBS", "YRS"),
+        levels = c("TBS", "YRS")
+      )
+    )
+  )
+
+  density_TBS <- predictions$Predicted[1]
+  density_YRS <- predictions$Predicted[2]
+
+  log_RR <- log(density_YRS / density_TBS)
+
+  return(c(
+    Density_TBS = density_TBS,
+    Density_YRS = density_YRS,
+    Log_RR = log_RR
+  ))
+}
+
+
+# Original station contrasts
+contrast_no_mammals <- get_station_contrast(
+  model_no_mammals
+)
+
+contrast_consumes_mammals <- get_station_contrast(
+  model_consumes_mammals
+)
+
+contrast_no_mammals
+contrast_consumes_mammals
+
+
+# Calculate difference between station contrasts
+observed_interaction <-
+  contrast_consumes_mammals["Log_RR"] -
+  contrast_no_mammals["Log_RR"]
+
+observed_interaction
+
+# 4
+set.seed(123)
+
+# Number of bootstrap iterations
+n_boot <- 10
+
+
+# Function to fit both models and extract contrasts
+run_bootstrap <- function(selected_sites) {
+
+  tryCatch({
+
+    # Create data objects
+    umf_no <- make_ds(
+      "no_mammals",
+      selected_sites
+    )
+
+    umf_mammal <- make_ds(
+      "consumes_mammals",
+      selected_sites
+    )
+
+    # Fit models
+    fit_no <- distsamp(
+      ~ 1 ~ Station,
+      data = umf_no,
+      keyfun = "halfnorm",
+      output = "density",
+      unitsOut = "km"
+    )
+
+    fit_mammal <- distsamp(
+      ~ 1 ~ Station,
+      data = umf_mammal,
+      keyfun = "halfnorm",
+      output = "density",
+      unitsOut = "km"
+    )
+
+    # Extract density contrasts
+    con_no <- get_station_contrast(fit_no)
+
+    con_mammal <- get_station_contrast(fit_mammal)
+
+    # Calculate interaction
+    interaction <-
+      con_mammal["Log_RR"] -
+      con_no["Log_RR"]
+
+    c(
+      RR_no_mammals = exp(con_no["Log_RR"]),
+      RR_consumes_mammals = exp(con_mammal["Log_RR"]),
+      Interaction = interaction
+    )
+
+  }, error = function(e) {
+
+    c(
+      RR_no_mammals = NA,
+      RR_consumes_mammals = NA,
+      Interaction = NA
+    )
+
+  })
+}
+
+
+# Bootstrap loop
+bootstrap_results <- vector("list", n_boot)
+
+TBS_sites <- site_info %>%
+  filter(Station == "TBS")
+
+YRS_sites <- site_info %>%
+  filter(Station == "YRS")
+
+n = nrow(TBS_sites)  # 42 transects
+n = nrow(YRS_sites)  # 47 transects
+
+for (i in seq_len(n_boot)) {
+
+  # Resample transects within each station
+  sampled_TBS <- site_info %>%
+    filter(Station == "TBS") %>%
+    slice_sample(n = nrow(TBS_sites), replace = TRUE)
+
+  sampled_YRS <- site_info %>%
+    filter(Station == "YRS") %>%
+    slice_sample(n = nrow(YRS_sites), replace = TRUE)
+
+  sampled_sites <- bind_rows(
+    sampled_TBS,
+    sampled_YRS
+  ) %>%
+    mutate(
+      source_segment = Segment,
+      boot_segment = paste0(
+        as.character(Station),
+        "_bootstrap_",
+        row_number()
+      )
+    )
+
+  # Fit models and extract estimates
+  bootstrap_results[[i]] <- run_bootstrap(
+    sampled_sites
+  )
+}
+
+
+# Combine bootstrap results
+bootstrap_results <- as.data.frame(
+  do.call(rbind, bootstrap_results)
+)
+
+# Remove failed model fits
+bootstrap_results <- bootstrap_results %>%
+  filter(
+    complete.cases(.),
+    if_all(everything(), is.finite)
+  )
+
+# Check successful bootstrap iterations
+nrow(bootstrap_results)
+
+# 5
+# Calculate observed density ratios
+observed_no <- as.numeric(
+  contrast_no_mammals["Log_RR"]
+)
+
+observed_mammal <- as.numeric(
+  contrast_consumes_mammals["Log_RR"]
+)
+
+observed_int <- as.numeric(
+  observed_interaction
+)
+
+
+# Bootstrap distributions on log scale
+boot_no <- log(bootstrap_results$RR_no_mammals)
+
+boot_mammal <- log(
+  bootstrap_results$RR_consumes_mammals
+)
+
+boot_int <- bootstrap_results$Interaction
+
+
+# Function to calculate bootstrap statistics
+bootstrap_summary <- function(boot, observed) {
+
+  boot <- boot[is.finite(boot)]
+
+  # Percentile confidence interval
+  CI <- quantile(
+    boot,
+    probs = c(0.025, 0.975),
+    na.rm = TRUE
+  )
+
+  # Two-sided centered bootstrap test
+  centered_errors <- boot - observed
+
+  p_value <- (
+    1 + sum(
+      abs(centered_errors) >= abs(observed)
+    )
+  ) / (length(boot) + 1)
+
+  c(
+    Estimate = exp(observed),
+    Lower_95_CI = exp(CI[1]),
+    Upper_95_CI = exp(CI[2]),
+    P_value = p_value
+  )
+}
+
+
+# Summarize all three comparisons
+results <- rbind(
+
+  No_mammal_snakes = bootstrap_summary(
+    boot_no,
+    observed_no
+  ),
+
+  Mammal_consuming_snakes = bootstrap_summary(
+    boot_mammal,
+    observed_mammal
+  ),
+
+  Diet_by_Station_interaction = bootstrap_summary(
+    boot_int,
+    observed_int
+  )
+
+)
+
+round(results, 4)
+
+# 6
+library(ggplot2)
+
+results_plot <- data.frame(
+  Comparison = rownames(results),
+  Estimate = results[, "Estimate"],
+  Lower = results[, "Lower_95_CI.2.5%"],
+  Upper = results[, "Upper_95_CI.97.5%"]
+)
+
+ggplot(
+  results_plot,
+  aes(x = Estimate, y = Comparison)
+) +
+  geom_vline(
+    xintercept = 1,
+    linetype = "dashed"
+  ) +
+  geom_errorbarh(
+    aes(xmin = Lower, xmax = Upper),
+    height = 0.2
+  ) +
+  geom_point(size = 3) +
+  scale_x_log10() +
+  labs(
+    x = "Density ratio (YRS / TBS)",
+    y = NULL
+  ) +
+  theme_classic()
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Organize bootstrap density estimates
+
+# Plot
+ggplot(density_summary,
+       aes(x = Station, y = Predicted,
+           color = Diet_Type, group = Diet_Type)) +
+  geom_point(
+    position = position_dodge(width = 0.35),
+    size = 3
+  ) +
+  geom_errorbar(
+    aes(ymin = Lower_CI, ymax = Upper_CI),
+    position = position_dodge(width = 0.35),
+    width = 0.15,
+    linewidth = 0.8
+  ) +
+  labs(
+    x = "Station",
+    y = "Predicted snake density (snakes/ha)",
+    color = "Diet"
+  ) +
+  scale_x_discrete(limits = c("TBS", "YRS")) +
+  theme_classic(base_size = 14) +
+  theme(
+    legend.position = "top",
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12)
+  )
+
+new.data <- sampled_sites %>%
+  dplyr::select(Station) %>%
+  distinct()
+
+#Predict
+predictions_1 <- predict(model_no_mammals, type="state", newdata=new.data, appendData=TRUE)
+predictions_2 <- predict(model_consumes_mammals, type="state", newdata=new.data, appendData=TRUE)
+predictions_1$diet_type <- "non-mammal eater"
+predictions_2$diet_type <- "mammal eater"
+predictions <- rbind(predictions_1, predictions_2)
+
+ggplot(predictions, aes(x=Station, y=Predicted, color = diet_type)) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + geom_point(size = 2) + theme_pubclean() + xlab("") + scale_color_discrete(labels = "") +  scale_y_continuous(name = expression(bold(paste("Snakes /  ", km^bold("2"))))) + ggtitle("Density") + theme(axis.text = element_text(color = "black"))+
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) +facet_wrap(~diet_type, scales = "free")
+
+```
+
 
