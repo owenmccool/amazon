@@ -382,20 +382,48 @@ rm(all_surveys_data, surveys_with_snakes, surveys_without_snakes)
 surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>% 
   select(Start_Date, Station, Snake_ID, Diet_Type)
 
+# and per segment
+segments_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>% 
+  select(Start_Date, Station, Segment, Snake_ID, Diet_Type, Seg_dist_m)
+
 surveys_with_snakes$Start_Date <- mdy(surveys_with_snakes$Start_Date)
+
+# and per segment data
+segments_with_snakes$Start_Date <- mdy(segments_with_snakes$Start_Date)
 
 survey_distance_nights <- survey_distance %>%
   filter(Survey_Type == "Night") %>%
   select(-Survey_Type) %>%
   distinct()
 
+# and per segment
+segment_distance_nights <- survey_distance %>%
+  filter(Survey_Type == "Night") %>%
+  select(-Survey_Type) %>%
+  distinct()
+
 surveys_with_snakes <- left_join(surveys_with_snakes, survey_distance_nights)
+
+# and per segment
+segments_with_snakes <- left_join(segments_with_snakes, segment_distance_nights)
 
 surveys_with_snakes <- surveys_with_snakes %>%
   group_by(Station, Start_Date, survey_length_m, Diet_Type) %>%
   reframe(n_snakes = n())
 
+# and per segment
+segments_with_snakes <- segments_with_snakes %>%
+  group_by(Station, Start_Date, Segment, Seg_dist_m, Diet_Type) %>%
+  reframe(n_snakes = n())
+
 surveys_with_snakes_wide <- surveys_with_snakes %>%
+  pivot_wider(names_from = Diet_Type,
+              values_from = n_snakes,
+              values_fill = 0)
+
+# and per segment
+
+segments_with_snakes_wide <- segments_with_snakes %>%
   pivot_wider(names_from = Diet_Type,
               values_from = n_snakes,
               values_fill = 0)
@@ -405,12 +433,26 @@ surveys_with_snakes <- surveys_with_snakes_wide %>%
                names_to = "Diet_Type",
                values_to = "n_snakes")
 
+# and per segment
+segments_with_snakes <- segments_with_snakes_wide %>%
+  pivot_longer(cols = c(no_mammals, consumes_mammals),
+               names_to = "Diet_Type",
+               values_to = "n_snakes")
+
 surveys_without_snakes <- survey_distance %>%
   filter(Survey_Type == "Night" & !Start_Date %in% surveys_with_snakes$Start_Date) %>%
 select(-Survey_Type)
 
+# and per segment
+segments_without_snakes <- survey_distance %>%
+  filter(Survey_Type == "Night" & !Start_Date %in% segments_with_snakes$Start_Date) %>%
+select(-Survey_Type)
+
 # add n
 surveys_without_snakes$n_snakes <-0
+
+# and per segment
+segments_without_snakes$n_snakes <-0
 
 # add diet type
 surveys_without_snakes_nomamms <- surveys_without_snakes
@@ -419,13 +461,32 @@ surveys_without_snakes_nomamms$Diet_Type <-"no_mammals"
 surveys_without_snakes_mamms <- surveys_without_snakes
 surveys_without_snakes_mamms$Diet_Type<- "consumes_mammals"
 
+# per segment
+segments_without_snakes_nomamms <- segments_without_snakes
+segments_without_snakes_nomamms$Diet_Type <-"no_mammals"
+
+segments_without_snakes_mamms <- segments_without_snakes
+segments_without_snakes_mamms$Diet_Type<- "consumes_mammals"
+
+
 surveys_without_snakes_compelete <- rbind(surveys_without_snakes_mamms, surveys_without_snakes_nomamms)
 
+# per segment
+segments_without_snakes_complete <- rbind(segments_without_snakes_mamms, segments_without_snakes_nomamms)
+
 two_guilds_tallied <- rbind(surveys_without_snakes_compelete, surveys_with_snakes)
+
+# per segment
+two_guilds_tallied_per_segment <- rbind(segments_without_snakes_compelete, segments_with_snakes)
 
 two_guilds_tallied$n_500m <- 500*(two_guilds_tallied$n_snakes/two_guilds_tallied$survey_length_m)
 
 two_guilds_tallied$Year <- factor(format(two_guilds_tallied$Start_Date, "%Y"))
+
+# per segment
+two_guilds_tallied_per_segment$n_500m <- 500*(two_guilds_tallied_per_segment$n_snakes/two_guilds_tallied_per_segment$survey_length_m)
+
+two_guilds_tallied_per_segment$Year <- factor(format(two_guilds_tallied_per_segment$Start_Date, "%Y"))
 
 # remove one outlier
 two_guilds_tallied <- two_guilds_tallied[-44,]
@@ -433,7 +494,7 @@ two_guilds_tallied <- two_guilds_tallied[-44,]
 rm(surveys_with_snakes, surveys_with_snakes_wide, surveys_without_snakes, surveys_without_snakes_compelete, surveys_without_snakes_mamms, surveys_without_snakes_nomamms)
 ```
 
-####  Two diet types summary 
+### Two diet types summary 
 
 ```{r two diet type summ}
 # get summary data overall (regardless of year)
@@ -868,6 +929,7 @@ lizard.hunting.plot.yr
 # main text fig panel
 ```
 
+
 # Snakes
 
 ## Pooled models
@@ -915,6 +977,7 @@ aictab(cand.set = list(all.snakes.null, all.snakes.yr, all.snakes.hunt, all.snak
 # null is best fit
 summary(all.snakes.null)
 ```
+
 
 ## Two diet types models
 
@@ -988,6 +1051,7 @@ snake.2guild.hunting.plot
 
 ```
 
+
 # Detection Figure panels
 
 ```{r panel fig}
@@ -1015,6 +1079,82 @@ p1<-small.mammal.plot.yearly +
 
 #ggsave("detection_rates_11-06-2026_larger_text.png", p1, dpi = 130, width = 8, height = 6)
 
+```
+
+# All snake data bar plot
+
+```{r snake visuals using all data}
+
+all.individs <- snakes.master %>%
+  select(Start_Date, Station, Snake_ID, Family, Genus, Species, Type_of_Encounter, Amphibian_loss_response_Zipkin.et.al2020, Diet_Type, Primary_Diet_Component)
+
+counts <- all.individs %>%
+  group_by(Station, Family, Genus, Species, Primary_Diet_Component) %>%
+  tally() %>%
+  filter(!is.na(Family))
+
+differences <- counts %>%
+  group_by(Family, Genus, Species, Primary_Diet_Component) %>%
+  pivot_wider(names_from = Station, values_from = n, values_fill = 0) %>%
+  mutate(difference = YRS - TBS) %>%
+  na.omit() %>%
+  filter(Primary_Diet_Component !="eggs")
+
+aes(x = numeric_value, y = reorder(category, numeric_value))
+
+ggplot(differences,
+       aes(x = Primary_Diet_Component, y = -difference, color = Primary_Diet_Component)) +
+  geom_col() + theme_bw() 
+
+differences %>%
+  mutate(Primary_Diet_Component = fct_reorder(Primary_Diet_Component, difference)) %>%
+  ggplot(aes(x = Primary_Diet_Component, y = difference)) +
+  geom_col() +
+  coord_flip()
+
+counts %>%
+  na.omit() %>%
+  mutate(Primary_Diet_Component = fct_reorder(Primary_Diet_Component, n)) %>%
+  ggplot(aes(x = Primary_Diet_Component, y = n, color = Station)) +
+  geom_col() +
+  coord_flip()
+
+# binary diet type 
+# raw counts
+two_guilds <- snakes.master %>%
+  select(Start_Date, Station, Snake_ID, Diet_Type)
+
+counts_two_guilds <- two_guilds %>%
+  group_by(Station, Diet_Type) %>%
+  tally()
+
+differences_two_guilds <- counts_two_guilds %>%
+  group_by(Diet_Type) %>%
+  pivot_wider(names_from = Station, values_from = n, values_fill = 0) %>%
+  mutate(difference = YRS - TBS) 
+
+# binary diet type 
+# detection rates
+
+two_guilds_tallied$n_2.5km <- 2500*(two_guilds_tallied$n_snakes/two_guilds_tallied$survey_length_m)
+
+differences_detection_two_guilds <- two_guilds_tallied %>%
+  group_by(Diet_Type) %>%
+  pivot_wider(names_from = Station, values_from = n_2.5km, values_fill = 0) %>%
+  mutate(difference = YRS - TBS) 
+
+# plot together 
+
+raw_n_plus_detections_plot <- differences_two_guilds %>%
+  na.omit() %>%
+  ggplot(aes(x = Diet_Type, y = difference, fill = Diet_Type)) +
+  geom_col(fill = c("orange", "skyblue3"), color = "black", width = 0.25, position = position_dodge(width = 0.25)) +
+  coord_flip() + theme_bw() + xlab("Diet") + scale_x_discrete(labels = c("mammal eaters", "non-mammal eaters")) + ylab("Difference (hunted forest - unhunted forest)\n shown as detection rates and total numbers") + geom_point(data = differences_detection_two_guilds, aes(x = Diet_Type, y = difference), alpha = 0.6, position = position_jitter(width = 0.05), size = 2.5)+ theme(legend.position = "none") +
+  theme(axis.text = element_text(size = 14, color = "black"), axis.title = element_text(size = 14, color = "black", face = "bold"))
+
+#ggsave("raw_n_plus_detections_plot.png", raw_n_plus_detections_plot, dpi = 120, width = 6, height = 4)
+
+raw_n_plus_detections_plot
 ```
 
 ```{r clean all from detection stuff}
