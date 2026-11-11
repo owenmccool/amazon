@@ -191,7 +191,7 @@ spec_dodge <- position_dodge(width = 0.5)
 
 small.mammal.plot <- ggplot(small.mamms.summ, aes(x = Station, y = mean)) +
   geom_point(data = small.mamms.df, aes(x = Station, y = smamm.500m), alpha = 0.3, position = position_jitterdodge()) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1)) +
-  geom_point(position = spec_dodge) + 
+  geom_point(position = spec_dodge, size = 2, shape = 22, fill = "grey") + 
   scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
   theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Small mammals") 
 
@@ -374,56 +374,28 @@ all_snakes_tallied$n_500m <- 500*(all_snakes_tallied$n_snakes/all_snakes_tallied
 rm(all_surveys_data, surveys_with_snakes, surveys_without_snakes)
 ```
 
-## By two diet types
+## Surveys by two diet types
 
-```{r prep two guild snake df}
+```{r prep diet df with survey level aggregation}
 
 # same as above - see those annotations
 surveys_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>% 
   select(Start_Date, Station, Snake_ID, Diet_Type)
 
-# and per segment
-segments_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>% 
-  select(Start_Date, Station, Segment, Snake_ID, Diet_Type, Seg_dist_m)
-
 surveys_with_snakes$Start_Date <- mdy(surveys_with_snakes$Start_Date)
-
-# and per segment data
-segments_with_snakes$Start_Date <- mdy(segments_with_snakes$Start_Date)
 
 survey_distance_nights <- survey_distance %>%
   filter(Survey_Type == "Night") %>%
   select(-Survey_Type) %>%
   distinct()
 
-# and per segment
-segment_distance_nights <- survey_distance %>%
-  filter(Survey_Type == "Night") %>%
-  select(-Survey_Type) %>%
-  distinct()
-
 surveys_with_snakes <- left_join(surveys_with_snakes, survey_distance_nights)
-
-# and per segment
-segments_with_snakes <- left_join(segments_with_snakes, segment_distance_nights)
 
 surveys_with_snakes <- surveys_with_snakes %>%
   group_by(Station, Start_Date, survey_length_m, Diet_Type) %>%
   reframe(n_snakes = n())
 
-# and per segment
-segments_with_snakes <- segments_with_snakes %>%
-  group_by(Station, Start_Date, Segment, Seg_dist_m, Diet_Type) %>%
-  reframe(n_snakes = n())
-
 surveys_with_snakes_wide <- surveys_with_snakes %>%
-  pivot_wider(names_from = Diet_Type,
-              values_from = n_snakes,
-              values_fill = 0)
-
-# and per segment
-
-segments_with_snakes_wide <- segments_with_snakes %>%
   pivot_wider(names_from = Diet_Type,
               values_from = n_snakes,
               values_fill = 0)
@@ -433,26 +405,12 @@ surveys_with_snakes <- surveys_with_snakes_wide %>%
                names_to = "Diet_Type",
                values_to = "n_snakes")
 
-# and per segment
-segments_with_snakes <- segments_with_snakes_wide %>%
-  pivot_longer(cols = c(no_mammals, consumes_mammals),
-               names_to = "Diet_Type",
-               values_to = "n_snakes")
-
 surveys_without_snakes <- survey_distance %>%
   filter(Survey_Type == "Night" & !Start_Date %in% surveys_with_snakes$Start_Date) %>%
 select(-Survey_Type)
 
-# and per segment
-segments_without_snakes <- survey_distance %>%
-  filter(Survey_Type == "Night" & !Start_Date %in% segments_with_snakes$Start_Date) %>%
-select(-Survey_Type)
-
 # add n
 surveys_without_snakes$n_snakes <-0
-
-# and per segment
-segments_without_snakes$n_snakes <-0
 
 # add diet type
 surveys_without_snakes_nomamms <- surveys_without_snakes
@@ -461,32 +419,13 @@ surveys_without_snakes_nomamms$Diet_Type <-"no_mammals"
 surveys_without_snakes_mamms <- surveys_without_snakes
 surveys_without_snakes_mamms$Diet_Type<- "consumes_mammals"
 
-# per segment
-segments_without_snakes_nomamms <- segments_without_snakes
-segments_without_snakes_nomamms$Diet_Type <-"no_mammals"
-
-segments_without_snakes_mamms <- segments_without_snakes
-segments_without_snakes_mamms$Diet_Type<- "consumes_mammals"
-
-
 surveys_without_snakes_compelete <- rbind(surveys_without_snakes_mamms, surveys_without_snakes_nomamms)
 
-# per segment
-segments_without_snakes_complete <- rbind(segments_without_snakes_mamms, segments_without_snakes_nomamms)
-
 two_guilds_tallied <- rbind(surveys_without_snakes_compelete, surveys_with_snakes)
-
-# per segment
-two_guilds_tallied_per_segment <- rbind(segments_without_snakes_compelete, segments_with_snakes)
 
 two_guilds_tallied$n_500m <- 500*(two_guilds_tallied$n_snakes/two_guilds_tallied$survey_length_m)
 
 two_guilds_tallied$Year <- factor(format(two_guilds_tallied$Start_Date, "%Y"))
-
-# per segment
-two_guilds_tallied_per_segment$n_500m <- 500*(two_guilds_tallied_per_segment$n_snakes/two_guilds_tallied_per_segment$survey_length_m)
-
-two_guilds_tallied_per_segment$Year <- factor(format(two_guilds_tallied_per_segment$Start_Date, "%Y"))
 
 # remove one outlier
 two_guilds_tallied <- two_guilds_tallied[-44,]
@@ -494,9 +433,68 @@ two_guilds_tallied <- two_guilds_tallied[-44,]
 rm(surveys_with_snakes, surveys_with_snakes_wide, surveys_without_snakes, surveys_without_snakes_compelete, surveys_without_snakes_mamms, surveys_without_snakes_nomamms)
 ```
 
+## Segments by two diet types
+
+```{r prep diet df with segment level aggregation}
+segments_with_snakes <- snakes.sur %>% filter(!is.na(Snake_ID)) %>% 
+  select(Start_Date, Station, Segment, Snake_ID, Diet_Type, Seg_dist_m)
+
+segments_with_snakes$Start_Date <- mdy(segments_with_snakes$Start_Date)
+
+segment_sampling_efforts <- all_surv_records %>%
+  filter(Survey_Type == "Night") %>%
+  select(Start_Date, Station, Segment, Seg_dist_m) %>%
+  distinct()
+
+segment_distances <- all_surv_records %>%
+  filter(Survey_Type == "Night") %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct()
+
+segments_with_snakes <- left_join(segments_with_snakes, segment_distances)
+
+segments_with_snakes <- segments_with_snakes %>%
+  group_by(Station, Start_Date, Segment, Seg_dist_m, Diet_Type) %>%
+  reframe(n_snakes = n())
+
+segments_with_snakes_wide <- segments_with_snakes %>%
+  pivot_wider(names_from = Diet_Type,
+              values_from = n_snakes,
+              values_fill = 0)
+
+segments_with_snakes <- segments_with_snakes_wide %>%
+  pivot_longer(cols = c(no_mammals, consumes_mammals),
+               names_to = "Diet_Type",
+               values_to = "n_snakes")
+
+segment_sampling_efforts$Start_Date <-ymd( segment_sampling_efforts$Start_Date)
+
+segments_without_snakes <- segment_sampling_efforts %>%
+  anti_join(segments_with_snakes, by = c("Segment", "Start_Date"))
+
+segments_without_snakes$n_snakes <-0
+
+segments_without_snakes_nomamms <- segments_without_snakes
+segments_without_snakes_nomamms$Diet_Type <-"no_mammals"
+
+segments_without_snakes_mamms <- segments_without_snakes
+segments_without_snakes_mamms$Diet_Type<- "consumes_mammals"
+
+segments_without_snakes_complete <- rbind(segments_without_snakes_mamms, segments_without_snakes_nomamms)
+
+two_guilds_tallied_per_segment <- rbind(segments_without_snakes_complete, segments_with_snakes)
+
+two_guilds_tallied_per_segment$Year <- factor(format(two_guilds_tallied_per_segment$Start_Date, "%Y"))
+
+two_guilds_tallied_per_segment$n_500m <- (two_guilds_tallied_per_segment$n_snakes/two_guilds_tallied_per_segment$Seg_dist_m)*500
+
+rm(segments_with_snakes, segments_with_snakes_wide, segments_without_snakes, segments_without_snakes_compelete, segments_without_snakes_mamms, segments_without_snakes_nomamms)
+```
+
 ### Two diet types summary 
 
 ```{r two diet type summ}
+
 # get summary data overall (regardless of year)
 snake.2guild.summ <- two_guilds_tallied %>%
   group_by(Station, Diet_Type) %>%
@@ -507,6 +505,25 @@ snake.2guild.summ <- two_guilds_tallied %>%
 
 # get summary data per year
 snake.2guild.summ.yr <- two_guilds_tallied %>%
+  group_by(Station, Diet_Type, Year) %>%
+  reframe(mean = mean(n_500m),
+           sd = sd(n_500m),
+           sample_size = n()) %>%
+  mutate(se = sd / sqrt(sample_size))
+
+
+### per segment
+
+# get summary data overall (regardless of year)
+snake.2guild.segment.summ <- two_guilds_tallied_per_segment %>%
+  group_by(Station, Diet_Type) %>%
+  reframe(mean = mean(n_500m),
+           sd = sd(n_500m),
+           sample_size = n()) %>%
+  mutate(se = sd / sqrt(sample_size))
+
+# get summary data per year
+snake.2guild.segment.summ.yr <- two_guilds_tallied_per_segment %>%
   group_by(Station, Diet_Type, Year) %>%
   reframe(mean = mean(n_500m),
            sd = sd(n_500m),
@@ -687,8 +704,10 @@ all_snakes_tallied <- left_join(all_snakes_tallied, temperature_means_night)
 
 two_guilds_tallied <- left_join(two_guilds_tallied, humidity_means_night)
 two_guilds_tallied <- left_join(two_guilds_tallied, temperature_means_night)
-```
 
+two_guilds_tallied_per_segment <- left_join(two_guilds_tallied_per_segment, humidity_means_night)
+two_guilds_tallied_per_segment <- left_join(two_guilds_tallied_per_segment, temperature_means_night)
+```
 
 ```{r summarize hum and temp and und}
 
@@ -845,6 +864,14 @@ frog.hunting.plot.yr <-ggplot(frog.summ.yr, aes(x = Station, y = mean, shape = Y
   theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Frogs") + ylim(c(0,5))
 
 frog.hunting.plot.yr
+
+frog.hunting.plot <-ggplot(frog.summ, aes(x = Station, y = mean)) +
+  geom_point(data = frogs_tallied, aes(x = Station, y = n_500m), alpha = 0.3, position = position_jitterdodge(jitter.width = 0.1)) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1), position = spec_dodge) +
+  geom_point(position = spec_dodge, size = 2, shape = 22, fill = "green3") + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Frogs") + ylim(c(0,5))
+
+frog.hunting.plot
 # this should be in main fig panel
 ```
 
@@ -927,12 +954,21 @@ lizard.hunting.plot.yr <-ggplot(lizard.summ.yr, aes(x = Station, y = mean, shape
 lizard.hunting.plot.yr
 
 # main text fig panel
+
+
+lizard.hunting.plot <-ggplot(lizard.summ, aes(x = Station, y = mean)) +
+  geom_point(data = liz_tallied, aes(x = Station, y = n_500m), alpha = 0.3, position = position_jitterdodge(jitter.width = 0.1)) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1), position = spec_dodge) +
+  geom_point(position = spec_dodge, size = 2, shape = 22, fill = "tan") + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + ylab("Individuals per 500m") + labs(title = "Lizards")
+
+lizard.hunting.plot
 ```
 
 
 # Snakes
 
-## Pooled models
+## Models snakes pooled
 
 ```{r models snakes pooled}
 all_snakes_tallied$Year <- factor(format(all_snakes_tallied$Start_Date, "%Y"))
@@ -979,9 +1015,9 @@ summary(all.snakes.null)
 ```
 
 
-## Two diet types models
+## Models 2 diet type w/survey-level aggregation
 
-```{r models snakes two diet types}
+```{r models surv level two diet types}
 
 two_guilds_tallied <- two_guilds_tallied %>%
   na.omit()
@@ -1031,6 +1067,116 @@ testDispersion(snake.huntXguild) # passes
 Anova(snake.huntXguild)
 ```
 
+## Models 2 diet type w/segment-level aggregation
+
+```{r models segment level two diet types}
+
+two_guilds_tallied_per_segment <- two_guilds_tallied_per_segment %>%
+  na.omit()
+
+# null
+snake.seg.null <- glmmTMB(n_snakes ~ 1 + offset(log(Seg_dist_m)) + (1|Segment), data = two_guilds_tallied_per_segment, family = nbinom2())
+
+summary(snake.seg.null)
+# AIC 557.4
+
+# year
+snake.seg.yr <- glmmTMB(n_snakes ~ Year + offset(log(Seg_dist_m)) + (1|Segment), data = two_guilds_tallied_per_segment, family = nbinom2())
+
+summary(snake.seg.yr)
+# AIC 558.0 worse
+
+# hunting
+snake.seg.hunt <- glmmTMB(n_snakes ~ Station + (1|Segment) + offset(log(Seg_dist_m)), data = two_guilds_tallied_per_segment, family = nbinom2())
+
+summary(snake.seg.hunt)
+# AIC worse 559.4
+
+# the plot indicates a hunting x guild interaction
+snake.seg.huntXguild <- glmmTMB(n_snakes ~ Station/Diet_Type + (1|Segment) + offset(log(Seg_dist_m)), data = two_guilds_tallied_per_segment, family = nbinom2())
+
+summary(snake.seg.huntXguild)
+# AIC 536.5 much better
+
+# humidity
+snake.seg.huntXguild.humidity <- glmmTMB(n_snakes ~ Station/Diet_Type + humidity_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = two_guilds_tallied_per_segment, family = nbinom2())
+
+summary(snake.seg.huntXguild.humidity)
+# AIC 537.1 not better
+
+# temperature
+snake.seg.huntXguild.temperature <- glmmTMB(n_snakes ~ Station/Diet_Type + temp_scaled + (1|Segment) + offset(log(Seg_dist_m)), data = two_guilds_tallied_per_segment, family = nbinom2())
+
+summary(snake.seg.huntXguild.temperature)
+# AIC 537.8 not better
+
+snake_mod_names <- c("snake.seg.null", "snake.seg.yr", "snake.seg.hunt", "snake.seg.huntXguild", "snake.seg.huntXguild.humidity", "snake.seg.huntXguild.temp")
+
+# compare
+aictab(cand.set = list(snake.seg.null, snake.seg.yr, snake.seg.hunt, snake.seg.huntXguild, snake.seg.huntXguild.humidity, snake.seg.huntXguild.temperature), modnames = snake_mod_names)
+
+# best fit model results:
+
+summary(snake.seg.huntXguild)
+
+simulateResiduals(fittedModel = snake.seg.huntXguild, plot = T) 
+testZeroInflation(snake.seg.huntXguild) # passes
+testDispersion(snake.seg.huntXguild) # passes
+
+Anova(snake.seg.huntXguild)
+
+####
+# detection rate continuous w/tweedie
+# null
+snake.seg.null <- glmmTMB(n_500m ~ 1 + (1|Segment), data = two_guilds_tallied_per_segment, family = tweedie())
+
+summary(snake.seg.null)
+# AIC 723.3
+
+# year
+snake.seg.yr <- glmmTMB(n_500m ~ Year + (1|Segment), data = two_guilds_tallied_per_segment, family = tweedie())
+
+summary(snake.seg.yr)
+# AIC 723.8 no dif
+
+# hunting
+snake.seg.hunt <- glmmTMB(n_500m ~ Station + (1|Segment), data = two_guilds_tallied_per_segment, family = tweedie())
+
+summary(snake.seg.hunt) # 725.3
+
+# the plot indicates a hunting x guild interaction
+snake.seg.huntXguild <- glmmTMB(n_500m ~ Station/Diet_Type + (1|Segment), data = two_guilds_tallied_per_segment, family = tweedie())
+
+summary(snake.seg.huntXguild)
+# 706.6
+
+# humidity
+snake.seg.huntXguild.hum <- glmmTMB(n_500m ~ Station/Diet_Type + humidity_scaled +(1|Segment), data = two_guilds_tallied_per_segment, family = tweedie())
+
+summary(snake.seg.huntXguild.hum) # 705.8 tad better
+
+# temperature
+snake.seg.huntXguild.hum.temp <- glmmTMB(n_500m ~ Station/Diet_Type + humidity_scaled + temp_scaled +(1|Segment), data = two_guilds_tallied_per_segment, family = tweedie())
+
+summary(snake.seg.huntXguild.hum.temp) # worse
+
+snake_mod_names <- c("snake.seg.null", "snake.seg.yr", "snake.seg.hunt", "snake.seg.huntXguild", "snake.seg.huntXguild.hum", "snake.seg.huntXguild.hum.temp")
+
+# compare
+aictab(cand.set = list(snake.seg.null, snake.seg.yr, snake.seg.hunt, snake.seg.huntXguild, snake.seg.huntXguild.hum, snake.seg.huntXguild.hum.temp), modnames = snake_mod_names)
+
+# best fit model results:
+
+summary(snake.seg.huntXguild.hum)
+
+simulateResiduals(fittedModel = snake.seg.huntXguild.hum, plot = T) 
+testZeroInflation(snake.seg.huntXguild.hum) # passes
+testDispersion(snake.seg.huntXguild.hum) # passes
+
+Anova(snake.seg.huntXguild.hum)
+```
+
+
 ## Plot two diet types
 
 ```{r plot two diet types}
@@ -1048,7 +1194,22 @@ snake.2guild.hunting.plot <-ggplot(snake.2guild.summ, aes(x = Station, y = mean)
 
 snake.2guild.hunting.plot
 
+# per segment data
 
+snake.2guild.hunting.plot.seg.yr <-ggplot(snake.2guild.segment.summ.yr, aes(x = Station, y = mean, shape = Year)) +
+  geom_point(data = two_guilds_tallied, aes(x = Station, y = n_500m), alpha = 0.25, position = position_jitterdodge(jitter.width = 0.18, jitter.height = 0.02)) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1), position = spec_dodge) +
+  geom_point(size =2, position = spec_dodge) + labs(x = NULL)+ scale_x_discrete(labels = c("Unhunted", "Hunted")) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 13)) + ylab("Individuals per 500m") + theme(legend.title = element_blank()) + labs(title = "Snakes") + facet_wrap(~Diet_Type, scales = "free", labeller = labeller(Diet_Type = custom_titles1))
+
+snake.2guild.hunting.plot.seg.yr
+
+# year grouped together
+snake.2guild.hunting.plot.seg <-ggplot(snake.2guild.segment.summ, aes(x = Station, y = mean)) +
+  geom_point(data = two_guilds_tallied, aes(x = Station, y = n_500m), alpha = 0.25, position = position_jitterdodge(jitter.width = 0.18, jitter.height = 0.02)) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1), position = spec_dodge) +
+  geom_point(size =2, shape = 22, fill = "orange", position = spec_dodge) + labs(x = NULL)+ scale_x_discrete(labels = c("Unhunted", "Hunted")) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 13)) + ylab("Individuals per 500m") + theme(legend.title = element_blank()) + labs(title = "Snakes") + facet_wrap(~Diet_Type, scales = "free", labeller = labeller(Diet_Type = custom_titles1))
+
+snake.2guild.hunting.plot.seg
 ```
 
 
@@ -1065,7 +1226,7 @@ CDE
 "
 
 p1<-small.mammal.plot.yearly +
-  snake.2guild.hunting.plot +
+  snake.2guild.hunting.plot.seg +
   frog.hunting.plot.yr +
   lizard.hunting.plot.yr +
   guide_area() +
@@ -1076,8 +1237,26 @@ p1<-small.mammal.plot.yearly +
     heights = c(1, 1)
   ) + 
   plot_annotation(tag_levels = "A") & theme(text = element_text(size = 14))
+p1
 
-#ggsave("detection_rates_11-06-2026_larger_text.png", p1, dpi = 130, width = 8, height = 6)
+#ggsave("detection_rates_11-11-2026_snakes_per_seg.png", p1, dpi = 130, width = 8, height = 6)
+
+# not broken down by year
+
+p2<-small.mammal.plot +
+  snake.2guild.hunting.plot.seg +
+  frog.hunting.plot +
+  lizard.hunting.plot +
+  guide_area() +
+  plot_layout(
+    design = design,
+    guides = "collect",
+    widths = c(1, 1, 1),
+    heights = c(1, 1)
+  ) + 
+  plot_annotation(tag_levels = "A") & theme(text = element_text(size = 14))
+p2
+#ggsave("det_rates_11-11-2026_snakes_per_seg_no_year.png", p2, dpi = 130, width = 8, height = 6)
 
 ```
 
@@ -1149,10 +1328,10 @@ raw_n_plus_detections_plot <- differences_two_guilds %>%
   na.omit() %>%
   ggplot(aes(x = Diet_Type, y = difference, fill = Diet_Type)) +
   geom_col(fill = c("orange", "skyblue3"), color = "black", width = 0.25, position = position_dodge(width = 0.25)) +
-  coord_flip() + theme_bw() + xlab("Diet") + scale_x_discrete(labels = c("mammal eaters", "non-mammal eaters")) + ylab("Difference (hunted forest - unhunted forest)\n shown as detection rates and total numbers") + geom_point(data = differences_detection_two_guilds, aes(x = Diet_Type, y = difference), alpha = 0.6, position = position_jitter(width = 0.05), size = 2.5)+ theme(legend.position = "none") +
+  coord_flip() + theme_bw() + xlab(NULL) + scale_x_discrete(labels = c("Diet includes mammals", "Diet excludes mammals")) + ylab("Difference (hunted forest - unhunted forest)\n shown as detection rates and as total numbers") + geom_point(data = differences_detection_two_guilds, aes(x = Diet_Type, y = difference), alpha = 0.6, position = position_jitter(width = 0.05), size = 2.5)+ theme(legend.position = "none") +
   theme(axis.text = element_text(size = 14, color = "black"), axis.title = element_text(size = 14, color = "black", face = "bold"))
 
-#ggsave("raw_n_plus_detections_plot.png", raw_n_plus_detections_plot, dpi = 120, width = 6, height = 4)
+#ggsave("raw_n_plus_detections_plot_11_11_2026.png", raw_n_plus_detections_plot, dpi = 120, width = 6, height = 4)
 
 raw_n_plus_detections_plot
 ```
@@ -1193,7 +1372,6 @@ fitstats <- function(fm) {
 }
 
 ```
-
 
 # Read in and prep data
 
