@@ -1341,3 +1341,160 @@ rm(list = names(which(!unlist(eapply(.GlobalEnv,
     \(x) inherits(x, what = "function"))))))
 ```
 
+# Density
+
+## Prep data
+
+aka the hardest fucking part
+
+```{r prep data}
+library(unmarked)
+library(dplyr)
+library(lubridate)
+raw_data <- read.csv("snake_survey_data_columns_reduced.csv")
+
+#To prepare multi-occasion distance sampling data with unequal effort and zero detections for unmarkedFrameGDS() in the unmarked R package, you control how formatDistData() builds the M × JT matrix using explicit factor levels and an effort matrix
+
+# I had initially been assigning occasion as the number of times an individual transect was surveyed (our max number of replicates was 11). However, it perhaps should be according to date, with each unique date being an occasion number. I'm not sure. Occasion_by_date gives that version:
+raw_data$Start_Date <-ymd(raw_data$Start_Date)
+
+# Method 1: Using dense_rank() on the date column
+raw_data <- raw_data %>%
+  mutate(Occasion_by_date = dense_rank(Start_Date))
+#actually, I'm reading that in the R package unmarked, occasions (columns in your observation matrix) represent the number of times each individual site or transect was surveyed, not the total number of calendar dates across your entire study.
+# 1
+# formatDistData() expects a data.frame where each row is a detected individual. Do not insert dummy rows with NA distances for surveys with zero detections, as formatDistData() will drop or miscount them. Instead, convert your site and occasion columns to factors and explicitly define all surveyed sites and occasions in the factor levels.
+subset_df <-head(raw_data, n = 10)
+
+# Define all surveyed sites (M = 3) and all occasions (T = 5 (max) or T = 1 (min)), 
+# including "Site_D" and occasion "3" which had zero detections
+all_segments <- unique(subset_df$Segment)
+all_occasions <- unique(subset_df$Occasion)
+
+subset_df$Segment <- factor(subset_df$Segment, levels = all_segments)
+
+subset_df$Occasion <- factor(subset_df$Occasion, levels = all_occasions)
+
+# Because formatDistData() fills any missing site-occasion combinations with 0, you must use the effortMatrix argument to tell the function which zeros represent missed surveys (NA) versus completed surveys with zero animals (0).
+
+# Matrix dimensions. Create an M × T matrix (nrow = number of sites, ncol = number of occasions). The row order must match levels(subset_df$Segment) and the column order must match levels(subset_df$Occasion).
+
+# Binary coding. Use 1 if the segment was surveyed during that occasion and 0 if it was not surveyed. Where effortMatrix == 0, formatDistData() automatically inserts NA across all distance bins for that visit.
+
+# Rows = Segments, Columns = Occasions
+
+# okay so there are 5 max occasions in example and ANAC-01, BARI-01, and BARI-02 are the segments
+
+effort <- matrix(c(
+  1, 1, 1, 1, 0,  # ANAC-01: surveyed 4 of 5 occasions
+  1, 1, 1, 1, 1,  # BARI-01: 5 of 5 occasion
+  1, 0, 0, 0, 0 # BARI-02: surveyed 1 of 5 occasions
+), nrow = 3, ncol = 5, byrow = TRUE)
+
+# define distance bin cutpoints (J = 3 bins: 0-20, 20-40, 40-60)
+cutpts <- c(0, 1, 2, 3, 6)
+
+# format distance data into an M x JT matrix
+y_mat <- formatDistData(
+  distData = subset_df,
+  distCol = "Distance_From_Trail_m",
+  transectNameCol = "Segment",
+  dist.breaks = cutpts,
+  occasionCol = "Occasion",
+  effortMatrix = effort
+)
+
+tlength <- c(388, 340, 183)
+
+# Build the unmarkedFrameGDS object for gdistsamp()
+umf <- unmarkedFrameGDS(
+  y = y_mat,
+  numPrimary = 5,
+  survey = "line",
+  tlength = tlength,
+  dist.breaks = cutpts,
+  unitsIn = "m")
+
+summary(umf)
+
+# the above seems to be what I want, but, need to write a code that gives me it for the entire dataset
+
+
+
+
+
+##
+
+# Build a complete, empty matrix for ALL sites and fill it
+# Total columns = Number of bins * Number of occasions (3 bins * 2 occasions = 6 columns)
+full_matrix <- formatDistData(
+  distData = raw_data,
+  distCol = "Seg_dist_m",
+  transectNameCol = "Segment",
+  dist.breaks = breaks_mam,
+  occasionCol = "Occasion")
+
+full_matrix[] <- 0
+
+# Assemble into the final unmarkedFrameGDS object
+umf <- unmarkedFrameGDS(
+  y = final_matrix,               # Now safely includes SiteC with all 0s
+  siteCovs = masterSiteCovs,       # Perfectly matches the rows of final_matrix
+  numPrimary = num_occasions,
+  dist.breaks = my_breaks,
+  survey = "line",
+  unitsIn = "m")
+
+# Verify that SiteC is included with 0 detections
+summary(umf)
+
+##
+
+# slim down to only the non mammal eating snakes...
+non_mam <- raw_data %>%
+  filter(Diet_Type == "no_mammals")
+
+mam_eaters <- raw_data %>%
+  filter(Diet_Type == "consumes_mammals")
+
+mam_eaters$Occasion <- as.factor(mam_eaters$Occasion)
+
+breaks_mam <- c(0,1,2,4,8,12)
+breaks_no_mams <- c(0,1,3,4,8,10)
+
+mam_matrix <- formatDistData(
+  distData = mam_eaters,
+  distCol = "Seg_dist_m",
+  transectNameCol = "Segment",
+  dist.breaks = breaks_mam,
+  occasionCol = "Occasion")
+
+non_mam_matrix <- formatDistData(
+  distData = non_mam,
+  distCol = "Seg_dist_m",
+  transectNameCol = "Segment",
+  dist.breaks = breaks_no_mams,
+  occasionCol = "Occasion")
+
+mam_eaters_cov <- mam_eaters %>%
+  select(Station, Segment, Seg_dist_m) 
+
+mam_covs_ordered <- mam_eaters_cov[match(rownames(mam_matrix), mam_eaters_cov$Segment), ]
+
+non_mam_cov <- non_mam %>%
+  select(Station, Segment, Seg_dist_m) 
+
+non_mam_covs_ordered <- non_mam_cov[match(rownames(non_mam), non_mam_cov$Segment), ]
+
+umf_mam <- unmarkedFrameGDS(
+  y = as.matrix(mam_matrix),
+  siteCovs = mam_covs_ordered,                      # Your species trait / site data goes here
+  numPrimary = 8,                            # Number of occasions (sessions)
+  dist.breaks = breaks_mam,
+  survey = "line",                           # or "point"
+  unitsIn = "m",
+  tlength = mam_covs_ordered$Seg_dist_m
+)
+
+
+```
