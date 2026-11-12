@@ -1345,24 +1345,26 @@ rm(list = names(which(!unlist(eapply(.GlobalEnv,
 
 ## Prep data
 
-aka the hardest fucking part
+Read in packages
 
-```{r prep data}
-library(unmarked)
+Read in data
+
+Run through subset to test process
+
+```{r prep step one}
+
 library(dplyr)
+library(tidyr)
 library(lubridate)
+library(unmarked)
+library(tibble)
+
 raw_data <- read.csv("snake_survey_data_columns_reduced.csv")
 
 #To prepare multi-occasion distance sampling data with unequal effort and zero detections for unmarkedFrameGDS() in the unmarked R package, you control how formatDistData() builds the M × JT matrix using explicit factor levels and an effort matrix
 
-# I had initially been assigning occasion as the number of times an individual transect was surveyed (our max number of replicates was 11). However, it perhaps should be according to date, with each unique date being an occasion number. I'm not sure. Occasion_by_date gives that version:
-raw_data$Start_Date <-ymd(raw_data$Start_Date)
+# I assigned occasion as the number of times an individual transect was surveyed (our max number of replicates was 11). I'm reading that in the R package unmarked, occasions (columns in your observation matrix) represent the number of times each individual site or transect was surveyed, not the total number of calendar dates across your entire study.
 
-# Method 1: Using dense_rank() on the date column
-raw_data <- raw_data %>%
-  mutate(Occasion_by_date = dense_rank(Start_Date))
-#actually, I'm reading that in the R package unmarked, occasions (columns in your observation matrix) represent the number of times each individual site or transect was surveyed, not the total number of calendar dates across your entire study.
-# 1
 # formatDistData() expects a data.frame where each row is a detected individual. Do not insert dummy rows with NA distances for surveys with zero detections, as formatDistData() will drop or miscount them. Instead, convert your site and occasion columns to factors and explicitly define all surveyed sites and occasions in the factor levels.
 subset_df <-head(raw_data, n = 10)
 
@@ -1417,84 +1419,591 @@ umf <- unmarkedFrameGDS(
 
 summary(umf)
 
-# the above seems to be what I want, but, need to write a code that gives me it for the entire dataset
+# the above seems to be what I want, but, need to write a code that gives me it for the entire data set (below)
 
+# clean
+rm(umf, y_mat, tlength, cutpts, effort, subset_df)
+```
 
+## Umf per station
 
+Trying with the full data set, looking at each station (YRS and TBS) separately 
 
+```{r effort and data prep per station}
 
-##
+# Prepare raw data
+raw_data <- raw_data %>%
+  mutate(
+    Start_Date = ymd(Start_Date),
+    Occasion = as.integer(Occasion)
+  )
 
-# Build a complete, empty matrix for ALL sites and fill it
-# Total columns = Number of bins * Number of occasions (3 bins * 2 occasions = 6 columns)
-full_matrix <- formatDistData(
-  distData = raw_data,
-  distCol = "Seg_dist_m",
+# Create a list to store the prepared data for each station
+station_data <- list()
+
+# Loop through each station
+for (st in unique(raw_data$Station)) {
+
+  # Subset data to the current station
+  station_df <- raw_data %>%
+    filter(Station == st)
+
+  # Identify ALL surveyed segments and occasions
+  all_segments <- sort(unique(station_df$Segment))
+  all_occasions <- sort(unique(raw_data$Occasion))
+
+  # Define factor levels explicitly
+  station_df$Segment <- factor(
+    station_df$Segment,
+    levels = all_segments
+  )
+
+  station_df$Occasion <- factor(
+    station_df$Occasion,
+    levels = all_occasions
+  )
+
+  # Create effort matrix (rows = segments, columns = occasions)
+  effort <- matrix(
+    0,
+    nrow = length(all_segments),
+    ncol = length(all_occasions),
+    dimnames = list(all_segments, all_occasions)
+  )
+
+  # Identify completed surveys
+  surveyed <- station_df %>%
+    distinct(Segment, Occasion)
+
+  # Assign 1 to every completed survey
+  effort[
+    cbind(
+      match(as.character(surveyed$Segment), all_segments),
+      match(as.character(surveyed$Occasion), all_occasions)
+    )
+  ] <- 1
+
+  # Remove zero-detection rows from detection data
+  detection_df <- station_df %>%
+    filter(!is.na(Distance_From_Trail_m))
+
+  # Retain the same factor levels as the effort matrix
+  detection_df$Segment <- factor(
+    detection_df$Segment,
+    levels = all_segments
+  )
+
+  detection_df$Occasion <- factor(
+    detection_df$Occasion,
+    levels = all_occasions
+  )
+
+  # Store results for this station
+  station_data[[st]] <- list(
+    data = detection_df,
+    effort = effort,
+    segments = all_segments,
+    occasions = all_occasions
+  )
+}
+
+# Access the prepared data for each station
+TBS_data <- station_data[["TBS"]]$data
+TBS_effort <- station_data[["TBS"]]$effort
+
+YRS_data <- station_data[["YRS"]]$data
+YRS_effort <- station_data[["YRS"]]$effort
+
+# Check matrix dimensions and survey effort
+dim(TBS_effort)
+dim(YRS_effort)
+
+TBS_effort
+YRS_effort
+
+# Check that the number of completed surveys matches the original data
+sum(TBS_effort)
+sum(YRS_effort)
+```
+
+```{r unmarked dataframes by station}
+
+cutpts <- c(0, 0.5, 1, 3, 6, 8, 12)
+
+# format distance data into an M x JT matrix
+
+# YRS
+yrs_mat <- formatDistData(
+  distData = YRS_data,
+  distCol = "Distance_From_Trail_m",
   transectNameCol = "Segment",
-  dist.breaks = breaks_mam,
-  occasionCol = "Occasion")
-
-full_matrix[] <- 0
-
-# Assemble into the final unmarkedFrameGDS object
-umf <- unmarkedFrameGDS(
-  y = final_matrix,               # Now safely includes SiteC with all 0s
-  siteCovs = masterSiteCovs,       # Perfectly matches the rows of final_matrix
-  numPrimary = num_occasions,
-  dist.breaks = my_breaks,
-  survey = "line",
-  unitsIn = "m")
-
-# Verify that SiteC is included with 0 detections
-summary(umf)
-
-##
-
-# slim down to only the non mammal eating snakes...
-non_mam <- raw_data %>%
-  filter(Diet_Type == "no_mammals")
-
-mam_eaters <- raw_data %>%
-  filter(Diet_Type == "consumes_mammals")
-
-mam_eaters$Occasion <- as.factor(mam_eaters$Occasion)
-
-breaks_mam <- c(0,1,2,4,8,12)
-breaks_no_mams <- c(0,1,3,4,8,10)
-
-mam_matrix <- formatDistData(
-  distData = mam_eaters,
-  distCol = "Seg_dist_m",
-  transectNameCol = "Segment",
-  dist.breaks = breaks_mam,
-  occasionCol = "Occasion")
-
-non_mam_matrix <- formatDistData(
-  distData = non_mam,
-  distCol = "Seg_dist_m",
-  transectNameCol = "Segment",
-  dist.breaks = breaks_no_mams,
-  occasionCol = "Occasion")
-
-mam_eaters_cov <- mam_eaters %>%
-  select(Station, Segment, Seg_dist_m) 
-
-mam_covs_ordered <- mam_eaters_cov[match(rownames(mam_matrix), mam_eaters_cov$Segment), ]
-
-non_mam_cov <- non_mam %>%
-  select(Station, Segment, Seg_dist_m) 
-
-non_mam_covs_ordered <- non_mam_cov[match(rownames(non_mam), non_mam_cov$Segment), ]
-
-umf_mam <- unmarkedFrameGDS(
-  y = as.matrix(mam_matrix),
-  siteCovs = mam_covs_ordered,                      # Your species trait / site data goes here
-  numPrimary = 8,                            # Number of occasions (sessions)
-  dist.breaks = breaks_mam,
-  survey = "line",                           # or "point"
-  unitsIn = "m",
-  tlength = mam_covs_ordered$Seg_dist_m
+  dist.breaks = cutpts,
+  occasionCol = "Occasion",
+  effortMatrix = YRS_effort
 )
 
+yrs_segment_distances <- all_surv_records %>%
+  filter(Survey_Type == "Night" & Station == "YRS") %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct() %>%
+  column_to_rownames(var = "Segment") %>%
+  pull(Seg_dist_m)
+
+# Build the unmarkedFrameGDS object for gdistsamp()
+yrs_umf <- unmarkedFrameGDS(
+  y = yrs_mat,
+  numPrimary = 11,
+  survey = "line",
+  tlength = yrs_segment_distances,
+  dist.breaks = cutpts,
+  unitsIn = "m")
+
+# TBS
+
+tbs_mat <- formatDistData(
+  distData = TBS_data,
+  distCol = "Distance_From_Trail_m",
+  transectNameCol = "Segment",
+  dist.breaks = cutpts,
+  occasionCol = "Occasion",
+  effortMatrix = TBS_effort
+)
+
+tbs_segment_distances <- all_surv_records %>%
+  filter(Survey_Type == "Night" & Station == "TBS") %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct() %>%
+  column_to_rownames(var = "Segment") %>%
+  pull(Seg_dist_m)
+
+# Build the unmarkedFrameGDS object for gdistsamp()
+tbs_umf <- unmarkedFrameGDS(
+  y = tbs_mat,
+  numPrimary = 11,
+  survey = "line",
+  tlength = tbs_segment_distances,
+  dist.breaks = cutpts,
+  unitsIn = "m")
+```
+
+Model and predict based on the station level data (no site covariates, species lumped)
+
+```{r station level models and predictions}
+# lambda is abundance
+# phi is availability probability 
+# • What it models: The probability that an animal is available to be detected during a given survey/replicate (e.g., whether a bird sings or moves and can be perceived).
+#Why it has a part: Traditional distance sampling assumes animals are always available (φ = 1). Generalized distance sampling (gdistsamp) extends the model by using repeated visits or dual-observer/temporary emigration designs to separately estimate availability (φ < 1) so it doesn't get confounded with perception or abundance.
+# p detection probability
+
+# model predicting density at YRS
+tot.null.yrs <- gdistsamp(~1, ~1, ~1, yrs_umf, output="density")
+
+backTransform(tot.null.yrs, type="lambda")
+
+if (FALSE) {
+# Empirical Bayes estimates of abundance at each site
+re <- ranef(tot.null.yrs)
+plot(re, layout=c(10,5), xlim=c(-1, 20))
+}
+# model predicting density at TBS
+tot.null.tbs <- gdistsamp(~1, ~1, ~1, tbs_umf, output="density")
+# Predict abundance/density (lambda)
+predict(tot.null.tbs, type = 'lambda')
+
+# predict is same as backtransform
+backTransform(tot.null.tbs, type="lambda")
+
+if (FALSE) {
+# Empirical Bayes estimates of abundance at each site
+re <- ranef(tot.null.tbs)
+plot(re, layout=c(10,5), xlim=c(-1, 20))
+}
+```
+
+Right so overall densities/abundances don't differ between stations.
+
+## Incorporate env
+
+```{r add env}
+raw_data <- left_join(raw_data, humidity_means_night)
+raw_data <- left_join(raw_data, temperature_means_night)
+```
+
+Decided idk how to incorporate environmental variables that varied per date, and they dont seem to matter much anyway.
+
+## Per Diet Type
+
+### Option 1
+
+```{r diet type}
+
+# Define all sites
+site_info <- raw_data %>%
+  distinct(Station, Segment, Seg_dist_m) %>%
+  mutate(
+    Site_ID = paste(Station, Segment, sep = "_"),
+    Station = factor(Station, levels = c("TBS", "YRS"))
+  ) %>%
+  arrange(Station, Segment)
+
+all_sites <- site_info$Site_ID
+all_occasions <- sort(unique(raw_data$Occasion))
+
+# Create site covariates in the same order as the response matrix
+site_covs <- site_info %>%
+  select(Station)
+
+# Create effort matrix
+effort <- matrix(
+  0,
+  nrow = length(all_sites),
+  ncol = length(all_occasions),
+  dimnames = list(all_sites, all_occasions)
+)
+
+# Identify all completed surveys
+surveyed <- raw_data %>%
+  mutate(Site_ID = paste(Station, Segment, sep = "_")) %>%
+  distinct(Site_ID, Occasion)
+
+# Mark completed surveys
+effort[
+  cbind(
+    match(surveyed$Site_ID, all_sites),
+    match(surveyed$Occasion, all_occasions)
+  )
+] <- 1
+
+# Confirm effort
+dim(effort)
+sum(effort)
+```
+
+```{r loop to make dfs per diet}
+
+# Identify diet categories
+diet_types <- na.omit(unique(raw_data$Diet_Type))
+
+# Create lists to store models and data
+diet_models <- list()
+diet_umfs <- list()
+
+# Loop through diet categories
+for (diet in diet_types) {
+
+  # Select detections for this diet type
+  diet_df <- raw_data %>%
+    filter(
+      Diet_Type == diet,
+      !is.na(Distance_From_Trail_m)
+    ) %>%
+    mutate(
+      Site_ID = paste(Station, Segment, sep = "_"),
+      Site_ID = factor(Site_ID, levels = all_sites),
+      Occasion = factor(Occasion, levels = all_occasions)
+    )
+
+  # Format distance data
+  y <- formatDistData(
+    distData = diet_df,
+    distCol = "Distance_From_Trail_m",
+    transectNameCol = "Site_ID",
+    dist.breaks = cutpts,
+    occasionCol = "Occasion",
+    effortMatrix = effort
+  )
+
+  # Create unmarkedFrameGDS object
+  umf <- unmarkedFrameGDS(
+    y = y,
+    siteCovs = site_covs,
+    numPrimary = length(all_occasions),
+    dist.breaks = cutpts,
+    survey = "line",
+    unitsIn = "m",
+    tlength = site_info$Seg_dist_m
+  )
+
+  # Fit gdistsamp model
+  model <- gdistsamp(
+    lambdaformula = ~Station,
+    phiformula = ~1,
+    pformula = ~1,
+    data = umf,
+    keyfun = "halfnorm",
+    output = "density",
+    unitsOut = "ha",
+    K = 100
+  )
+
+  # Store results
+  diet_umfs[[diet]] <- umf
+  diet_models[[diet]] <- model
+}
+
+# Examine model summaries
+summary(diet_models$consumes_mammals)
+summary(diet_models$no_mammals)
+```
+
+```{r predictions}
+
+# Create prediction data
+pred_data <- data.frame(
+  Station = factor(
+    c("TBS", "YRS"),
+    levels = levels(site_covs$Station)
+  )
+)
+
+# Extract predictions from each model
+diet_predictions <- bind_rows(
+  lapply(names(diet_models), function(diet) {
+
+    pred <- predict(
+      diet_models[[diet]],
+      type = "lambda",
+      newdata = pred_data,
+      appendData = TRUE
+    )
+
+    pred$Diet_Type <- diet
+
+    pred
+  })
+)
+
+# Organize results
+diet_predictions <- diet_predictions %>%
+  select(
+    Diet_Type,
+    Station,
+    Predicted,
+    SE,
+    lower,
+    upper
+  )
+
+diet_predictions
+```
+
+```{r plot}
+library(ggplot2)
+ggplot(diet_predictions, aes(x = Station, y = Predicted)) + geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE, width = 0.1)) +
+  geom_point(shape = 22, fill = "tan") + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12)) + facet_wrap(~Diet_Type)
+
+```
+
+
+
+
+## Option 2
+
+## Mammal eaters
+
+```{r effort and data prep per station}
+
+# Prepare raw data
+raw_data <- raw_data %>%
+  mutate(
+    Start_Date = ymd(Start_Date),
+    Occasion = as.integer(Occasion)
+  )
+
+# Create a list to store the prepared data for each station
+station_data <- list()
+
+# Loop through each station
+for (st in unique(raw_data$Station)) {
+
+  # Subset data to the current station
+  station_df <- raw_data %>%
+    filter(Station == st)
+
+  # Identify ALL surveyed segments and occasions
+  all_segments <- sort(unique(station_df$Segment))
+  all_occasions <- sort(unique(raw_data$Occasion))
+
+  # Define factor levels explicitly
+  station_df$Segment <- factor(
+    station_df$Segment,
+    levels = all_segments
+  )
+
+  station_df$Occasion <- factor(
+    station_df$Occasion,
+    levels = all_occasions
+  )
+
+  # Create effort matrix (rows = segments, columns = occasions)
+  effort <- matrix(
+    0,
+    nrow = length(all_segments),
+    ncol = length(all_occasions),
+    dimnames = list(all_segments, all_occasions)
+  )
+
+  # Identify completed surveys
+  surveyed <- station_df %>%
+    distinct(Segment, Occasion)
+
+  # Assign 1 to every completed survey
+  effort[
+    cbind(
+      match(as.character(surveyed$Segment), all_segments),
+      match(as.character(surveyed$Occasion), all_occasions)
+    )
+  ] <- 1
+
+  # Remove zero-detection rows from detection data
+  detection_df <- station_df %>%
+    filter(Diet_Type == "consumes_mammals") %>%
+    filter(!is.na(Distance_From_Trail_m))
+
+  # Retain the same factor levels as the effort matrix
+  detection_df$Segment <- factor(
+    detection_df$Segment,
+    levels = all_segments
+  )
+
+  detection_df$Occasion <- factor(
+    detection_df$Occasion,
+    levels = all_occasions
+  )
+
+  # Store results for this station
+  station_data[[st]] <- list(
+    data = detection_df,
+    effort = effort,
+    segments = all_segments,
+    occasions = all_occasions
+  )
+}
+
+# Access the prepared data for each station
+TBS_data <- station_data[["TBS"]]$data
+TBS_effort <- station_data[["TBS"]]$effort
+
+YRS_data <- station_data[["YRS"]]$data
+YRS_effort <- station_data[["YRS"]]$effort
+
+# Check matrix dimensions and survey effort
+dim(TBS_effort)
+dim(YRS_effort)
+
+TBS_effort
+YRS_effort
+
+# Check that the number of completed surveys matches the original data
+sum(TBS_effort)
+sum(YRS_effort)
+```
+
+```{r unmarked dataframes by station}
+
+cutpts <- c(0, 2, 5, 8, 12)
+
+# format distance data into an M x JT matrix
+
+# YRS
+yrs_mat <- formatDistData(
+  distData = YRS_data,
+  distCol = "Distance_From_Trail_m",
+  transectNameCol = "Segment",
+  dist.breaks = cutpts,
+  occasionCol = "Occasion",
+  effortMatrix = YRS_effort
+)
+
+yrs_segment_distances <- all_surv_records %>%
+  filter(Survey_Type == "Night" & Station == "YRS") %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct() %>%
+  column_to_rownames(var = "Segment") %>%
+  pull(Seg_dist_m)
+
+# Build the unmarkedFrameGDS object for gdistsamp()
+yrs_umf <- unmarkedFrameGDS(
+  y = yrs_mat,
+  numPrimary = 11,
+  survey = "line",
+  tlength = yrs_segment_distances,
+  dist.breaks = cutpts,
+  unitsIn = "m")
+
+# TBS
+
+tbs_mat <- formatDistData(
+  distData = TBS_data,
+  distCol = "Distance_From_Trail_m",
+  transectNameCol = "Segment",
+  dist.breaks = cutpts,
+  occasionCol = "Occasion",
+  effortMatrix = TBS_effort
+)
+
+tbs_segment_distances <- all_surv_records %>%
+  filter(Survey_Type == "Night" & Station == "TBS") %>%
+  select(Station, Segment, Seg_dist_m) %>%
+  distinct() %>%
+  column_to_rownames(var = "Segment") %>%
+  pull(Seg_dist_m)
+
+# Build the unmarkedFrameGDS object for gdistsamp()
+tbs_umf <- unmarkedFrameGDS(
+  y = tbs_mat,
+  numPrimary = 11,
+  survey = "line",
+  tlength = tbs_segment_distances,
+  dist.breaks = cutpts,
+  unitsIn = "m")
+```
+
+Model and predict based on the station level data (no site covariates, species lumped)
+
+```{r station level models and predictions}
+# lambda is abundance
+# phi is availability probability 
+# • What it models: The probability that an animal is available to be detected during a given survey/replicate (e.g., whether a bird sings or moves and can be perceived).
+#Why it has a part: Traditional distance sampling assumes animals are always available (φ = 1). Generalized distance sampling (gdistsamp) extends the model by using repeated visits or dual-observer/temporary emigration designs to separately estimate availability (φ < 1) so it doesn't get confounded with perception or abundance.
+# p detection probability
+
+# model predicting density at YRS
+tot.null.yrs <- gdistsamp(~1, ~1, ~1, yrs_umf, output="density")
+
+backTransform(tot.null.yrs, type="lambda")
+
+if (FALSE) {
+# Empirical Bayes estimates of abundance at each site
+re <- ranef(tot.null.yrs)
+plot(re, layout=c(10,5), xlim=c(-1, 20))
+}
+# model predicting density at TBS
+tot.null.tbs <- gdistsamp(~1, ~1, ~1, tbs_umf, output="density")
+# Predict abundance/density (lambda)
+predict(tot.null.tbs, type = 'lambda')
+
+# predict is same as backtransform
+backTransform(tot.null.tbs, type="lambda")
+
+if (FALSE) {
+# Empirical Bayes estimates of abundance at each site
+re <- ranef(tot.null.tbs)
+plot(re, layout=c(10,5), xlim=c(-1, 20))
+}
+
+mammal_eater_estimates <- data.frame(
+  Station = c("YRS", "TBS"),
+  Estimate = c(0.626, 0.353),
+  SE = c(0.417, 0.247),
+ Diet_Type = c("Consumes_mammals", "Consumes_mammals")
+)
+
+ggplot(mammal_eater_estimates, aes(x = Station, y = Estimate)) + geom_errorbar(aes(ymin = Estimate - SE, ymax = Estimate + SE, width = 0.1)) +
+  geom_point(shape = 22, fill = "tan") + 
+  scale_x_discrete(labels = c("Unhunted", "Hunted")) + labs(x = NULL) +
+  theme_bw() + theme(axis.text = element_text(color = "black", size = 12))
 
 ```
