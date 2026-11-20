@@ -1266,27 +1266,304 @@ p2
 
 ```{r snake visuals using all data}
 
-all.individs <- snakes.master %>%
+snakes.master <- snakes.master %>%
   select(Start_Date, Station, Snake_ID, Family, Genus, Species, Type_of_Encounter, Diet_Type, Primary_Diet_Component)
 
-counts <- all.individs %>%
-  group_by(Station, Family, Genus, Species, Primary_Diet_Component) %>%
-  tally() %>%
-  filter(!is.na(Family))
+# one place I may have gone wrong is that the cases of surveys where no snakes were found are still included in snakes.master. Remove those here:
 
-differences <- counts %>%
+snakes.master <- snakes.master %>%
+  filter(!is.na(Snake_ID) | Type_of_Encounter != "Survey")
+
+# remove the Unknown genera (don't know the diet type)
+snakes.master <- snakes.master %>%
+  filter(Genus != "Unknown")
+
+# tally up by primary diet component
+counts <- snakes.master %>%
+  group_by(Station, Family, Genus, Species, Primary_Diet_Component) %>%
+  tally()
+
+differences_primary_diet_component <- counts %>%
   group_by(Family, Genus, Species, Primary_Diet_Component) %>%
   pivot_wider(names_from = Station, values_from = n, values_fill = 0) %>%
-  mutate(difference = YRS - TBS) %>%
-  na.omit() %>%
-  filter(Primary_Diet_Component !="eggs")
+  mutate(difference = YRS - TBS)
 
 aes(x = numeric_value, y = reorder(category, numeric_value))
 
-ggplot(differences,
-       aes(x = Primary_Diet_Component, y = -difference, color = Primary_Diet_Component)) +
+ggplot(differences_primary_diet_component,
+       aes(x = Primary_Diet_Component, y = difference, color = Primary_Diet_Component)) +
   geom_col() + theme_bw() 
 
+#
+# temporarily save this df
+#write.csv(differences_primary_diet_component, file = "differences_snakes-master-df_primary-diet-type.csv", row.names = FALSE)
+#####
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Aggregate counts by diet component
+diet_summary <- differences_primary_diet_component %>%
+  group_by(Primary_Diet_Component) %>%
+  summarise(
+    TBS = sum(TBS),
+    YRS = sum(YRS),
+    difference = YRS - TBS,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    Primary_Diet_Component = reorder(
+      Primary_Diet_Component, difference
+    )
+  )
+
+# Convert to long format for plotting
+diet_long <- diet_summary %>%
+  pivot_longer(
+    cols = c(TBS, YRS),
+    names_to = "Station",
+    values_to = "Abundance"
+  )
+
+# Dumbbell plot
+ggplot(diet_summary,
+       aes(y = Primary_Diet_Component)) +
+
+  geom_segment(
+    aes(x = TBS, xend = YRS,
+        yend = Primary_Diet_Component),
+    color = "gray65",
+    linewidth = 1.2
+  ) +
+
+  geom_point(
+    aes(x = TBS, color = "TBS"),
+    size = 4
+  ) +
+
+  geom_point(
+    aes(x = YRS, color = "YRS"),
+    size = 4
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "TBS" = "#D55E00",
+      "YRS" = "#0072B2"
+    )
+  ) +
+
+  labs(
+    x = "Total snake abundance",
+    y = "Primary diet component",
+    color = "Station"
+  ) +
+
+  theme_bw(base_size = 13) +
+
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "top"
+  )
+```
+```{r}
+ggplot(diet_long,
+       aes(x = Abundance,
+           y = Primary_Diet_Component,
+           fill = Station)) +
+
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+
+  scale_fill_manual(
+    values = c(
+      "TBS" = "#D55E00",
+      "YRS" = "#0072B2"
+    )
+  ) +
+
+  labs(
+    x = "Total snake abundance",
+    y = "Primary diet component",
+    fill = "Station"
+  ) +
+
+  theme_bw(base_size = 13) +
+
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "top"
+  )
+
+```
+
+```{r }
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Aggregate counts
+diet_summary <- differences_primary_diet_component %>%
+  group_by(Primary_Diet_Component) %>%
+  summarise(
+    TBS = sum(TBS),
+    YRS = sum(YRS),
+    difference = YRS - TBS,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    Primary_Diet_Component = reorder(
+      Primary_Diet_Component, difference
+    )
+  )
+
+# Dumbbell plot
+save_me<-ggplot(diet_summary,
+       aes(y = Primary_Diet_Component)) +
+
+  geom_segment(
+    aes(x = TBS, xend = YRS,
+        yend = Primary_Diet_Component),
+    color = "black",
+    linewidth = 1.2
+  ) +
+
+  geom_point(
+    aes(x = TBS, color = "TBS"),
+    size = 4
+  ) +
+
+  geom_point(
+    aes(x = YRS, color = "YRS"),
+    size = 3.9
+  ) +
+
+  scale_color_manual(
+    name = NULL,
+    breaks = c("TBS", "YRS"),
+    labels = c("Unhunted", "Hunted"),
+    values = c(
+      "TBS" = "#0072B2",
+      "YRS" = "#D55E00"
+    )
+  ) +
+
+  labs(
+    x = "Total snake abundance",
+    y = "Primary diet component"
+  ) +
+
+  theme_bw(base_size = 13) +
+
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "top",
+    legend.title = element_blank()
+  )+
+  theme(axis.text = element_text(size = 14, color = "black"), axis.title = element_text(size = 14, color = "black", face = "bold"))
+
+#ggsave(save_me, filename= "primary_diet_components.png", dpi = 125, width = 6.5, height = 4)
+
+
+### repeat with binary diet type
+snakes.master <- snakes.master %>%
+  select(Start_Date, Station, Snake_ID, Family, Genus, Species, Type_of_Encounter, Diet_Type)
+
+# one place I may have gone wrong is that the cases of surveys where no snakes were found are still included in snakes.master. Remove those here:
+
+snakes.master <- snakes.master %>%
+  filter(!is.na(Snake_ID) | Type_of_Encounter != "Survey")
+
+# remove the Unknown genera (don't know the diet type)
+snakes.master <- snakes.master %>%
+  filter(Genus != "Unknown")
+
+# tally up by primary diet component
+counts <- snakes.master %>%
+  group_by(Station, Family, Genus, Species, Diet_Type) %>%
+  tally()
+
+differences_diet_type_binary <- counts %>%
+  group_by(Family, Genus, Species, Diet_Type) %>%
+  pivot_wider(names_from = Station, values_from = n, values_fill = 0) %>%
+  mutate(difference = YRS - TBS)
+
+
+##
+# Aggregate counts
+diet_summary <- differences_diet_type_binary %>%
+  group_by(Diet_Type) %>%
+  summarise(
+    TBS = sum(TBS),
+    YRS = sum(YRS),
+    difference = YRS - TBS,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    Diet_Type = reorder(
+      Diet_Type, difference
+    )
+  )
+
+# Dumbbell plot
+save_me<-ggplot(diet_summary,
+       aes(y = Diet_Type)) +
+
+  geom_segment(
+    aes(x = TBS, xend = YRS,
+        yend = Diet_Type),
+    color = "black",
+    linewidth = 1.2
+  ) +
+
+  geom_point(
+    aes(x = TBS, color = "TBS"),
+    size = 4
+  ) +
+
+  geom_point(
+    aes(x = YRS, color = "YRS"),
+    size = 3.9
+  ) +
+
+  scale_color_manual(
+    name = NULL,
+    breaks = c("TBS", "YRS"),
+    labels = c("Unhunted", "Hunted"),
+    values = c(
+      "TBS" = "#0072B2",
+      "YRS" = "#D55E00"
+    )
+  ) +
+
+  labs(
+    x = "Total snake abundance",
+    y = "Binary dietary guild"
+  ) +
+
+  theme_bw(base_size = 13) +
+
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "top",
+    legend.title = element_blank()
+  )+
+  theme(axis.text = element_text(size = 14, color = "black"), axis.title = element_text(size = 14, color = "black", face = "bold"))
+save_me
+#ggsave(save_me, filename= "Binary_dietary_guild.png", dpi = 125, width = 6.5, height = 4)
+```
+
+
+
+```{r}
+###
 differences %>%
   mutate(Primary_Diet_Component = fct_reorder(Primary_Diet_Component, difference)) %>%
   ggplot(aes(x = Primary_Diet_Component, y = difference)) +
