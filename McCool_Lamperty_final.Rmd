@@ -120,7 +120,8 @@ rm(temp)
 all_surv_records %>%
   group_by(Station, Survey_Type) %>%
   summarize(cumulative_m = sum(Seg_dist_m),
-            cumulative_surveys = n_distinct(Start_Date_Start_Time))
+            cumulative_surveys = n_distinct(Start_Date_Start_Time),
+            total_search_time = sum(Effort_hrs))
 
 ```
 
@@ -650,6 +651,11 @@ humidity_all <- rbind(humidity_long, humidity_long_2024)
 temperature_all <- rbind(temp_long, temperature_long_2024)
 understory_all <-rbind(understory_long, understory_long_2024)
 
+# convert to C
+
+temperature_all$temp_C <- (temperature_all$Temperature-32) * 5/9
+
+
 # get means
 humidity_means <- humidity_all %>%
   filter(Humidity > 73) %>% # two afternoon survey outliers
@@ -658,7 +664,7 @@ humidity_means <- humidity_all %>%
 
 temperature_means <- temperature_all %>%
   group_by(Station, Start_Date, Survey_Type) %>%
-  reframe(mean_temp_F = mean(Temperature))
+  reframe(mean_temp_C = mean(temp_C))
 
 understory_means <- understory_all %>%
   group_by(Station, Start_Date, Survey_Type) %>%
@@ -674,18 +680,18 @@ humidity_means_night <- humidity_all %>%
 temperature_means_night <- temperature_all %>%
   filter(Survey_Type == "Night") %>%
   group_by(Station, Start_Date) %>%
-  reframe(mean_temp_F = mean(Temperature))
+  reframe(mean_temp_C = mean(temp_C))
 
 
 # center and scale
 humidity_means$humidity_scaled <-scale(humidity_means$mean_relative_humidity)
 
-temperature_means$temp_scaled <-scale(temperature_means$mean_temp_F)
+temperature_means$temp_scaled <-scale(temperature_means$mean_temp_C)
 
 # and for snake survey data only
 humidity_means_night$humidity_scaled <-scale(humidity_means_night$mean_humidity)
 
-temperature_means_night$temp_scaled <-scale(temperature_means_night$mean_temp_F)
+temperature_means_night$temp_scaled <-scale(temperature_means_night$mean_temp_C)
 
 # understory not included in models so not bothering to center and scale here
 ```
@@ -738,8 +744,8 @@ temperature_summary_yr_survey_type <- temperature_all %>%
   filter(!(Year==2024 & Survey_Type == "Afternoon")) %>%
   filter(!(Survey_Type == "Morning")) %>%
   group_by(Station, Survey_Type, Year) %>%
-  reframe(mean_temperature = mean(Temperature),
-            sd = sd(Temperature),
+  reframe(mean_temperature = mean(temp_C),
+            sd = sd(temp_C),
             n = n()) %>%
   mutate(se = sd / sqrt(n))
 
@@ -834,7 +840,7 @@ testDispersion(frog.survtype.humidity.temperature) # passes
 ```{r frog humidity plot}
 
 frog_humidity_scatterplot <- frogs_tallied %>%
-ggplot(aes(x = mean_relative_humidity, y = n_500m)) + geom_point(aes(color = Station), position = "jitter") + geom_smooth(method = "glm", color = "black", linewidth = 0.5) + theme_bw()+ylab("# frogs/500m") + xlab("% relative humidity") + scale_color_manual(values = c("orange3", "blue"), labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank())
+ggplot(aes(x = mean_relative_humidity, y = n_500m)) + geom_point(aes(fill = Survey_Type), shape = 21, color = "black", position = "jitter") + geom_smooth(method = "glm", color = "black", linewidth = 0.5) + theme_bw()+ylab("Frogs/500m") + xlab("% relative humidity") + scale_fill_manual(values = c("yellow", "darkblue"), labels = c("Afternoon survey", "Night survey")) + theme(legend.title = element_blank()) +ggtitle("Frog detection rates and relative humidity")+ theme(text = element_text(size = 14))+theme(axis.text = element_text(color = "black", size = 12))
 
 frog_humidity_scatterplot
 
@@ -847,7 +853,7 @@ frog_humidity_scatterplot
 
 # temperature
 frog_temperature_scatterplot <- frogs_tallied %>%
-ggplot(aes(x = mean_temp_F, y = n_500m)) + geom_point(aes(color = Station), position = "jitter") + geom_smooth(method = "glm", color = "black", linewidth = 0.5) + theme_bw()+ylab("# frogs/500m") + xlab("Mean temperature during survey (F)") + scale_color_manual(values = c("orange3", "blue"), labels = c("Unhunted", "Hunted")) + theme(legend.title = element_blank())
+ggplot(aes(x = mean_temp_C, y = n_500m)) + geom_point(aes(fill = Station), color = "black", shape = 21,position = "jitter") + geom_smooth(method = "glm", color = "black", linewidth = 0.5) + theme_bw()+ylab("Frogs/500m") + xlab("Mean temperature during survey (C)") + scale_fill_manual(values = c("yellow", "darkblue"), labels = c("Afternoon survey", "Night survey")) + theme(legend.title = element_blank()) + ggtitle("Frog detection rates and temperature") + theme(text = element_text(size = 14))+theme(axis.text = element_text(color = "black", size = 12))
 
 frog_temperature_scatterplot 
 # supplementary
@@ -942,6 +948,27 @@ testDispersion(liz.huntXyear.temperature) # passes
 
 ```
 
+## Lizards and temperature plot
+
+```{r liz temperature trend}
+# temperature
+liz_temperature_scatterplot <- liz_tallied %>%
+ggplot(aes(x = mean_temp_C, y = n_500m)) + geom_point(aes(fill = Station), color = "black", shape = 21,position = "jitter") + geom_smooth(method = "glm", color = "black", linewidth = 0.5) + theme_bw()+ylab("Lizards/500m") + xlab("Mean temperature during survey (C)") + scale_fill_manual(values = c("yellow", "darkblue"), labels = c("Afternoon survey", "Night survey")) + theme(legend.title = element_blank()) + ggtitle("Lizard detection rates and temperature") +theme(axis.text = element_text(color = "black", size = 12)) + theme(text = element_text(size = 14))
+
+liz_temperature_scatterplot 
+# supplementary
+```
+
+## Arrange supp panel of frogs and lizards with env vars
+
+```{r frog liz env var panel}
+
+supp_fig <- ggarrange(frog_humidity_scatterplot, frog_temperature_scatterplot, liz_temperature_scatterplot, common.legend = TRUE)
+supp_fig 
+
+ggsave("env_vars_frog_liz_detections.png", supp_fig, dpi = 130, width = 8, height = 6)
+```
+
 
 ## Lizards and Hunting status plot
 
@@ -957,7 +984,6 @@ lizard.hunting.plot.yr
 
 # main text fig panel
 
-
 lizard.hunting.plot <-ggplot(lizard.summ, aes(x = Station, y = mean)) +
   geom_point(data = liz_tallied, aes(x = Station, y = n_500m), alpha = 0.3, position = position_jitterdodge(jitter.width = 0.1)) + geom_errorbar(aes(ymin = mean - se, ymax = mean + se, width = 0.1), position = spec_dodge) +
   geom_point(position = spec_dodge, size = 2, shape = 22, fill = "tan") + 
@@ -966,7 +992,6 @@ lizard.hunting.plot <-ggplot(lizard.summ, aes(x = Station, y = mean)) +
 
 lizard.hunting.plot
 ```
-
 
 # Snakes
 
